@@ -7,6 +7,7 @@ export const Layout: FC<{ title: string; children: Child }> = ({ title, children
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>{title} - 拍档 PaddlePal</title>
       <script src="https://cdn.tailwindcss.com"></script>
+      <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
       <script dangerouslySetInnerHTML={{
         __html: `tailwind.config={theme:{extend:{colors:{pp:{50:'#f0fdf4',100:'#dcfce7',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534'}}}}}`
       }} />
@@ -27,6 +28,7 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
     { href: '/schedule', label: '赛程', icon: '📋' },
     { href: '/results', label: '成绩', icon: '🏆' },
     { href: '/players', label: '选手', icon: '👥' },
+    { href: '/search', label: '查询', icon: '🔍' },
     { href: '/admin', label: '管理', icon: '⚙️' },
   ];
   return (

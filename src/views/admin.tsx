@@ -89,6 +89,12 @@ export const AdminPage: FC<{
 
       {/* Recent matches */}
       <Card title="🎯 比赛记录（最近20场）">
+        <div class="flex gap-2 mb-3">
+          <a href="/api/admin/export/schedule" class="px-3 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100">📥 导出赛程</a>
+          <a href="/api/admin/export/results" class="px-3 py-1 bg-green-50 text-green-600 rounded text-xs hover:bg-green-100">📥 导出成绩</a>
+          <a href="/api/admin/export/players" class="px-3 py-1 bg-amber-50 text-amber-600 rounded text-xs hover:bg-amber-100">📥 导出选手</a>
+          <a href="/api/admin/backup" class="px-3 py-1 bg-gray-50 text-gray-600 rounded text-xs hover:bg-gray-100">💾 完整备份</a>
+        </div>
         <table class="w-full text-sm">
           <thead><tr class="text-left text-gray-500"><th class="pb-2">场次</th><th class="pb-2">对阵</th><th class="pb-2">比分</th><th class="pb-2">状态</th></tr></thead>
           <tbody class="divide-y divide-gray-100">

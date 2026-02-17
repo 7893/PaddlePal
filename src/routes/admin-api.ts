@@ -104,6 +104,26 @@ adminApi.delete('/api/admin/players', async (c) => {
   return c.json({ success: true });
 });
 
+// Bulk import players (text or Excel-parsed CSV lines)
+adminApi.post('/api/admin/players/import', async (c) => {
+  const { data } = await c.req.json<{ data: string }>();
+  const db = c.env.DB;
+  const { results: teams } = await db.prepare('SELECT id, name, short_name FROM teams WHERE tournament_id=1').all();
+  const teamMap = new Map<string, number>();
+  for (const t of teams) { teamMap.set(t.name as string, t.id as number); teamMap.set(t.short_name as string, t.id as number); }
+  let count = 0;
+  for (const line of data.split('\n')) {
+    const parts = line.split(',').map(s => s.trim());
+    const name = parts[0];
+    if (!name) continue;
+    const gender = (parts[1] || 'M').toUpperCase().startsWith('女') || (parts[1] || '').toUpperCase() === 'W' ? 'W' : 'M';
+    const tid = teamMap.get(parts[2] || '') || 0;
+    await db.prepare('INSERT INTO players (tournament_id, name, gender, team_id) VALUES (1,?,?,?)').bind(name, gender, tid).run();
+    count++;
+  }
+  return c.json({ success: true, count });
+});
+
 // /api/admin/teams
 adminApi.get('/api/admin/teams', async (c) => {
   const id = c.req.query('id');
@@ -262,6 +282,44 @@ adminApi.delete('/api/admin/notice', async (c) => {
   const { id } = await c.req.json<{ id: number }>();
   await c.env.DB.prepare('DELETE FROM notices WHERE id=?').bind(id).run();
   return c.json({ success: true });
+});
+
+// CSV exports
+adminApi.get('/api/admin/export/schedule', async (c) => {
+  const { results } = await c.env.DB.prepare(`
+    SELECT m.match_order as pid, m.date, m.time, m.table_no, m.status, m.result,
+      COALESCE(p1.name,'') as player1, COALESCE(p2.name,'') as player2, e.title as event
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    ORDER BY m.date, m.time, m.match_order
+  `).all();
+  const bom = '\uFEFF';
+  let csv = bom + '场次,日期,时间,球台,选手1,选手2,项目,比分,状态\n';
+  for (const r of results) csv += `${r.pid},${r.date||''},${r.time||''},${r.table_no},${r.player1},${r.player2},${r.event},${r.result||''},${r.status}\n`;
+  return new Response(csv, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename=schedule.csv' } });
+});
+
+adminApi.get('/api/admin/export/players', async (c) => {
+  const { results } = await c.env.DB.prepare(`SELECT p.name, p.gender, COALESCE(t.name,'') as team, COALESCE(p.rating,0) as rating
+    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.id`).all();
+  const bom = '\uFEFF';
+  let csv = bom + '姓名,性别,队伍,积分\n';
+  for (const r of results) csv += `${r.name},${r.gender === 'W' ? '女' : '男'},${r.team},${r.rating}\n`;
+  return new Response(csv, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename=players.csv' } });
+});
+
+adminApi.get('/api/admin/export/results', async (c) => {
+  const { results } = await c.env.DB.prepare(`
+    SELECT m.match_order as pid, COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      e.title as event, m.result, m.status
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    WHERE m.status='finished' ORDER BY e.id, m.match_order
+  `).all();
+  const bom = '\uFEFF';
+  let csv = bom + '场次,选手1,选手2,项目,比分\n';
+  for (const r of results) csv += `${r.pid},${r.p1},${r.p2},${r.event},${r.result}\n`;
+  return new Response(csv, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename=results.csv' } });
 });
 
 // /api/admin/backup - export all data as JSON

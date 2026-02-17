@@ -77,13 +77,19 @@ export const PlayersEditPage: FC<{ players: Player[]; teams: { id: number; name:
       </Card>
       <Card title="📋 批量导入" class="mt-4">
         <textarea id="bulk" rows={4} placeholder="每行一个：姓名,性别(M/W),队伍名" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2"></textarea>
-        <button onclick="bulkImport()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">批量导入</button>
+        <button onclick="bulkImport()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">文本导入</button>
+        <div class="mt-3 pt-3 border-t border-gray-100">
+          <label class="text-sm text-gray-600 block mb-1">Excel 导入（.xlsx/.xls，列：姓名、性别、队伍）</label>
+          <input type="file" id="xlfile" accept=".xlsx,.xls,.csv" class="text-sm" />
+          <button onclick="xlImport()" class="ml-2 px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">导入</button>
+        </div>
       </Card>
     </div>
     <script dangerouslySetInnerHTML={{ __html: `
 function del(id){if(!confirm('确定删除？'))return;fetch('/api/admin/players?id='+id,{method:'DELETE'}).then(r=>r.json()).then(function(){location.reload()});}
 document.getElementById('f').onsubmit=function(e){e.preventDefault();var d={};new FormData(this).forEach(function(v,k){d[k]=k==='team_id'?parseInt(v):v});fetch('/api/admin/players',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()).then(function(r){if(r.success)location.reload();});};
 function bulkImport(){var data=document.getElementById('bulk').value;if(!data.trim())return;fetch('/api/admin/players/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:data})}).then(r=>r.json()).then(function(r){if(r.success){alert('导入 '+r.count+' 人');location.reload();}});}
+function xlImport(){var f=document.getElementById('xlfile').files[0];if(!f)return;var reader=new FileReader();reader.onload=function(e){var wb=XLSX.read(e.target.result,{type:'array'});var ws=wb.Sheets[wb.SheetNames[0]];var rows=XLSX.utils.sheet_to_json(ws,{header:1});var lines=[];for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]&&String(r[0]).trim())lines.push(r.join(','));}fetch('/api/admin/players/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:lines.join('\\n')})}).then(function(r){return r.json()}).then(function(r){if(r.success){alert('导入 '+r.count+' 人');location.reload();}});};reader.readAsArrayBuffer(f);}
 ` }} />
   </Layout>
 );

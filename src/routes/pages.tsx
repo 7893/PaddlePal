@@ -9,6 +9,9 @@ import { ScorePage, ScoreNotFound } from '../views/score';
 import { TournamentEditPage, EventsEditPage } from '../views/admin-edit';
 import { TeamsEditPage, PlayersEditPage, NoticesEditPage } from '../views/admin-crud';
 import { DrawPage } from '../views/draw';
+import { SearchPage } from '../views/search';
+import { BracketPage } from '../views/bracket';
+import { TeamMatchPage } from '../views/team-match';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -272,4 +275,66 @@ pages.get('/admin/draw/:eventId', async (c) => {
   const unassigned = allPlayers.filter(p => !assignedIds.includes(p.id as number));
 
   return c.html(<DrawPage event={ev as any} groups={groups as any} unassigned={unassigned as any} />);
+});
+
+// Search
+pages.get('/search', async (c) => {
+  const q = (c.req.query('q') || '').trim();
+  if (!q) return c.html(<SearchPage q="" matches={[]} />);
+  const { results } = await c.env.DB.prepare(`
+    SELECT m.match_order as pid, m.time, m.table_no, m.status, m.result,
+      COALESCE(p1.name,'') as player1, COALESCE(p2.name,'') as player2, e.title as event
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    WHERE p1.name LIKE ?1 OR p2.name LIKE ?1
+    ORDER BY m.time, m.match_order
+  `).bind(`%${q}%`).all();
+  return c.html(<SearchPage q={q} matches={results as any} />);
+});
+
+// Bracket view (knockout events)
+pages.get('/bracket/:eventId', async (c) => {
+  const db = c.env.DB;
+  const eventId = c.req.param('eventId');
+  const ev = await db.prepare('SELECT title FROM events WHERE id=?').bind(eventId).first();
+  if (!ev) return c.text('Not found', 404);
+  const { results } = await db.prepare(`
+    SELECT m.id, COALESCE(m.round,1) as round, m.match_order as position, m.status, m.result, COALESCE(m.winner_side,0) as winner,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
+    FROM matches m
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    WHERE m.event_id=? ORDER BY m.round, m.match_order
+  `).bind(eventId).all();
+  const maxRound = results.reduce((mx, r) => Math.max(mx, r.round as number), 1);
+  const rounds: any[][] = [];
+  for (let r = 1; r <= maxRound; r++) rounds.push(results.filter(m => m.round === r));
+  return c.html(<BracketPage title={ev.title as string} rounds={rounds} maxRound={maxRound} />);
+});
+
+// Team match view
+pages.get('/team/:eventId', async (c) => {
+  const db = c.env.DB;
+  const eventId = c.req.param('eventId');
+  const ev = await db.prepare('SELECT title FROM events WHERE id=?').bind(eventId).first();
+  if (!ev) return c.text('Not found', 404);
+  // Team matches: matches with team1_id set
+  const { results: tms } = await db.prepare(`
+    SELECT m.id, m.match_order, m.time, m.table_no, m.status, m.result,
+      COALESCE(t1.name,'') as team1, COALESCE(t2.name,'') as team2, e.title as event
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+    WHERE m.event_id=? AND m.team1_id IS NOT NULL ORDER BY m.match_order
+  `).bind(eventId).all();
+  // For each team match, find rubber matches (individual matches in same group/round)
+  const matches = [];
+  for (const tm of tms) {
+    const { results: rubbers } = await db.prepare(`
+      SELECT m.match_order as pid, COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2, m.result, m.status
+      FROM matches m
+      LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+      WHERE m.event_id=? AND m.group_id=? AND m.team1_id IS NULL ORDER BY m.match_order
+    `).bind(eventId, tm.id).all();
+    matches.push({ ...tm, rubbers: rubbers.length > 0 ? rubbers : [] });
+  }
+  return c.html(<TeamMatchPage event={ev.title as string} matches={matches as any} />);
 });
