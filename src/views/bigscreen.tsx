@@ -41,7 +41,7 @@ export const BigScreenLive = ({ matches, checkin }: { matches: any[], checkin: a
                   <td class="player">{m.nr || m.tnr}</td>
                 </tr>
               ))}
-              {matches.length === 0 && <tr><td colspan="5">暂无比赛</td></tr>}
+              {matches.length === 0 && <tr><td colspan={5}>暂无比赛</td></tr>}
             </tbody>
           </table>
         </div>
@@ -59,7 +59,7 @@ export const BigScreenLive = ({ matches, checkin }: { matches: any[], checkin: a
                   <td class="player">{m.nr || m.tnr}</td>
                 </tr>
               ))}
-              {checkin.length === 0 && <tr><td colspan="5">暂无检录</td></tr>}
+              {checkin.length === 0 && <tr><td colspan={5}>暂无检录</td></tr>}
             </tbody>
           </table>
         </div>

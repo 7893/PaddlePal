@@ -31,7 +31,7 @@ export const RankingPage = ({ players }: { players: any[] }) => (
               <td class="rating">{p.rating}</td>
             </tr>
           ))}
-          {players.length === 0 && <tr><td colspan="4">暂无数据</td></tr>}
+          {players.length === 0 && <tr><td colspan={4}>暂无数据</td></tr>}
         </tbody>
       </table>
     </body>

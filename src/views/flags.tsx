@@ -99,7 +99,7 @@ export const FlagUploadPage = ({ teams }: { teams: any[] }) => (
             <div class="team-flag-empty">无</div>
           }
           <span class="team-name">{t.name}</span>
-          <form class="upload-form" method="POST" action={`/api/flag/${t.id}`} enctype="multipart/form-data">
+          <form class="upload-form" method="post" action={`/api/flag/${t.id}`} enctype="multipart/form-data">
             <input type="file" name="flag" accept="image/png,image/jpeg" required />
             <button type="submit">上传</button>
           </form>
