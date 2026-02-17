@@ -1,5 +1,5 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, Badge } from '../components/layout';
+import { Layout, Nav, Badge } from '../components/layout';
 
 type Match = {
   id: number; tb: number; tm: string; gp: string; ev: string;
