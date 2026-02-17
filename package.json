@@ -1,0 +1,17 @@
+{
+  "name": "paddlepal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PaddlePal (拍档) - Table Tennis Tournament Management System",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute paddlepal-db --file=sql/schema.sql",
+    "db:init:local": "wrangler d1 execute paddlepal-db --local --file=sql/schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "typescript": "^5.7.3",
+    "wrangler": "^4.65.0"
+  }
+}

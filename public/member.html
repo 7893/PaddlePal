@@ -1,0 +1,220 @@
+<html>
+<head>
+	<title>赛事助手网络版</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+	<link href="css/comm.css" rel="stylesheet" type="text/css"> 
+	<script language="javascript" src="js/jquery-3.2.1.min.js"></script>
+	<script language="javascript" type="text/javascript">
+	var dispList = new Array("#host_field", "#guest_field", "#submit");
+	var member_map = {};
+	var check_rote = 1;
+	var pid = 0;
+
+	function member_check() {
+		var text, value;
+		var retval = true;
+		$(".mode").each(function() {
+			if (retval) {
+				value = $(this).val();			
+				text  = $(this).attr('defaultValue');
+				for (var i = 0; i < text.length; i++) {
+					if (value == text) {
+						alert('团体成员未挑选完!');
+						retval = false;
+						break;
+					}
+				}
+			}
+		});
+
+		if (retval && check_rote == 1) {
+			for (var key in member_map) {
+				var count = 0;
+				for (var val in member_map) {
+					if (member_map[key] == member_map[val]) {
+						count ++;
+						if (count >= 2)
+							break;
+					}
+				}
+				if (count >= 2) {
+					alert("运动员(" + member_map[key] + ")被重复挑选!");
+					retval = false;
+					break;
+				}
+			}
+		}
+		return retval;
+	}
+	function member_submit() {
+		if (!member_check())
+			return;
+		var count = $('.mode').length / 2;
+		var form = document.createElement("form");		
+		var input;
+
+		form.action = 'teammember?action=' + pid;
+		form.method = "post";
+		// pid
+		input = document.createElement("input");
+		input.type = "hidden";
+		input.name = "pid";
+		input.value = pid;
+		form.appendChild(input);
+		// count(pair)
+		input = document.createElement("input");
+		input.type = "hidden";
+		input.name = "count";
+		input.value = count;
+		form.appendChild(input);
+		// name
+		$(".mode").each(function() {
+			input = document.createElement("input");
+			input.type = "hidden";
+			input.name = $(this).attr("name");
+			input.value = $(this).val();			
+			form.appendChild(input);
+		});
+		document.body.appendChild(form);
+		form.submit();
+		return true;
+	}
+	function member_request() {
+		if (pid == 0)
+			pid = $("#pid").val();
+		var val = parseInt(parseInt(pid) / 10000);
+		if (pid.length != 5) {
+			alert('场次号输入有误!');
+			return;
+		}
+		if (val != 3 && val != 6 && val != 9) {
+			alert('清输入团体场次号!' + val);
+			return;
+		}
+		$.getJSON('teammember?play=' + pid, function(data) {
+			var mode  = data["mode"];
+			var host  = data["lmode"];
+			var guest = data["rmode"];
+			var text  = "";
+			var member;
+			member_map = {};
+
+			$.each(dispList, function(index,name){
+				$(name).show();
+			});
+			check_rote = data["check"];
+
+			// mode_field
+			$("#title_vs").text("团体模式");
+			text = "";
+			for (var i = 0; i < mode.length; i++) {
+				text += "第" + (i + 1) + "场：";
+				text +=  "<input class=\"mode\" name=\"hmode" + i + "\" defaultValue=\""+ mode[i][0] + "\" value=\""+ mode[i][0] + "\" size=\"18\" maxlength=\"18\" style=\"text-align:center\" disabled=\"true\" type=\"text\"> vs ";
+				text +=  "<input class=\"mode\" name=\"gmode" + i + "\" defaultValue=\""+ mode[i][1] + "\" value=\""+ mode[i][1] + "\" size=\"18\" maxlength=\"18\" style=\"text-align:center\" disabled=\"true\" type=\"text\">";
+				text += "<br>";
+			}
+			$("#mode_div").html(text);
+
+			// host field
+			$("#host_team").text(data["team"][0] + " (主场)");
+			member = data["member"][0];
+			text = "";
+			$.each(host, function(hindex, hname) {
+				var html = "";
+				text += hname + ": ";
+				member_map[hname] = hname;
+				$.each(member, function(m, name) {
+					html += "<option value=\"" + hname + "\">" + name + "</option>";
+				});
+				text += "<select style=\"width:200px\" id=\"hs" + hindex + "\">" + html + "</select><br>";
+			});
+			$("#host_div").html(text);
+
+			// guest field
+			$("#guest_team").text(data["team"][1] + " (客场)");
+			member = data["member"][1];
+			text = "";
+			$.each(guest, function(gindex, gname) {
+				var html = "";
+				text += gname + ": ";
+				member_map[gname] = gname;
+				$.each(member, function(m, name) {
+					html += "<option value=\"" + gname + "\">" + name + "</option>";
+				});
+				text += "<select style=\"width:200px\" id=\"gs" + gindex + "\">" + html + "</select><br>";
+			});
+			$("#guest_div").html(text);
+
+			// update  input
+			$('select').bind("click", function () {
+				// restore default
+				$(".mode").each(function() {
+					text = $(this).attr('defaultValue');
+					if (text.length > 1)
+						text = text.charAt(0) + "/" + text.substr(1, text.length - 1);
+					$(this).val(text);
+				});	
+				var count = $('select').length / 2;
+				for (var m = 0; m < count; m++) {
+					$.each(["#hs", "#gs"], function(index,name){
+						text = name + m;
+						var _mode = $(text + " option:selected").val();
+						var _text = $(text + " option:selected").text();
+						member_map[_mode] = _text;
+						$(".mode").each(function() {
+							var text = $(this).attr('defaultValue');
+							var value = $(this).val();
+							if (text.length == 2)
+								value = member_map[text.charAt(0)] + "/" + member_map[text.charAt(1)];
+							else if (text.length == 1)
+								value = member_map[text];
+							$(this).val(value);
+						});
+					});
+				}
+			});
+		});
+	}
+	function member_exchange() {
+		$.getJSON('teammember?exchange=' + pid, function(data) {
+			member_request();
+		});
+	}
+	$(document).ready(function () {
+		$.each(dispList, function(index,name){
+			$(name).hide();
+		});
+	});
+	</script>
+</head>
+
+<body>
+	<div id="formwrapper">
+		<fieldset id="mode_field">
+			<legend id="title_vs">团体挑选名单</legend>
+			<div id="mode_div" align=center>
+				<label>场次号:</label>
+				<input type="text" id="pid" size="20" maxlength="5" />
+				<input type="button" class="buttom" value="确认" onClick="javascript:return member_request();"/>
+			</div>
+		</fieldset>
+		</br>
+		<fieldset id="host_field">
+			<legend id="host_team">主队</legend>
+			<div id="host_div" align=center></div>
+		</fieldset>
+		<br>
+		<fieldset id="guest_field">
+			<legend id="guest_team">客队</legend>
+			<div id="guest_div" align=center></div>
+		</fieldset>
+		<div id="submit" align=center>
+			<br>
+			<input type="button" class="buttom" value="主客" onClick="javascript:return member_exchange();"/>
+			<input type="button" class="buttom" value="提交" onClick="javascript:return member_submit();"/>
+			<input type="button" class="buttom" value="重置" onClick="javascript:return member_request();"/>
+		</div>
+	</div>
+</body>
+
+</html>

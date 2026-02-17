@@ -1,0 +1,355 @@
+
+body {
+    font-family: "Microsoft YaHei UI", "Microsoft Yahei", "Arial", "sans-serif";
+    font-size: 18px;
+    font-weight: 300;
+    color: #586772;
+    background-attachment: fixed, fixed;
+    background-image: linear-gradient(-60deg, #1b86ca 0, #3faaee 60%, #1b86ca 100%);
+    background-position: center center, center center;
+    background-size: cover, cover;
+    min-height: 100%;
+    overflow-x: hidden;
+    padding-right: 0 !important;
+}
+
+@media (min-width: 320px) {
+    body {
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 568px) {
+    body {
+        font-size: 16px;
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 1200px) {
+    body {
+        font-size: 19px;
+    }
+}
+
+@media (min-width: 1920px) {
+    body {
+        font-size: 20px;
+    }
+}
+
+
+a {
+    color: #4e4a46;
+    text-decoration: none;
+    outline: none;
+}
+
+a:hover,
+a:focus {
+    color: #FF8000;
+    outline: none;
+    text-decoration: none;
+}
+
+strong {
+    font-weight: 600;
+}
+
+
+
+/*===============================================================
+  MAIN MENU
+===============================================================*/
+
+.navbar.navbar-default {
+    padding: 15px 0;
+    border-radius: 0;
+    border: none;
+    background-color: transparent;
+    transition: all .3s;
+}
+
+
+/*
+  Scrolling
+*/
+
+.navbar.navbar-default.scrolling {
+    padding: 0;
+    background-color: #16679a;
+}
+
+
+/*
+  Responsive
+*/
+
+.navbar-default .navbar-toggle {
+    border-color: transparent;
+}
+
+.navbar-default .navbar-toggle:focus,
+.navbar-default .navbar-toggle:hover {
+    border-color: transparent;
+    background-color: transparent;
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #fff;
+}
+
+.navbar-default .navbar-toggle:focus .icon-bar,
+.navbar-default .navbar-toggle:hover .icon-bar {
+    background-color: #586772;
+}
+
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+    border-color: rgba(255, 255, 255, .25);
+}
+
+.navbar.navbar-default .navbar-collapse.in,
+.navbar.navbar-default .navbar-collapse.collapsing {
+    margin-top: 15px;
+    background-color: #e27a00;
+}
+
+.navbar.navbar-default.scrolling .navbar-collapse.in,
+.navbar.navbar-default.scrolling .navbar-collapse.collapsing {
+    margin-top: 0;
+}
+
+
+.navbar-header {
+    margin: 0 auto;
+    width: 100%;
+    text-align: center;
+    padding:0;
+}
+
+/*  组别项目 */
+.event-header {
+    margin: 0 auto;
+    color: #ddd;
+    width: 100%;
+    text-align: center;
+    font-weight: bolder;
+}
+
+/*  时间台号 */
+.event-schedule {
+    margin: 0 auto;
+    width: 100%;
+    color: #ddd;
+    text-align: center;
+}
+
+
+.container {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1040px;
+    text-align: center;
+}
+
+.intro > .container {
+  margin: 0 auto;
+  padding-top: 80px;
+  padding-bottom:20px;
+  padding-left:0;
+  padding-right:0;
+}
+
+.arrow-white,
+.arrow-gray {
+    position: relative;
+}
+
+.arrow-gray:before,
+.arrow-white:before {
+    content: '';
+    width: 0;
+    height: 0;
+    border: 20px solid transparent;
+    border-bottom: 20px solid #f7f7f7;
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    margin-left: -20px;
+    z-index: 111;
+}
+
+.arrow-white:before {
+    border-bottom: 20px solid white;
+}
+
+.border {
+    border: 1px solid #d0d0d0;
+}
+
+.section {
+    padding: 30px 0;
+}
+
+/*===============================================================
+  表格
+===============================================================*/
+
+.tb_ScoreSheet {
+    margin: 0 auto;
+    width: 98%;
+    max-width: 800px;
+    border: 1px solid #d0d0d0;
+}
+
+.bg-white {
+    background-color: white;
+}
+
+.bg-gray {
+    background-color: #f7f7f7;
+}
+
+/*  比赛结果 */
+.tg-result{
+    color: #fff;
+    font-size: 2em;
+    text-align: center;
+}
+
+/*  位置号 */
+.tg-placeID{
+    color: #fff;
+    font-size: 1em;
+    margin:0;
+    padding:0;
+    text-align: center;
+}
+
+/*  运动员姓名-单项 */
+.tg-playerName{
+    color: #cf3;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+/*  出场运动员姓名-团体 */
+.tg-playerName2{
+    color: #222;
+    font-size: 1.2em;
+    text-align: center;
+    background-color: #ddd;
+}
+
+/*  团体队名 */
+.tg-teamName{
+    color: #cf3;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+/*  队名-单项 */
+.tg-playerTeam{
+    color: #222;
+    font-size: 1em;
+    text-align: center;
+}
+
+/*  局分 */
+.tg-gamepoints {
+    color: #f93;
+    font-size: 1.2em;
+    width: 3em;
+    font-weight: bolder;
+    background-color: #1b86ca;
+    background: linear-gradient(#38a6ec, #1b86ca);
+  }
+
+/*  局数 */
+.tg-games {
+    color: #BBB;
+    font-size: 1.2em;
+    width: 4em;
+}
+
+/*  胜方比分 */
+.tg-points-w {
+    color: #333;
+    font-size: 1.2em;
+    width: 4em;
+    font-weight: bolder;
+}
+
+/*  负方比分 */
+.tg-points-l {
+    color: #333;
+    font-size: 1.2em;
+    width: 4em;
+    font-weight: bolder;
+}
+
+/*  比分胜负方标记-左侧-胜 */
+.tg-mark-l-w-s {
+    width: 20px;
+    border-left: 4px solid #f18609;
+    /*  background: url(/templets/metro/images/mark-w-s.png) no-repeat;
+  background-position:center; */
+}
+
+/*  比分胜负方标记-左侧-负 */
+.tg-mark-l-l-s {
+    width: 20px;
+    border-left: 4px solid #ddd;
+}
+
+/*  比分胜负方标记-右侧-胜 */
+.tg-mark-r-w-s {
+    width: 20px;
+    border-right: 4px solid #f18609;
+    /*  background: url(/templets/metro/images/mark-w-s.png) no-repeat;
+  background-position:center; */
+}
+
+/*  比分胜负方标记-右侧-负 */
+.tg-mark-r-l-s {
+    width: 20px;
+    border-right: 4px solid #ddd;
+}
+
+/*  局分胜负方标记-左侧-胜 */
+.tg-mark-l-w {
+    width: 20px;
+    border-left: 20px solid #ddd;
+    background: url(/templets/metro/images/mark-w-s.png) no-repeat;
+    background-position:center; 
+    background-color: #ddd;
+}
+
+/*  局分胜负方标记-左侧-负 */
+.tg-mark-l-l {
+    width: 20px;
+    border-left: 20px solid #ddd;
+    background-color: #ddd;
+}
+
+/*  局分胜负方标记-右侧-胜 */
+.tg-mark-r-w {
+    width: 20px;
+    border-right: 20px solid #ddd;
+    background: url(/templets/metro/images/mark-w-s.png) no-repeat;
+    background-position:center; 
+    background-color: #ddd;
+}
+
+/*  局分胜负方标记-右侧-负 */
+.tg-mark-r-l {
+    width: 20px;
+    border-right: 20px solid #ddd;
+    background-color: #ddd;
+}

@@ -1,0 +1,243 @@
+table {
+	border-collapse:collapse;
+	table-layout:fixed;
+	width:386pt;
+}
+tr {
+	mso-height-source:userset;
+}
+#tr1 {
+	height:37pt;
+}
+td {
+	color:black;
+	padding-top:1px;
+	padding-right:1px;
+	padding-left:1px;
+	font-style:normal;
+	font-family:ËÎÌå;
+	text-decoration:none;
+	text-align:center;
+	mso-generic-font-family:auto;
+	mso-font-charset:134;
+	mso-number-format:General;
+	mso-ignore:padding;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	vertical-align:middle;
+	white-space:nowrap;
+}
+hr{
+	border:none;
+	border-top:1px solid blue;
+	height:0;
+}
+col {
+	mso-width-source:userset;
+}
+#col1 {
+	mso-width-alt:864;width:20pt;
+}
+#col2 {
+	mso-width-alt:672;width:16pt;
+}
+#col3 {
+	mso-width-alt:1696;width:40pt;
+}
+#col4 {
+	mso-width-alt: 672;width:16pt;
+}
+#col5 {
+	mso-width-alt:1696;width:40pt;
+}
+#col6 {
+	mso-width-alt:1248;width:29pt;
+}
+#input1 {
+	border:none;
+	width:90%;
+	border-bottom:1px #0000ff solid;
+}
+#input2 {
+	border:none;
+	width:90%;
+}
+#title {
+	height:24.95pt;
+	width:386pt;
+	font-size:16.0pt;
+	font-weight:400;
+	font-family:Î¢ÈíÑÅºÚ, sans-serif;
+}
+#project {
+	height:24.95pt;
+	font-size:11.0pt;
+	font-weight:400;
+	text-align:left;
+}
+#order {
+	height:49.9pt;
+	width:20pt;
+	font-size:11.0pt;
+	font-weight:400;
+	border:1pt solid windowtext;
+}
+#ABC {
+	font-size:11.0pt;
+	font-weight:400;
+	border-top:1pt solid windowtext;
+	border-right:1pt solid black;
+	border-bottom:none;
+	border-left:none;
+}
+#XYZ {
+	font-size:11.0pt;
+	font-weight:400;
+	border-top:1pt solid windowtext;
+	border-right:1pt solid black;
+	border-bottom:none;
+	border-left:none;  
+}
+#ec_score {
+	font-size:11.0pt;
+	font-weight:400;
+	border-top:1pt solid windowtext;
+	border-right:1pt solid black;
+	border-bottom:1pt solid windowtext;
+	border-left:none;
+}
+#torder {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border-top:none;
+	border-right:1pt solid black;
+	border-bottom:1pt solid windowtext;
+	border-left:none;
+}
+#tscore {
+	height:35.1pt;
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:700;
+	border-top:none;
+	border-right:1pt solid windowtext;
+	border-bottom:1pt solid black;
+	border-left:1pt solid windowtext;
+}
+#score {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border-top:1pt solid black;
+	border-right:1pt solid windowtext;
+	border-bottom:1pt solid black;
+	border-left:none;
+}
+#score1 {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border-top:1pt solid black;
+	border-right:1pt solid windowtext;
+	border-bottom:1pt solid black;
+	border-left:none;
+	border-top:none;
+}
+#bank {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+}
+#bank1 {
+	font-size:11.0pt;
+	font-weight:400;
+	border-top:1pt solid black;
+	border-right:1pt solid windowtext;
+	border-bottom:1pt solid black;
+	border-left:none;
+	mso-diagonal-up:1pt solid windowtext;
+}
+#fmt {
+	font-size:11.0pt;
+	font-weight:400;
+	text-align:left;
+}
+#item {
+	font-size:11.0pt;
+	font-weight:400;
+	border:1pt solid windowtext;
+}
+#item1 {
+	height:24.95pt;
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border:1pt solid windowtext;
+}
+#item2 {
+	height:35.1pt;
+	font-size:11.0pt;
+	font-weight:700;
+	border:1pt solid black;
+	border-top:none;
+}
+#item3 {
+	font-size:11.0pt;
+	font-weight:400;
+	border:1pt solid black;
+	border-top:none;
+	border-left:none;
+}
+#item4 {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border:1pt solid black;
+	border-left:none;
+}
+#item5 {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border:1pt solid black;
+	border-top:none;
+	border-left:none;
+	mso-diagonal-up:1pt solid windowtext;
+}
+#item6 {
+	font-size:11.0pt;
+	font-weight:400;
+	border:1pt solid windowtext;
+	border-top:none;
+	border-left:none;
+}
+#item7 {
+	font-size:11.0pt;
+	font-weight:400;
+	border:1pt solid windowtext;
+	border-left:none;
+}
+#item8 {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border:1pt solid windowtext;
+	border-left:none;
+}
+#item9 {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border:1pt solid windowtext;
+	border-top:none;
+	border-left:none;
+}
+#item10 {
+	color:windowtext;
+	font-size:12.0pt;
+	font-weight:400;
+	border:1pt solid black;
+	border-top:none;
+	border-left:none;
+}

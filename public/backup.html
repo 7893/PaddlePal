@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>数据备份 - 赛事助手</title>
+    <link rel="stylesheet" href="templets/metro/css/bootstrap.min.css">
+    <style>
+        .admin-nav { background: #337ab7; padding: 10px 20px; margin-bottom: 20px; }
+        .admin-nav a { color: white; margin-right: 20px; }
+    </style>
+</head>
+<body>
+<div class="admin-nav">
+    <a href="admin.html">管理后台</a>
+    <a href="control.html">控场面板</a>
+    <a href="players.html">选手管理</a>
+    <a href="teams.html">队伍管理</a>
+    <a href="backup.html"><b>数据备份</b></a>
+    <a href="index.html">返回前台</a>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading"><h4>下载备份</h4></div>
+                <div class="panel-body">
+                    <p>下载当前数据库的完整备份文件。</p>
+                    <a href="/api/admin/backup" class="btn btn-primary btn-lg">
+                        <span class="glyphicon glyphicon-download"></span> 下载数据库
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-warning">
+                <div class="panel-heading"><h4>恢复数据</h4></div>
+                <div class="panel-body">
+                    <p class="text-danger"><strong>警告：恢复操作将覆盖当前所有数据！</strong></p>
+                    <input type="file" id="restoreFile" accept=".db">
+                    <br><br>
+                    <button class="btn btn-warning btn-lg" onclick="restoreDB()">
+                        <span class="glyphicon glyphicon-upload"></span> 恢复数据库
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel panel-info">
+        <div class="panel-heading"><h4>备份列表</h4></div>
+        <div class="panel-body" id="backupList">加载中...</div>
+    </div>
+</div>
+
+<script src="js/jquery-3.2.1.min.js"></script>
+<script>
+function loadBackups() {
+    $.get('/api/admin/backups', function(data) {
+        var html = '<table class="table table-striped"><thead><tr><th>文件名</th><th>大小</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+        (data.backups || []).forEach(function(b) {
+            html += '<tr><td>' + b.name + '</td><td>' + b.size + '</td><td>' + b.time + '</td>' +
+                '<td><a href="/api/admin/backup?file=' + b.name + '" class="btn btn-xs btn-primary">下载</a></td></tr>';
+        });
+        html += '</tbody></table>';
+        $('#backupList').html(data.backups && data.backups.length ? html : '<p class="text-muted">暂无备份文件</p>');
+    });
+}
+
+function restoreDB() {
+    var file = $('#restoreFile')[0].files[0];
+    if (!file) { alert('请选择备份文件'); return; }
+    if (!confirm('确定要恢复数据库吗？当前数据将被覆盖！')) return;
+    
+    var fd = new FormData();
+    fd.append('file', file);
+    $.ajax({
+        url: '/api/admin/restore',
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            if (res.success) {
+                alert('恢复成功！页面将刷新。');
+                location.reload();
+            } else {
+                alert('恢复失败: ' + res.error);
+            }
+        }
+    });
+}
+
+loadBackups();
+</script>
+</body>
+</html>

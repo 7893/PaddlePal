@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>比分大屏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#fff;font-family:'Microsoft YaHei',sans-serif;overflow:hidden}
+.header{background:#16213e;padding:10px 20px;text-align:center;font-size:18px}
+.tables{display:flex;flex-wrap:wrap;padding:10px;gap:10px;justify-content:center}
+.match-card{background:#0f3460;border-radius:8px;padding:15px;min-width:320px;flex:1;max-width:480px}
+.match-card.playing{border:2px solid #e94560}
+.match-card.finished{border:2px solid #27ae60;opacity:.7}
+.match-info{font-size:12px;color:#aaa;margin-bottom:8px}
+.match-info .table-no{background:#e94560;color:#fff;padding:2px 8px;border-radius:3px;margin-right:8px}
+.players{display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+.player{text-align:center;flex:1}
+.player .name{font-size:22px;font-weight:bold}
+.player .team{font-size:12px;color:#aaa}
+.vs{font-size:14px;color:#e94560;padding:0 10px}
+.game-scores{display:flex;justify-content:center;gap:5px;margin-top:10px}
+.game{background:#16213e;border-radius:4px;padding:4px 8px;text-align:center;min-width:50px}
+.game .num{font-size:10px;color:#666}
+.game .sc{font-size:16px;font-weight:bold}
+.game .sc.win{color:#e94560}
+.result{text-align:center;font-size:28px;font-weight:bold;color:#e94560;margin:5px 0}
+.empty{text-align:center;padding:100px;font-size:24px;color:#555}
+.status-bar{text-align:center;padding:5px;font-size:12px;color:#555}
+.status-bar .live{color:#e94560}
+</style>
+</head>
+<body>
+<div class="header" id="title">比分大屏</div>
+<div class="tables" id="board"></div>
+<div class="status-bar">
+  <span class="live">● LIVE</span> 实时更新中 | <span id="clock"></span>
+</div>
+<script>
+var ws, reconnectTimer;
+function connect() {
+  ws = new WebSocket((location.protocol==='https:'?'wss://':'ws://') + location.host);
+  ws.onmessage = function(e) { refresh(); };
+  ws.onclose = function() { reconnectTimer = setTimeout(connect, 3000); };
+}
+
+function refresh() {
+  fetch('/rawinfo').then(r=>r.json()).then(d=>{
+    document.getElementById('title').textContent = d.info || '比分大屏';
+  });
+  fetch('/playing?option=json').then(r=>r.json()).then(d=>{
+    fetch('/toplay?option=json').then(r=>r.json()).then(tp=>{
+      render(d.array, tp.array);
+    });
+  });
+}
+
+function render(playing, toplay) {
+  var html = '';
+  if (!playing.length && !toplay.length) {
+    html = '<div class="empty">暂无比赛进行中</div>';
+  }
+  playing.forEach(function(m) {
+    html += card(m, 'playing');
+  });
+  toplay.slice(0, 8).forEach(function(m) {
+    html += card(m, 'scheduled');
+  });
+  document.getElementById('board').innerHTML = html;
+}
+
+function card(m, status) {
+  var scores = m.score || [];
+  var wL = 0, wR = 0;
+  scores.forEach(function(s) { if (s.l > s.r) wL++; else if (s.r > s.l) wR++; });
+  var cls = status === 'playing' ? 'playing' : '';
+  var h = '<div class="match-card ' + cls + '">';
+  h += '<div class="match-info"><span class="table-no">' + m.tb + '台</span>' + m.gp + ' ' + (m.tm||'') + '</div>';
+  h += '<div class="players">';
+  h += '<div class="player"><div class="name">' + (m.nl||'?') + '</div><div class="team">' + (m.tnl||'') + '</div></div>';
+  if (status === 'playing' && scores.length) {
+    h += '<div class="result">' + wL + ' : ' + wR + '</div>';
+  } else {
+    h += '<div class="vs">VS</div>';
+  }
+  h += '<div class="player"><div class="name">' + (m.nr||'?') + '</div><div class="team">' + (m.tnr||'') + '</div></div>';
+  h += '</div>';
+  if (scores.length) {
+    h += '<div class="game-scores">';
+    scores.forEach(function(s, i) {
+      var lw = s.l > s.r, rw = s.r > s.l;
+      h += '<div class="game"><div class="num">G' + (i+1) + '</div><div class="sc' + (lw?' win':'') + '">' + s.l + '</div><div class="sc' + (rw?' win':'') + '">' + s.r + '</div></div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function updateClock() {
+  var d = new Date();
+  document.getElementById('clock').textContent = d.toLocaleTimeString();
+}
+
+connect();
+refresh();
+setInterval(refresh, 5000);
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>

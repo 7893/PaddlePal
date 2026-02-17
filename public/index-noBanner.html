@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="赛事助手网络版" />
+    <meta name="author" content="bookworm" />
+    <link rel="icon" href="favicon.ico" />
+    <title>赛事助手网络版</title>
+    <!-- metro templets CSS -->
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/metro.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/metro_mobile.css" media="screen and (max-height: 500px), screen and (orientation:portrait)" />
+    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.getJSON('rawinfo', function (data) {
+                $("#match_info").text(data.info);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="content-wrap">
+            <div class="banner-blank"><Br></div>
+            <div class="content">
+                <nav id="topbar" class="navbar navbar-default  navbar-fixed-top">
+                    <div class="container-fluid">
+                        <div class="navbar-header">
+                            <span id="match_info" class="navbar-brand"></span>
+                        </div>
+                    </div>
+                </nav>
+                <div id="widget_scroll_container">
+                    <div class="widget_container full square default" data-num="0">
+                        <div class="widget widget4x2 widget_orange widget_link" data-theme="orange" data-name="MatchTime"
+                            onclick="window.location.href=&#39;matchtime.html&#39;">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/MatchTime.png&#39;);">
+                                    <span>比赛秩序</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget4x2 widget_darkgreen widget_link" data-theme="darkgreen" data-name="MatchResult"
+                            onclick="window.location.href=&#39;matchresult.html&#39;">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/Result.png&#39;);">
+                                    <span>成绩公告</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget2x2 widget_darkred" data-theme="darkred" data-name="Progress" onclick="window.location.href=&#39;play.html&#39;">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/play.png&#39;);">
+                                    <span>实时赛况</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget2x2 widget_darkblue" data-theme="darkblue" data-name="Progress"
+                            onclick="javascript:return form_request(&#39;matchprogress.html&#39;, &#39;key&#39;, &#39;page&#39;);">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/Progress.png&#39;);">
+                                    <span>赛程进度</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget2x2 widget_green widget_link" data-theme="green" data-name="inquiry"
+                            onclick="window.location.href=&#39;inquiry.html&#39;">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/Inquiry.png&#39;);">
+                                    <span>赛程查询</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget2x2 widget_blue widget_link" data-theme="blue" data-name="Range"
+                            onclick="window.location.href=&#39;range.html&#39;">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/Range.png&#39;);">
+                                    <span>比赛排名</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget4x2 widget_grey widget_link" data-theme="grey" data-name="Playinfo"
+                            onclick="javascript:return form_request(&#39;PlayinfoPage&#39;, &#39;key&#39;, &#39;page&#39;);">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/Playinfo.png&#39;);">
+                                    <span>节目单</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget2x2 widget_yellow widget_link" data-theme="yellow" data-name="download"
+                            data-link="download/">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/download.png&#39;);">
+                                    <span>文档下载</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget widget2x2 widget_purple widget_link" data-theme="purple" data-name="notice"
+                            onclick="window.location.href=&#39;notice.html&#39;">
+                            <div class="widget_content">
+                                <div class="main" style="background-image:url(&#39;templets/metro/images/notice.png&#39;);">
+                                    <span>发送消息</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <br />
+                </div>
+            </div>
+            <!-- /content -->
+            <footer class="footer">
+                <div class="container">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="#" target="_blank">赛事助手软件</a>
+                        </li>
+                        <li>|</li>
+                        <li>
+                            <a href="#" target="_blank">专业竞赛系统</a>
+                        </li>
+                    </ul>
+                </div>
+            </footer>
+        </div>
+        <!-- /content-wrap -->
+    </div>
+    <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="js/form_request.js"></script>
+    <script type="text/javascript" src="templets/metro/js/metro.js"></script>
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</body>
+
+</html>

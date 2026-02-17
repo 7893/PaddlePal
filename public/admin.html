@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>管理后台 - 赛事助手</title>
+    <link rel="stylesheet" href="templets/metro/css/bootstrap.min.css">
+    <link rel="stylesheet" href="templets/metro/css/main.css">
+    <style>
+        .admin-nav { background: #337ab7; padding: 10px 20px; margin-bottom: 20px; }
+        .admin-nav a { color: white; margin-right: 20px; }
+        .match-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .match-card:hover { background: #f5f5f5; cursor: pointer; }
+        .status-scheduled { border-left: 4px solid #5bc0de; }
+        .status-playing { border-left: 4px solid #f0ad4e; }
+        .status-finished { border-left: 4px solid #5cb85c; }
+        .match-time { color: #666; }
+        .match-players { font-size: 18px; font-weight: bold; }
+        .match-result { font-size: 20px; color: #d9534f; }
+    </style>
+</head>
+<body>
+<div class="admin-nav">
+    <a href="admin.html"><b>管理后台</b></a>
+    <a href="control.html">控场面板</a>
+    <a href="players.html">选手管理</a>
+    <a href="teams.html">队伍管理</a>
+    <a href="input.html">成绩录入</a>
+    <a href="updb.html">上传数据</a>
+    <a href="index.html">返回前台</a>
+</div>
+
+<div class="container">
+    <h3>比赛管理</h3>
+    
+    <ul class="nav nav-tabs" id="matchTabs">
+        <li class="active"><a href="#playing" data-toggle="tab">进行中</a></li>
+        <li><a href="#scheduled" data-toggle="tab">待比赛</a></li>
+        <li><a href="#finished" data-toggle="tab">已完成</a></li>
+        <li><a href="#all" data-toggle="tab">全部</a></li>
+    </ul>
+    
+    <div class="tab-content">
+        <div class="tab-pane active" id="playing"></div>
+        <div class="tab-pane" id="scheduled"></div>
+        <div class="tab-pane" id="finished"></div>
+        <div class="tab-pane" id="all"></div>
+    </div>
+</div>
+
+<script src="js/jquery-3.2.1.min.js"></script>
+<script src="templets/metro/js/bootstrap.min.js"></script>
+<script>
+function loadMatches() {
+    $.get('/api/admin/matches', function(data) {
+        var playing = '', scheduled = '', finished = '', all = '';
+        
+        data.matches.forEach(function(m) {
+            var statusClass = 'status-' + m.status;
+            var statusText = m.status == 'playing' ? '进行中' : (m.status == 'finished' ? '已完成' : '待比赛');
+            
+            var card = '<div class="match-card ' + statusClass + '" onclick="editMatch(' + m.pid + ')">' +
+                '<div class="row">' +
+                '<div class="col-xs-2"><span class="badge">' + m.pid + '</span><br><small>' + m.table + '号台</small></div>' +
+                '<div class="col-xs-6"><span class="match-players">' + m.player1 + ' vs ' + m.player2 + '</span><br>' +
+                '<small class="match-time">' + m.event + ' | ' + m.time + '</small></div>' +
+                '<div class="col-xs-2 text-center"><span class="match-result">' + (m.result || '-') + '</span></div>' +
+                '<div class="col-xs-2 text-right"><span class="label label-' + 
+                (m.status == 'playing' ? 'warning' : (m.status == 'finished' ? 'success' : 'info')) + '">' + 
+                statusText + '</span></div>' +
+                '</div></div>';
+            
+            all += card;
+            if (m.status == 'playing') playing += card;
+            else if (m.status == 'scheduled') scheduled += card;
+            else if (m.status == 'finished') finished += card;
+        });
+        
+        $('#playing').html(playing || '<p class="text-muted">暂无进行中的比赛</p>');
+        $('#scheduled').html(scheduled || '<p class="text-muted">暂无待比赛</p>');
+        $('#finished').html(finished || '<p class="text-muted">暂无已完成的比赛</p>');
+        $('#all').html(all || '<p class="text-muted">暂无比赛</p>');
+    });
+}
+
+function editMatch(pid) {
+    // 跳转到成绩录入页面
+    $('<form action="RecordPage" method="post"><input name="playid" value="' + pid + '"></form>').appendTo('body').submit();
+}
+
+loadMatches();
+setInterval(loadMatches, 10000); // 每10秒刷新
+</script>
+</body>
+</html>

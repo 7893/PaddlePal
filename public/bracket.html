@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>淘汰赛对阵图</title>
+<link rel="stylesheet" href="/templets/metro/css/bootstrap.min.css"/>
+<style>
+body{padding:20px;font-family:'Microsoft YaHei',sans-serif;background:#f5f5f5}
+.bracket{display:flex;align-items:center;gap:0;overflow-x:auto;padding:20px}
+.round{display:flex;flex-direction:column;justify-content:space-around;min-width:200px}
+.round-title{text-align:center;font-weight:bold;margin-bottom:10px;color:#666;font-size:13px}
+.match-box{background:#fff;border:1px solid #ddd;border-radius:4px;margin:8px 5px;padding:0;overflow:hidden}
+.match-box.playing{border-color:#ff9800;background:#fff8e1}
+.match-box.finished{border-color:#4caf50}
+.match-box .p{padding:6px 10px;font-size:13px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
+.match-box .p:last-child{border-bottom:none}
+.match-box .p.winner{background:#e8f5e9;font-weight:bold}
+.match-box .p.bye{color:#999;font-style:italic}
+.match-box .p .team{font-size:11px;color:#888}
+.match-box .p .score{color:#e94560;font-weight:bold}
+.btn-group{margin:10px 0}
+</style>
+</head>
+<body>
+<div class="container-fluid">
+  <h3>淘汰赛对阵图 <small><a href="/">← 返回</a></small></h3>
+  <div class="btn-group">
+    <select id="evtSel" class="form-control" style="width:200px;display:inline-block">
+      <option value="">选择项目...</option>
+    </select>
+    <button class="btn btn-primary" onclick="loadBracket()">加载</button>
+    <button class="btn btn-success" onclick="generateBracket()">生成对阵图</button>
+    <button class="btn btn-info" onclick="autoDraw()">自动抽签</button>
+  </div>
+  <div class="bracket" id="bracket"></div>
+</div>
+<script src="/js/jquery-3.2.1.min.js"></script>
+<script>
+var events = [];
+$.getJSON('/admin/events', function(d) {
+  events = d;
+  d.forEach(function(e) {
+    $('#evtSel').append('<option value="' + e.id + '" data-key="' + e.key + '">' + e.title + ' (' + e.event_type + ')' + '</option>');
+  });
+});
+
+function loadBracket() {
+  var eventId = $('#evtSel').val();
+  if (!eventId) { $('#bracket').html(''); return; }
+  
+  $.getJSON('/bracket/' + eventId, function(data) {
+    if (!data.brackets || !data.brackets.length) {
+      $('#bracket').html('<p class="text-muted">暂无对阵数据，请先点击"自动抽签"再"生成对阵图"</p>');
+      return;
+    }
+    renderBracket(data);
+  });
+}
+
+function generateBracket() {
+  var eventId = $('#evtSel').val();
+  if (!eventId) return alert('请选择项目');
+  if (!confirm('确定要生成对阵图吗？这将清除现有对阵数据。')) return;
+  
+  $.post('/bracket/generate', { event_id: eventId }, function(res) {
+    if (res.ok) {
+      alert('对阵图生成成功！共 ' + res.matches + ' 场比赛，' + res.size + ' 人签表');
+      loadBracket();
+    } else {
+      alert('生成失败: ' + (res.error || '未知错误'));
+    }
+  });
+}
+
+function autoDraw() {
+  var eventId = $('#evtSel').val();
+  if (!eventId) return alert('请选择项目');
+  
+  $.post('/draw/auto', { event_id: eventId }, function(res) {
+    if (res.ok) {
+      alert('自动抽签完成！共 ' + res.count + ' 人');
+    } else {
+      alert('抽签失败: ' + (res.error || '未知错误'));
+    }
+  });
+}
+
+function renderBracket(data) {
+  var brackets = data.brackets;
+  var rounds = {};
+  brackets.forEach(function(b) {
+    if (!rounds[b.round]) rounds[b.round] = [];
+    rounds[b.round].push(b);
+  });
+  
+  var roundNums = Object.keys(rounds).sort(function(a, b) { return b - a; });
+  var labels = { 1: '决赛', 2: '半决赛', 4: '1/4决赛', 8: '1/8决赛', 16: '1/16决赛', 32: '1/32决赛' };
+  
+  var html = '';
+  roundNums.forEach(function(r) {
+    var matches = rounds[r].sort(function(a, b) { return a.position - b.position; });
+    html += '<div class="round"><div class="round-title">' + (labels[r] || '第' + Math.log2(parseInt(r) * 2) + '轮') + '</div>';
+    
+    matches.forEach(function(m) {
+      var statusClass = m.status === 'finished' ? 'finished' : (m.status === 'playing' ? 'playing' : '');
+      var p1Win = m.winner_id && m.winner_id === m.player1_id;
+      var p2Win = m.winner_id && m.winner_id === m.player2_id;
+      var p1Bye = !m.player1_id;
+      var p2Bye = !m.player2_id;
+      
+      html += '<div class="match-box ' + statusClass + '">';
+      html += '<div class="p ' + (p1Win ? 'winner' : '') + (p1Bye ? 'bye' : '') + '">';
+      html += '<span>' + (m.player1_name || 'BYE') + ' <span class="team">' + (m.team1_name || '') + '</span></span>';
+      html += '<span class="score">' + (p1Win ? '✓' : '') + '</span></div>';
+      html += '<div class="p ' + (p2Win ? 'winner' : '') + (p2Bye ? 'bye' : '') + '">';
+      html += '<span>' + (m.player2_name || 'BYE') + ' <span class="team">' + (m.team2_name || '') + '</span></span>';
+      html += '<span class="score">' + (p2Win ? '✓' : '') + '</span></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  
+  $('#bracket').html(html);
+}
+</script>
+</body>
+</html>

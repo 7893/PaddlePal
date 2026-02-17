@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>淘汰赛对阵图</title>
+    <link rel="stylesheet" href="templets/metro/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/cull_table.css">
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <style>
+        .bracket { position: relative; margin: 20px auto; }
+        .match-box { 
+            position: absolute; width: 200px; background: #fff;
+            border: 1px solid #999; border-radius: 4px; font-size: 12px;
+        }
+        .match-box .player { padding: 4px 8px; border-bottom: 1px solid #ddd; }
+        .match-box .player:last-child { border-bottom: none; }
+        .match-box .player.winner { background: #d4edda; font-weight: bold; }
+        .match-box .score { float: right; color: #666; }
+        .match-box .pid { position: absolute; top: -8px; left: -8px; 
+            background: #bcc98e; padding: 0 6px; border-radius: 3px; font-size: 10px; }
+        .connector { position: absolute; border: 1px solid #999; border-left: none; }
+        .round-label { position: absolute; top: -30px; font-weight: bold; color: #666; }
+    </style>
+</head>
+<body>
+    <h3 id="title">淘汰赛对阵图</h3>
+    <div id="bracket" class="bracket"></div>
+    <script>
+    $(function() {
+        var key = new URLSearchParams(location.search).get('key');
+        if (!key) {
+            var c = document.cookie.match(/key=([^;]*)/);
+            if (c) key = decodeURIComponent(c[1]);
+        }
+        if (key) loadBracket(key);
+    });
+
+    function loadBracket(key) {
+        $.post('playcull', {key: key}, function(data) {
+            if (!data || !data.rounds) return;
+            $('#title').text(data.title || key);
+            renderBracket(data);
+        }, 'json');
+    }
+
+    function renderBracket(data) {
+        var $b = $('#bracket').empty();
+        var rounds = data.rounds, matches = data.matches;
+        var boxW = 200, boxH = 50, gapX = 80, gapY = 20;
+        var totalH = Math.pow(2, rounds - 1) * (boxH + gapY);
+        $b.css({width: rounds * (boxW + gapX), height: totalH + 60});
+
+        // Round labels
+        var labels = ['决赛','半决赛','1/4决赛','1/8决赛','1/16决赛','1/32决赛','1/64决赛'];
+        for (var r = rounds; r >= 1; r--) {
+            var x = (rounds - r) * (boxW + gapX);
+            var label = r <= labels.length ? labels[r-1] : '第' + r + '轮';
+            $b.append('<div class="round-label" style="left:' + x + 'px">' + label + '</div>');
+        }
+
+        // Matches
+        matches.forEach(function(m) {
+            var r = m.round, pos = m.position;
+            var count = Math.pow(2, r - 1);
+            var spacing = totalH / count;
+            var x = (rounds - r) * (boxW + gapX);
+            var y = (pos - 1) * spacing + spacing / 2 - boxH / 2 + 30;
+
+            var html = '<div class="match-box" style="left:' + x + 'px;top:' + y + 'px">';
+            html += '<span class="pid">' + (m.pid || '') + '</span>';
+            var w = m.winner_side;
+            html += '<div class="player' + (w==1?' winner':'') + '">' + (m.player1||'待定') + 
+                    '<span class="score">' + (m.score1||'') + '</span></div>';
+            html += '<div class="player' + (w==2?' winner':'') + '">' + (m.player2||'待定') + 
+                    '<span class="score">' + (m.score2||'') + '</span></div>';
+            html += '</div>';
+            $b.append(html);
+
+            // Connector to next round
+            if (r > 1) {
+                var nextY = Math.floor((pos - 1) / 2) * spacing * 2 + spacing - boxH / 2 + 30 + boxH / 2;
+                var cy = y + boxH / 2, cx = x + boxW;
+                var ch = Math.abs(nextY - cy);
+                $b.append('<div class="connector" style="left:' + cx + 'px;top:' + Math.min(cy, nextY) + 
+                    'px;width:' + (gapX/2) + 'px;height:' + ch + 'px;border-bottom:1px solid #999"></div>');
+            }
+        });
+    }
+    </script>
+</body>
+</html>

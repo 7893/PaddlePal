@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="赛事助手网络版" />
+    <meta name="author" content="bookworm" />
+    <link rel="icon" href="favicon.ico" />
+    <title>赛事助手网络版-赛程查询</title>
+    <!-- metro templets CSS -->
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/icomoon.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/menu_sideslide.css" />
+    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="js/menu-wrap.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+		menu_wrap_init();
+	});
+	</script>
+</head>
+
+<body>
+    <div class="container">
+        <div id="menu-wrap" class="menu-wrap">
+        </div>
+        <button class="menu-button" id="open-button">Open Menu</button>
+        <div class="content-wrap">
+            <div class="content">
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <div class="navbar-header">
+                            <span class="navbar-brand">成绩录入</span>
+                        </div>
+                    </div>
+                </nav>
+                <div class="formwrapper">
+                    <form action="RecordPage" method="post" class="form-horizontal">
+                        <fieldset>
+                            <legend>查询记分单</legend>
+                        </fieldset>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-4"></div>
+                                <div class="col-lg-4">
+                                    <div class="alert alert-warning" role="alert">
+                                        <strong>请先输入场次号，查找出该场比赛记分单。</strong></div>
+                                </div>
+                                <div class="col-lg-4"></div>
+                            </div>
+                        </div>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-5"></div>
+                                <div class="col-lg-2">
+                                    <div class="input-group">
+                                        <span class="input-group-addon" id="basic-addon3">场次号</span>
+                                        <label class="sr-only" for="team">team</label>
+                                        <input type="text" name="playid" value="" maxlength="5" class="form-control" aria-describedby="basic-addon3" placeholder="(固定5个字符)" onkeypress="return IsNum(event)" />
+                                    </div>
+                                    <br />
+                                </div>
+                                <div class="col-lg-5"></div>
+                            </div>
+                        </div>
+                        <div class="container">
+                            <br />
+                            <button name="Submit" type="submit" class="btn btn-primary" value="查询" />查询</button>
+                            <button name="reset" type="reset" class="btn btn-default" value="重置" />重置</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="container">
+                    <br />
+                </div>
+            </div>
+            <footer class="footer">
+                <div class="container">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="#" target="_blank">赛事助手软件</a>
+                        </li>
+                        <li>|</li>
+                        <li>
+                            <a href="#" target="_blank">专业竞赛系统</a>
+                        </li>
+                    </ul>
+                </div>
+            </footer>
+        </div>
+        <!-- /content-wrap -->
+    </div>
+    <!-- /container -->
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="templets/metro/js/classie.js"></script>
+    <script src="templets/metro/js/main.js"></script>
+    <script language="javascript" src="js/check_input.js"></script>
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</body>
+
+</html>

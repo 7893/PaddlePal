@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>比分控制器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#222;color:#fff;font-family:'Microsoft YaHei',sans-serif;max-width:500px;margin:0 auto;padding:10px}
+select{width:100%;padding:10px;font-size:16px;margin:5px 0;border-radius:5px}
+.scoreboard{display:flex;gap:10px;margin:10px 0}
+.side{flex:1;text-align:center;background:#333;border-radius:10px;padding:15px}
+.side .name{font-size:18px;font-weight:bold;margin-bottom:5px}
+.side .team{font-size:12px;color:#aaa}
+.side .score{font-size:72px;font-weight:bold;line-height:1;margin:15px 0}
+.side .score.leading{color:#e94560}
+.btns{display:flex;gap:5px}
+.btns button{flex:1;padding:15px;font-size:24px;border:none;border-radius:8px;cursor:pointer}
+.btn-plus{background:#27ae60;color:#fff}
+.btn-minus{background:#c0392b;color:#fff}
+.game-info{text-align:center;margin:10px 0;font-size:14px;color:#aaa}
+.game-info .current{color:#e94560;font-size:18px;font-weight:bold}
+.history{display:flex;justify-content:center;gap:8px;margin:10px 0;flex-wrap:wrap}
+.history .g{background:#333;padding:5px 10px;border-radius:5px;font-size:14px}
+.history .g.won{color:#e94560}
+.actions{display:flex;gap:5px;margin:10px 0}
+.actions button{flex:1;padding:12px;font-size:14px;border:none;border-radius:5px;cursor:pointer}
+.btn-next{background:#2980b9;color:#fff}
+.btn-end{background:#8e44ad;color:#fff}
+.btn-reset{background:#555;color:#fff}
+</style>
+</head>
+<body>
+<select id="matchSel" onchange="selectMatch()"><option value="">选择比赛...</option></select>
+<div id="ctrl" style="display:none">
+  <div class="game-info">第 <span class="current" id="gameNo">1</span> 局 | <span id="gameWins">0 : 0</span></div>
+  <div class="scoreboard">
+    <div class="side">
+      <div class="name" id="n1">-</div>
+      <div class="team" id="t1"></div>
+      <div class="score" id="s1">0</div>
+      <div class="btns">
+        <button class="btn-plus" onclick="add(1,1)">+</button>
+        <button class="btn-minus" onclick="add(1,-1)">−</button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="name" id="n2">-</div>
+      <div class="team" id="t2"></div>
+      <div class="score" id="s2">0</div>
+      <div class="btns">
+        <button class="btn-plus" onclick="add(2,1)">+</button>
+        <button class="btn-minus" onclick="add(2,-1)">−</button>
+      </div>
+    </div>
+  </div>
+  <div class="history" id="history"></div>
+  <div class="actions">
+    <button class="btn-next" onclick="nextGame()">下一局</button>
+    <button class="btn-end" onclick="endMatch()">结束比赛</button>
+    <button class="btn-reset" onclick="resetGame()">重置本局</button>
+  </div>
+</div>
+<script>
+var mid=0, gameNo=1, s1=0, s2=0, bestOf=5, games=[], ws;
+
+function connectWS(){
+  ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host);
+  ws.onclose=function(){setTimeout(connectWS,3000)};
+}
+connectWS();
+
+fetch('/admin/matches').then(r=>r.json()).then(d=>{
+  var sel=document.getElementById('matchSel');
+  d.matches.filter(m=>m.status!=='finished').forEach(m=>{
+    var o=document.createElement('option');
+    o.value=m.id;o.textContent='#'+m.match_order+' '+(m.player1_name||'?')+' vs '+(m.player2_name||'?')+' ['+m.event_key+']';
+    o.dataset.p1=m.player1_name||'?';o.dataset.p2=m.player2_name||'?';
+    o.dataset.t1=m.event_title||'';o.dataset.t2='';
+    sel.appendChild(o);
+  });
+});
+
+function selectMatch(){
+  var sel=document.getElementById('matchSel');
+  var opt=sel.options[sel.selectedIndex];
+  mid=parseInt(sel.value)||0;
+  if(!mid){document.getElementById('ctrl').style.display='none';return;}
+  document.getElementById('ctrl').style.display='block';
+  document.getElementById('n1').textContent=opt.dataset.p1;
+  document.getElementById('n2').textContent=opt.dataset.p2;
+  s1=0;s2=0;gameNo=1;games=[];
+  // Set match to playing
+  fetch('/admin/match/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({match_id:mid,status:'playing'})});
+  updateDisplay();
+}
+
+function add(side,delta){
+  if(side===1)s1=Math.max(0,s1+delta);else s2=Math.max(0,s2+delta);
+  updateDisplay();
+  submitCurrent();
+}
+
+function submitCurrent(){
+  fetch('/input',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({match_id:mid,game_no:gameNo,score_left:s1,score_right:s2})});
+}
+
+function nextGame(){
+  if(s1===0&&s2===0)return;
+  games.push([s1,s2]);
+  s1=0;s2=0;gameNo++;
+  updateDisplay();
+}
+
+function resetGame(){s1=0;s2=0;updateDisplay();submitCurrent();}
+
+function endMatch(){
+  if(s1>0||s2>0){games.push([s1,s2]);submitCurrent();}
+  fetch('/admin/match/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({match_id:mid,status:'finished'})}).then(()=>{
+    alert('比赛已结束');location.reload();
+  });
+}
+
+function updateDisplay(){
+  document.getElementById('s1').textContent=s1;
+  document.getElementById('s2').textContent=s2;
+  document.getElementById('s1').className='score'+(s1>s2?' leading':'');
+  document.getElementById('s2').className='score'+(s2>s1?' leading':'');
+  document.getElementById('gameNo').textContent=gameNo;
+  var w1=0,w2=0;
+  games.forEach(g=>{if(g[0]>g[1])w1++;else w2++;});
+  document.getElementById('gameWins').textContent=w1+' : '+w2;
+  var hh='';
+  games.forEach((g,i)=>{
+    var won=g[0]>g[1]?'won':'';
+    hh+='<span class="g '+won+'">G'+(i+1)+': '+g[0]+'-'+g[1]+'</span>';
+  });
+  document.getElementById('history').innerHTML=hh;
+}
+</script>
+</body>
+</html>

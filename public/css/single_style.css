@@ -1,0 +1,83 @@
+table {
+	border-collapse:collapse;
+	width:324pt;
+}
+td {
+	color: windowtext;
+	padding-left: 1px;
+	padding-right: 1px;
+	padding-top: 1px;
+	font-family: ËÎÌå;
+	font-style: normal;
+	font-size: 12.0pt;
+	font-weight: 400;
+	text-decoration: none;
+	text-align: center;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+#title {
+	height: 23.1pt;
+	width: 324pt;
+	font-family: Î¢ÈíÑÅºÚ, sans-serif;
+	font-size: 13.0pt;
+	font-weight: 700;
+	border: medium none;
+}
+#project {
+	height: 14.1pt;
+	text-align: left;
+	border-left: medium none;
+	border-right: medium none;
+	border-top: medium none;
+	border-bottom: 1px solid windowtext;
+}
+#date {
+	height: 21.0pt;
+	border: 1px solid windowtext;
+}
+#bureau {
+	height: 42.3pt;
+	border: 1px solid windowtext;
+}
+#info {
+	border-left: medium none;
+	border-right: 1px solid black;
+	border-top: 1px solid windowtext;
+	border-bottom: 1px solid windowtext;
+}
+#name {
+	height: 14.1pt;
+	border-left: medium none;
+	border-right: 1px solid black;
+	border-top: 1px solid windowtext;
+	border-bottom: medium none;
+}
+#team {
+	height: 14.1pt; 
+	border-left: medium none;
+	border-right: 1px solid black;
+	border-top: medium none;
+	border-bottom: 1px solid windowtext;
+}
+#fmt_bureau {
+	height: 24.95pt;
+	border-left: 1px solid windowtext;
+	border-right: 1px solid windowtext;
+	border-top: medium none;
+	border-bottom: 1px solid windowtext;
+}
+#fmt_score {
+	border-left: medium none;
+	border-right: 1px solid black;
+	border-top: 1px solid windowtext;
+	border-bottom: 1px solid windowtext;
+}
+#fmt_input {
+	border:none;
+	border-bottom:1px #000000 solid;
+}
+
+
+

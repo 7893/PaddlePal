@@ -1,0 +1,358 @@
+html {
+    height: 100%;
+    font-family: "Microsoft YaHei UI","Microsoft Yahei","Arial","sans-serif";
+}
+
+body {
+    margin:0;
+    padding:0;
+    height: 100%;
+    font-size: 100%;
+    cursor: default;
+    overflow-x: hidden;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-color: #fff;
+    background-attachment: fixed;
+    background-size: cover;
+    font-size: 14px;
+    font-size: 1.4rem;
+}
+
+.container {
+  padding-right: 0px;
+  padding-left: 0px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.container,
+.content-wrap {
+    overflow: hidden;
+    width: 100%;
+}
+
+.content-wrap {
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.content {
+    position: relative;
+    background: #fff;
+}
+
+.content::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    content: '';
+    opacity: 0;
+    -webkit-transform: translate3d(100%, 0, 0);
+    transform: translate3d(100%, 0, 0);
+    -webkit-transition: opacity 0.4s, -webkit-transform 0s 0.4s;
+    transition: opacity 0.4s, transform 0s 0.4s;
+    -webkit-transition-timing-function: cubic-bezier(0.7, 0, 0.3, 1);
+    transition-timing-function: cubic-bezier(0.7, 0, 0.3, 1);
+}
+
+.navbar {
+  *position: relative;
+  *z-index: 2;
+  margin-bottom: 20px;
+  overflow: visible;
+  	background-color: #CCCCCC;
+	background: linear-gradient(#EAEAEA, #CCCCCC);
+	padding-top: 1px;
+	padding-bottom: 1px;
+	border-bottom:1px solid #999999;
+}
+
+.navbar-header {
+    text-align: center;
+    width: 100%;
+	margin-right: 0px!important;
+	margin-left: 0px!important;
+}
+
+.navbar-brand {
+	overflow:hidden;
+    white-space: nowrap;
+	text-overflow:ellipsis;
+	float:none;
+    display:inline-block;
+  	margin-left: auto;
+  	margin-right: auto;
+  	margin-top: 0;
+    margin-left: 0px!important;
+	color: #333!important;
+	font-size:1em;
+}
+
+.navbar-banner-brand {
+    color: #fff!important;
+    font-size:1em;
+}
+
+.navbar-banner {
+    text-align: center;
+    width: 100%;
+    margin-right: 0px!important;
+    margin-left: 0px!important;
+    background-image: linear-gradient(-60deg, #02223a 0, #0084c6 60%, #02223a 100%);
+    background-position: center center, center center;
+    background-size: cover, cover;
+    border-bottom:1px solid #024f79;
+}
+
+.footer {
+	overflow:hidden;
+	padding: 15px 15px 10px 15px;
+	margin: 0;
+	background-color: #eee;
+	border-top: 1px solid #ddd;
+}
+
+.banner-top-container {
+    overflow:hidden;
+    margin: 0 auto;
+    text-align: center;
+    padding: 0px;
+    width: 100%;
+    background-image: linear-gradient(-60deg, #0189c5 0, #032e4f 60%, #0189c5 100%);
+    background-position: center center, center center;
+    background-size: cover, cover;
+}
+
+.banner-top {
+    margin: 0 auto;
+    text-align: center;
+    margin: 0 auto;
+    padding: 0;
+    margin-top: 58px;
+    width: 100%;
+    max-width: 1024px;
+}
+
+.banner-top-img {
+    margin: 0;
+    text-align: left;
+    padding: 0;
+    width: 100%;
+    height:0;
+    padding-bottom: 30.7%;
+    background-image: url('/images/banner-top.jpg');
+    background-size: 100%;
+}
+
+.banner-top-remark {
+    overflow:hidden;
+    margin: 0 auto;
+    text-align: center;
+    padding: 5px;
+    width: 100%;
+    max-width: 1024px;
+    color: #fff;
+    font-size:10px;
+    background-image: linear-gradient(-60deg, #032e4f 0, #0189c5 60%, #032e4f 100%);
+    background-position: center center, center center;
+    background-size: cover, cover;
+}
+
+.banner-bottom {
+    overflow:hidden;
+    margin: 0 auto;
+    text-align: center;
+    margin-top: 50px;
+    padding: 2px;
+    width: 100%;
+    background-color: #eee;
+}
+
+.banner-blank {
+    margin-top: 2em;
+}
+
+.logoimage {
+    width: 10%;
+    margin-top:1%;
+    margin-left:1%;
+}
+
+.bannerimage {
+    width: 100%;
+    max-width: 1024px;
+}
+
+.formwrapper{
+	padding-right: 10px;
+	padding-left: 10px;
+	margin:0 auto;
+	text-align:center;
+}
+
+a {
+    color: #4e4a46;
+    text-decoration: none;
+    outline: none;
+}
+
+a:hover,
+a:focus {
+    color: #FF8000;
+    outline: none;
+    text-decoration: none;
+}
+
+div.page_content {
+    padding: 16px;
+}
+
+/*
+touch
+*/
+body.touch {
+    overflow: auto;
+}
+
+
+@media (min-width: 320px) {
+    .navbar-banner-brand {
+        font-size: 14px;
+    }
+
+    .banner-top-remark {
+        font-size: 10px;
+    }
+
+    .navbar-header {
+        height: 30px!important;
+    }
+
+    .navbar {
+    min-height: 30px!important;
+    }
+
+    .navbar-brand {
+    height: 30px!important;
+    padding: 5px 5px;
+    }
+
+    .banner-top {
+        margin-top: 33px;
+    }
+
+}
+
+@media (min-width: 568px) {
+    .navbar-banner-brand {
+        font-size: 16px;
+    }
+
+    .banner-top-remark {
+        font-size: 14px;
+    }
+
+    .navbar-header {
+        height: 35px!important;
+    }
+
+    .navbar {
+    min-height: 35px!important;
+}
+
+    .navbar-brand {
+    height: 35px!important;
+    padding: 10px 10px;
+    }
+
+    .banner-top {
+        margin-top: 38px;
+    }
+}
+
+@media (min-width: 768px) {
+    .navbar-banner-brand {
+        font-size: 18px;
+    }
+
+    .banner-top-remark {
+        font-size: 16px;
+    }
+
+    .navbar-header {
+        height: 40px!important;
+    }
+
+    .navbar {
+    min-height: 40px!important;
+    }
+
+    .navbar-brand {
+    height: 40px!important;
+    padding: 12px 12px;
+    }
+
+    .banner-top {
+        margin-top: 43px;
+    }
+}
+
+
+@media (min-width: 1200px) {
+    .navbar-banner-brand {
+        font-size: 19px;
+    }
+
+    .banner-top-remark {
+        font-size: 18px;
+    }
+
+    .navbar-header {
+        height: 50px!important;
+    }
+
+    .navbar {
+    min-height: 50px!important;
+    }
+
+    .navbar-brand {
+    height: 50px!important;
+    padding: 15px 15px;
+    }
+
+    .banner-top {
+        margin-top: 53px;
+    }
+}
+
+@media (min-width: 1920px) {
+    .navbar-banner-brand {
+        font-size: 20px;
+    }
+
+    .banner-top-remark {
+        font-size: 19px;
+    }
+
+    .navbar-header {
+        height: 55px!important;
+    }
+
+    .navbar {
+    min-height: 55px!important;
+    }
+
+    .navbar-brand {
+    height: 55px!important;
+    padding: 18px 18px;
+    }
+
+    .banner-top {
+        margin-top: 58px;
+    }
+}

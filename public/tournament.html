@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>赛事管理 - 赛事助手</title>
+    <link rel="stylesheet" href="templets/metro/css/bootstrap.min.css">
+    <style>
+        .admin-nav { background: #337ab7; padding: 10px 20px; margin-bottom: 20px; }
+        .admin-nav a { color: white; margin-right: 20px; }
+    </style>
+</head>
+<body>
+<div class="admin-nav">
+    <a href="admin.html">管理后台</a>
+    <a href="tournament.html"><b>赛事管理</b></a>
+    <a href="events.html">项目管理</a>
+    <a href="draw.html">抽签编排</a>
+    <a href="index.html">返回前台</a>
+</div>
+
+<div class="container">
+    <h3>赛事信息</h3>
+    <form id="tournamentForm" class="form-horizontal">
+        <div class="form-group">
+            <label class="col-sm-2 control-label">赛事名称</label>
+            <div class="col-sm-6"><input type="text" class="form-control" id="info"></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">比赛地点</label>
+            <div class="col-sm-6"><input type="text" class="form-control" id="venue"></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">开始日期</label>
+            <div class="col-sm-3"><input type="date" class="form-control" id="start_date"></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">球台数量</label>
+            <div class="col-sm-2"><input type="number" class="form-control" id="tables" min="1" max="20"></div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-6">
+                <button type="button" class="btn btn-primary" onclick="saveTournament()">保存</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="js/jquery-3.2.1.min.js"></script>
+<script>
+function loadTournament() {
+    $.get('/api/admin/tournament', function(data) {
+        $('#info').val(data.info || '');
+        $('#venue').val(data.venue || '');
+        $('#start_date').val(data.start_date || '');
+        $('#tables').val(data.tables || 8);
+    });
+}
+
+function saveTournament() {
+    $.ajax({
+        url: '/api/admin/tournament',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            info: $('#info').val(),
+            venue: $('#venue').val(),
+            start_date: $('#start_date').val(),
+            tables: parseInt($('#tables').val()) || 8
+        }),
+        success: function(res) {
+            alert(res.success ? '保存成功' : '保存失败: ' + res.error);
+        }
+    });
+}
+
+loadTournament();
+</script>
+</body>
+</html>

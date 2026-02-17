@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>团体赛详情 - 赛事助手</title>
+    <link rel="stylesheet" href="templets/metro/css/bootstrap.min.css">
+    <style>
+        .admin-nav { background: #337ab7; padding: 10px 20px; margin-bottom: 20px; }
+        .admin-nav a { color: white; margin-right: 20px; }
+        .sub-match { padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        .sub-match.finished { background: #dff0d8; }
+        .team-score { font-size: 36px; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="admin-nav">
+    <a href="admin.html">管理后台</a>
+    <a href="team_draw.html">团体编排</a>
+    <a href="#"><b>团体赛详情</b></a>
+</div>
+
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading"><h4 id="matchTitle">团体赛</h4></div>
+        <div class="panel-body text-center">
+            <div class="row">
+                <div class="col-xs-5 text-right">
+                    <h3 id="team1Name">队伍1</h3>
+                    <span class="team-score" id="team1Score">0</span>
+                </div>
+                <div class="col-xs-2"><h3>VS</h3></div>
+                <div class="col-xs-5 text-left">
+                    <h3 id="team2Name">队伍2</h3>
+                    <span class="team-score" id="team2Score">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h4>分场比赛</h4>
+    <div id="subMatches"></div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn btn-success btn-lg" onclick="finishTeamMatch()">结束团体赛</button>
+        <a href="team_draw.html" class="btn btn-default btn-lg">返回</a>
+    </div>
+</div>
+
+<script src="js/jquery-3.2.1.min.js"></script>
+<script>
+var matchId = new URLSearchParams(location.search).get('id');
+
+function loadMatch() {
+    $.get('/api/admin/team_match?id=' + matchId, function(data) {
+        $('#matchTitle').text(data.event + ' - 第' + data.order + '场');
+        $('#team1Name').text(data.team1);
+        $('#team2Name').text(data.team2);
+        $('#team1Score').text(data.score1);
+        $('#team2Score').text(data.score2);
+        
+        var html = '';
+        (data.sub_matches || []).forEach(function(m, i) {
+            var cls = m.status == 'finished' ? 'sub-match finished' : 'sub-match';
+            html += '<div class="' + cls + '">' +
+                '<div class="row">' +
+                '<div class="col-xs-1"><b>第' + (i+1) + '场</b></div>' +
+                '<div class="col-xs-3">' +
+                '<select class="form-control" id="p1_' + m.id + '" onchange="updateSubMatch(' + m.id + ')">' +
+                '<option value="">选择选手</option>' + data.team1_players.map(function(p) {
+                    return '<option value="' + p.id + '"' + (p.id == m.player1_id ? ' selected' : '') + '>' + p.name + '</option>';
+                }).join('') + '</select></div>' +
+                '<div class="col-xs-2 text-center">' +
+                '<input type="text" class="form-control text-center" id="result_' + m.id + '" value="' + (m.result || '') + '" placeholder="比分" style="width:80px;display:inline" onchange="updateSubMatch(' + m.id + ')">' +
+                '</div>' +
+                '<div class="col-xs-3">' +
+                '<select class="form-control" id="p2_' + m.id + '" onchange="updateSubMatch(' + m.id + ')">' +
+                '<option value="">选择选手</option>' + data.team2_players.map(function(p) {
+                    return '<option value="' + p.id + '"' + (p.id == m.player2_id ? ' selected' : '') + '>' + p.name + '</option>';
+                }).join('') + '</select></div>' +
+                '<div class="col-xs-3">' +
+                '<button class="btn btn-sm btn-primary" onclick="saveSubMatch(' + m.id + ')">保存</button>' +
+                '</div></div></div>';
+        });
+        $('#subMatches').html(html);
+    });
+}
+
+function updateSubMatch(id) {}
+
+function saveSubMatch(id) {
+    var p1 = $('#p1_' + id).val();
+    var p2 = $('#p2_' + id).val();
+    var result = $('#result_' + id).val();
+    
+    $.post('/api/admin/team_match/sub', JSON.stringify({
+        id: id, player1_id: parseInt(p1) || 0, player2_id: parseInt(p2) || 0, result: result
+    }), function(res) {
+        if (res.success) loadMatch();
+        else alert('保存失败');
+    }, 'json');
+}
+
+function finishTeamMatch() {
+    $.post('/api/admin/team_match/finish', JSON.stringify({id: parseInt(matchId)}), function(res) {
+        if (res.success) { alert('团体赛已结束，比分 ' + res.result); location.href = 'team_draw.html'; }
+    }, 'json');
+}
+
+loadMatch();
+</script>
+</body>
+</html>

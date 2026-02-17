@@ -1,0 +1,59 @@
+body {
+    font-family: "Microsoft YaHei UI", "Microsoft Yahei", "Arial", "sans-serif";
+    font-size: 14px;
+    color: #666666;
+    background: #fff;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 0;
+    text-align: center;
+}
+
+h3 {
+    font-size: xx-large;
+    margin-bottom: 20px;
+    overflow: visible;
+    background-color: #CCCCCC;
+    background: linear-gradient(#EAEAEA, #CCCCCC);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-left: -20px;
+    margin-right: -20px;
+    border-bottom: 1px solid #999999;
+}
+
+table {
+    font-family: verdana, arial, sans-serif;
+    font-size: x-large;
+    color: #333333;
+    border-width: 1px;
+    border-color: #aaa;
+    border-collapse: collapse;
+}
+
+th {
+    background: linear-gradient(#ddeecc, #bcc98e);
+    border-width: 1px;
+    color: #333;
+    padding: 8px;
+    border-style: solid;
+    border-color: #aaa;
+    text-align: center;
+}
+
+td {
+    border-width: 1px;
+    padding: 8px;
+    border-style: solid;
+    border-color: #aaa;
+    text-align: center;
+    width: 50px;
+}
+
+#gray {
+    background-color: #DDD;
+}
+
+#red {
+    color: #ff0000;
+}

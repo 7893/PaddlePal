@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="赛事助手网络版" />
+    <meta name="author" content="bookworm" />
+    <link rel="icon" href="favicon.ico" />
+    <title>赛事助手网络版-比赛秩序</title>
+    <!-- metro templets CSS -->
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/icomoon.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/menu_sideslide.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/css/leafmenu.css" />
+    <link rel="stylesheet" type="text/css" href="templets/metro/font-awesome-4.7.0/css/font-awesome.min.css" />
+    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="js/menu-wrap.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+		menu_wrap_init();
+		menu_event_list("event_list", "MatchTimePage");
+	});
+	</script>
+</head>
+
+<body>
+    <div class="container">
+        <div id="menu-wrap" class="menu-wrap">
+        </div>
+        <button class="menu-button" id="open-button">Open Menu</button>
+        <div class="content-wrap">
+            <div class="content">
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <div class="navbar-header">
+                            <span class="navbar-brand">比赛秩序</span>
+                        </div>
+                    </div>
+                </nav>
+                <div class="formwrapper">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-4"></div>
+                            <div class="col-lg-4">
+                                <!-- Contenedor -->
+                                <div id="event_list" class="accordion-container">
+                                </div>
+                                <!-- /Contenedor -->
+                            </div>
+                            <div class="col-lg-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /content -->
+            <footer class="footer">
+                <div class="container">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="#" target="_blank">赛事助手软件</a>
+                        </li>
+                        <li>|</li>
+                        <li>
+                            <a href="#" target="_blank">专业竞赛系统</a>
+                        </li>
+                    </ul>
+                </div>
+            </footer>
+        </div>
+        <!-- /content-wrap -->
+    </div>
+    <!-- /container -->
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="templets/metro/js/classie.js"></script>
+    <script src="templets/metro/js/main.js"></script>
+    <script language="javascript" src="js/form_request.js"></script>
+    <script src="templets/metro/js/leafmenu.js"></script>
+    <!--[if IE]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</body>
+
+</html>
