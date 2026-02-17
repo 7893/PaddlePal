@@ -3,6 +3,8 @@ import type { Env } from './types';
 import { publicApi } from './routes/public-api';
 import { adminApi } from './routes/admin-api';
 import { filesApi } from './routes/files-api';
+import { importApi } from './routes/import-api';
+import { exportApi } from './routes/export-api';
 import { pages } from './routes/pages';
 
 type Bindings = { DB: D1Database; FILES: R2Bucket };
@@ -20,5 +22,11 @@ app.route('/', adminApi);
 
 // Files API (R2)
 app.route('/', filesApi);
+
+// Import API
+app.route('/', importApi);
+
+// Export API
+app.route('/', exportApi);
 
 export default app;
