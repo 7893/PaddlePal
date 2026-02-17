@@ -13,6 +13,7 @@ import { SearchPage } from '../views/search';
 import { BracketPage } from '../views/bracket';
 import { TeamMatchPage } from '../views/team-match';
 import { BigScreenLive, BigScreenResults, BigScreenSchedule } from '../views/bigscreen';
+import { RankingPage, NoticesPage, ProgressPage } from '../views/extra';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -428,4 +429,39 @@ pages.get('/screen/schedule/:eventKey?', async (c) => {
     matches = results;
   }
   return c.html(<BigScreenSchedule title={title} matches={matches as any} />);
+});
+
+
+// Ranking page
+pages.get('/ranking', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare(`
+    SELECT p.id, p.name, p.rating, t.short_name as team
+    FROM players p LEFT JOIN teams t ON p.team_id = t.id
+    WHERE p.tournament_id = 1 AND p.rating > 0
+    ORDER BY p.rating DESC LIMIT 100
+  `).all();
+  return c.html(<RankingPage players={results as any} />);
+});
+
+// Notices page
+pages.get('/notices', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare(`
+    SELECT title, content, created_at FROM notices
+    WHERE tournament_id = 1 ORDER BY id DESC
+  `).all();
+  return c.html(<NoticesPage notices={results as any} />);
+});
+
+// Progress page
+pages.get('/progress', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare(`
+    SELECT e.key, e.title,
+      (SELECT COUNT(*) FROM matches WHERE event_id = e.id) as total,
+      (SELECT COUNT(*) FROM matches WHERE event_id = e.id AND status = 'finished') as finished
+    FROM events e WHERE e.tournament_id = 1 ORDER BY e.id
+  `).all();
+  return c.html(<ProgressPage events={results as any} />);
 });
