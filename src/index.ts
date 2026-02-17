@@ -2,9 +2,10 @@ import { Hono } from 'hono';
 import type { Env } from './types';
 import { publicApi } from './routes/public-api';
 import { adminApi } from './routes/admin-api';
+import { filesApi } from './routes/files-api';
 import { pages } from './routes/pages';
 
-type Bindings = { DB: D1Database };
+type Bindings = { DB: D1Database; FILES: R2Bucket };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -16,5 +17,8 @@ app.route('/', publicApi);
 
 // Admin JSON API
 app.route('/', adminApi);
+
+// Files API (R2)
+app.route('/', filesApi);
 
 export default app;

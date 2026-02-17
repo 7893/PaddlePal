@@ -107,3 +107,5 @@ CREATE TABLE IF NOT EXISTS ratings (
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY, value TEXT
 );
+
+-- Templates moved to R2 bucket: paddlepal-files/templates/

@@ -6,3 +6,7 @@ compatibility_date = "2026-02-17"
 binding = "DB"
 database_name = "paddlepal-db"
 database_id = "7c3145ac-c540-4492-8b2e-766c5805a44a"
+
+[[r2_buckets]]
+bucket_name = "paddlepal-files"
+binding = "FILES"
