@@ -61,7 +61,7 @@ export const EventsEditPage: FC<{ events: Ev[] }> = ({ events }) => (
                 <td class="py-2 text-gray-600">{e.stage === 'loop' ? '循环' : '淘汰'}</td>
                 <td class="py-2 text-gray-600">{e.groups || '-'}</td>
                 <td class="py-2 text-gray-600">{e.best_of}</td>
-                <td class="py-2"><button onclick={`del('event',${e.id})`} class="text-red-500 text-xs hover:underline">删除</button></td>
+                <td class="py-2"><button onclick={`del('event',${e.id})`} class="text-red-500 text-xs hover:underline">删除</button> <a href={`/admin/draw/${e.id}`} class="text-pp-600 text-xs hover:underline ml-2">抽签</a></td>
               </tr>
             ))}
           </tbody>

@@ -178,6 +178,73 @@ adminApi.delete('/api/admin/events', async (c) => {
   return c.json({ success: true });
 });
 
+// Draw APIs
+adminApi.post('/api/admin/draw/assign', async (c) => {
+  const { event_id, player_id, group_index } = await c.req.json<{ event_id: number; player_id: number; group_index: number }>();
+  const db = c.env.DB;
+  const g = await db.prepare('SELECT id FROM group_tables WHERE event_id=? AND group_index=?').bind(event_id, group_index).first();
+  const mp = await db.prepare('SELECT COALESCE(MAX(position),0) as p FROM group_entries WHERE group_id=?').bind(g!.id).first();
+  await db.prepare('INSERT INTO group_entries (group_id, player_id, position) VALUES (?,?,?)').bind(g!.id, player_id, (mp!.p as number) + 1).run();
+  return c.json({ success: true });
+});
+
+adminApi.post('/api/admin/draw/remove', async (c) => {
+  const { group_id, player_id } = await c.req.json<{ group_id: number; player_id: number }>();
+  await c.env.DB.prepare('DELETE FROM group_entries WHERE group_id=? AND player_id=?').bind(group_id, player_id).run();
+  return c.json({ success: true });
+});
+
+adminApi.post('/api/admin/draw/clear', async (c) => {
+  const { event_id } = await c.req.json<{ event_id: number }>();
+  await c.env.DB.prepare('DELETE FROM group_entries WHERE group_id IN (SELECT id FROM group_tables WHERE event_id=?)').bind(event_id).run();
+  return c.json({ success: true });
+});
+
+adminApi.post('/api/admin/draw/auto', async (c) => {
+  const { event_id } = await c.req.json<{ event_id: number }>();
+  const db = c.env.DB;
+  await db.prepare('DELETE FROM group_entries WHERE group_id IN (SELECT id FROM group_tables WHERE event_id=?)').bind(event_id).run();
+  const { results: gs } = await db.prepare('SELECT id FROM group_tables WHERE event_id=? ORDER BY group_index').bind(event_id).all();
+  const { results: ps } = await db.prepare('SELECT id FROM players WHERE tournament_id=1 ORDER BY RANDOM()').all();
+  for (let i = 0; i < ps.length; i++) {
+    const gid = gs[i % gs.length].id;
+    const mp = await db.prepare('SELECT COALESCE(MAX(position),0)+1 as p FROM group_entries WHERE group_id=?').bind(gid).first();
+    await db.prepare('INSERT INTO group_entries (group_id, player_id, position) VALUES (?,?,?)').bind(gid, ps[i].id, mp!.p).run();
+  }
+  return c.json({ success: true });
+});
+
+adminApi.post('/api/admin/draw/matches', async (c) => {
+  const { event_id } = await c.req.json<{ event_id: number }>();
+  const db = c.env.DB;
+  await db.prepare('DELETE FROM matches WHERE event_id=?').bind(event_id).run();
+  const stg = await db.prepare("SELECT COALESCE(stage,'loop') as s FROM events WHERE id=?").bind(event_id).first();
+  let matchOrder = 90001, count = 0;
+  if (stg?.s === 'knockout') {
+    const { results: ps } = await db.prepare(`SELECT ge.player_id FROM group_entries ge
+      JOIN group_tables gt ON ge.group_id=gt.id WHERE gt.event_id=? ORDER BY ge.position`).bind(event_id).all();
+    const n = ps.length;
+    for (let i = 0; i < Math.floor(n / 2); i++) {
+      await db.prepare("INSERT INTO matches (event_id, round, match_order, player1_id, player2_id, status, table_no, time) VALUES (?,1,?,?,?,'scheduled',?,'')")
+        .bind(event_id, matchOrder, ps[i * 2]?.player_id || 0, ps[i * 2 + 1]?.player_id || 0, (count % 8) + 1).run();
+      matchOrder++; count++;
+    }
+  } else {
+    const { results: gs } = await db.prepare('SELECT id FROM group_tables WHERE event_id=?').bind(event_id).all();
+    for (const g of gs) {
+      const { results: ps } = await db.prepare('SELECT player_id FROM group_entries WHERE group_id=? ORDER BY position').bind(g.id).all();
+      for (let i = 0; i < ps.length; i++) {
+        for (let j = i + 1; j < ps.length; j++) {
+          await db.prepare("INSERT INTO matches (event_id, group_id, match_order, player1_id, player2_id, player3_id, player4_id, status, table_no, time) VALUES (?,?,?,?,?,?,?,'scheduled',?,'')")
+            .bind(event_id, g.id, matchOrder, ps[i].player_id, null, ps[j].player_id, null, (count % 8) + 1).run();
+          matchOrder++; count++;
+        }
+      }
+    }
+  }
+  return c.json({ success: true, count });
+});
+
 // /api/admin/notice
 adminApi.get('/api/admin/notice', async (c) => {
   const { results } = await c.env.DB.prepare("SELECT id, COALESCE(title,'') as title, content, created_at FROM notices ORDER BY created_at DESC").all();

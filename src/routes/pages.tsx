@@ -8,6 +8,7 @@ import { AdminPage } from '../views/admin';
 import { ScorePage, ScoreNotFound } from '../views/score';
 import { TournamentEditPage, EventsEditPage } from '../views/admin-edit';
 import { TeamsEditPage, PlayersEditPage, NoticesEditPage } from '../views/admin-crud';
+import { DrawPage } from '../views/draw';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -248,4 +249,27 @@ pages.get('/admin/players', async (c) => {
 pages.get('/admin/notices', async (c) => {
   const { results } = await c.env.DB.prepare("SELECT id, COALESCE(title,'') as title, content, created_at FROM notices ORDER BY created_at DESC").all();
   return c.html(<NoticesEditPage notices={results as any} />);
+});
+
+// Draw page
+pages.get('/admin/draw/:eventId', async (c) => {
+  const db = c.env.DB;
+  const eventId = c.req.param('eventId');
+  const ev = await db.prepare("SELECT id, title, COALESCE(stage,'loop') as stage FROM events WHERE id=?").bind(eventId).first();
+  if (!ev) return c.text('Not found', 404);
+
+  const { results: gRows } = await db.prepare('SELECT id, group_name as name FROM group_tables WHERE event_id=? ORDER BY group_index').bind(eventId).all();
+  const assignedIds: number[] = [];
+  const groups = [];
+  for (const g of gRows) {
+    const { results: pRows } = await db.prepare(`SELECT ge.player_id as id, ge.position, p.name
+      FROM group_entries ge JOIN players p ON ge.player_id=p.id WHERE ge.group_id=? ORDER BY ge.position`).bind(g.id).all();
+    pRows.forEach(p => assignedIds.push(p.id as number));
+    groups.push({ id: g.id, name: g.name, players: pRows });
+  }
+  const { results: allPlayers } = await db.prepare(`SELECT p.id, p.name, COALESCE(t.short_name,'') as team
+    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.name`).all();
+  const unassigned = allPlayers.filter(p => !assignedIds.includes(p.id as number));
+
+  return c.html(<DrawPage event={ev as any} groups={groups as any} unassigned={unassigned as any} />);
 });
