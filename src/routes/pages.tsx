@@ -14,6 +14,7 @@ import { BracketPage } from '../views/bracket';
 import { TeamMatchPage } from '../views/team-match';
 import { BigScreenLive, BigScreenResults, BigScreenSchedule } from '../views/bigscreen';
 import { RankingPage, NoticesPage, ProgressPage } from '../views/extra';
+import { BigScreenFlags, FlagUploadPage } from '../views/flags';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -464,4 +465,31 @@ pages.get('/progress', async (c) => {
     FROM events e WHERE e.tournament_id = 1 ORDER BY e.id
   `).all();
   return c.html(<ProgressPage events={results as any} />);
+});
+
+
+// Big Screen: Live with flags
+pages.get('/screen/flags', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare(`
+    SELECT m.table_no as tb, e.key as event, m.result as score,
+      COALESCE(p1.name, t1.short_name, '') as p1,
+      COALESCE(p2.name, t2.short_name, '') as p2,
+      t1.flag as flag1, t2.flag as flag2
+    FROM matches m JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id LEFT JOIN players p2 ON m.player2_id = p2.id
+    LEFT JOIN teams t1 ON COALESCE(m.team1_id, p1.team_id) = t1.id
+    LEFT JOIN teams t2 ON COALESCE(m.team2_id, p2.team_id) = t2.id
+    WHERE m.status = 'playing' ORDER BY m.table_no
+  `).all();
+  return c.html(<BigScreenFlags matches={results as any} />);
+});
+
+// Flag upload management page
+pages.get('/admin/flags', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare(`
+    SELECT id, name, flag FROM teams WHERE tournament_id = 1 ORDER BY name
+  `).all();
+  return c.html(<FlagUploadPage teams={results as any} />);
 });

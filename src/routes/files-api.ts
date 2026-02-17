@@ -64,4 +64,35 @@ app.delete('/api/files/:prefix/:a/:b?', async (c) => {
   return c.json({ deleted: key });
 });
 
+// Upload team flag: POST /api/flag/:teamId
+app.post('/api/flag/:teamId', async (c) => {
+  const teamId = parseInt(c.req.param('teamId'));
+  const contentType = c.req.header('Content-Type') || '';
+  
+  // Validate content type
+  if (!['image/png', 'image/jpeg'].includes(contentType)) {
+    return c.json({ error: 'Only PNG or JPG allowed' }, 400);
+  }
+
+  const body = await c.req.arrayBuffer();
+  
+  // Validate size (500KB max)
+  if (body.byteLength > 500 * 1024) {
+    return c.json({ error: 'File too large (max 500KB)' }, 400);
+  }
+
+  const ext = contentType === 'image/png' ? 'png' : 'jpg';
+  const key = `assets/flags/${teamId}.${ext}`;
+  
+  await c.env.FILES.put(key, body, {
+    httpMetadata: { contentType }
+  });
+
+  // Update team flag URL in database
+  const flagUrl = `/api/files/assets/flags/${teamId}.${ext}`;
+  await c.env.DB.prepare('UPDATE teams SET flag = ? WHERE id = ?').bind(flagUrl, teamId).run();
+
+  return c.json({ success: true, flag: flagUrl });
+});
+
 export { app as filesApi };
