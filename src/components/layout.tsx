@@ -72,20 +72,20 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
   
   return (
     <nav class="glass sticky top-0 z-40 border-b border-slate-200/50">
-      <div class="max-w-6xl mx-auto px-8">
+      <div class="max-w-7xl mx-auto px-8">
         <div class="flex items-center h-16">
-          <a href="/" class="flex items-center gap-2.5 mr-10 group">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pp-400 to-pp-600 flex items-center justify-center shadow-lg shadow-pp-500/25 group-hover:shadow-pp-500/40 transition-shadow">
-              <span class="text-white text-sm">🏓</span>
+          <a href="/" class="flex items-center gap-2.5 mr-12 group">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pp-400 to-pp-600 flex items-center justify-center shadow-lg shadow-pp-500/25 group-hover:shadow-pp-500/40 transition-shadow">
+              <span class="text-white text-base">🏓</span>
             </div>
-            <span class="font-semibold text-slate-800 tracking-tight text-[15px]">拍档</span>
+            <span class="font-semibold text-slate-800 tracking-tight text-base">拍档</span>
           </a>
-          <div class="flex items-center gap-0.5">
+          <div class="flex items-center gap-1">
             {menu.map(g => (
               <div class="dropdown">
-                <button class="px-4 py-2 text-[13px] font-medium text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100/70 transition-all duration-200">
+                <button class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100/70 transition-all duration-200">
                   {g.group}
-                  <svg class="inline-block w-3.5 h-3.5 ml-1 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="inline-block w-3.5 h-3.5 ml-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -93,7 +93,7 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
                   <div class="bg-white/95 backdrop-blur-xl rounded-xl shadow-xl shadow-slate-200/50 border border-slate-200/50 py-2 min-w-[160px] overflow-hidden">
                     {g.items.map(l => (
                       <a href={l.href}
-                        class={`block px-4 py-2.5 text-[13px] transition-all duration-150 ${isActive(l.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:pl-5'}`}>
+                        class={`block px-4 py-2.5 text-sm transition-all duration-150 ${isActive(l.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:pl-5'}`}>
                         {l.label}
                       </a>
                     ))}
