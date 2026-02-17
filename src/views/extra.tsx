@@ -1,109 +1,119 @@
+import { Layout, Nav, Card, Badge, Table, Th, Td, PageHeader, EmptyState } from '../components/layout';
+
 // Ranking page
 export const RankingPage = ({ players }: { players: any[] }) => (
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>积分排名</title>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
-      <style>{`
-        body { max-width: 900px; }
-        table { width: 100%; }
-        .rank { font-weight: bold; color: #666; }
-        .rank-1 { color: gold; font-size: 1.2em; }
-        .rank-2 { color: silver; }
-        .rank-3 { color: #cd7f32; }
-        .rating { font-weight: bold; color: #0066cc; }
-        a { text-decoration: none; }
-      `}</style>
-    </head>
-    <body>
-      <h1>🏆 积分排名</h1>
-      <p><a href="/">← 返回首页</a></p>
-      <table>
-        <thead><tr><th>排名</th><th>姓名</th><th>队伍</th><th>积分</th></tr></thead>
-        <tbody>
-          {players.map((p: any, i: number) => (
-            <tr>
-              <td class={`rank rank-${i + 1}`}>{i + 1}</td>
-              <td>{p.name}</td>
-              <td>{p.team || '-'}</td>
-              <td class="rating">{p.rating}</td>
-            </tr>
-          ))}
-          {players.length === 0 && <tr><td colspan={4}>暂无数据</td></tr>}
-        </tbody>
-      </table>
-    </body>
-  </html>
+  <Layout title="积分排名">
+    <Nav current="/ranking" />
+    <div class="max-w-4xl mx-auto px-8 py-10 fade-in">
+      <PageHeader title="积分排名" subtitle={`共 ${players.length} 名选手`} />
+      
+      <Card hover={false}>
+        {players.length > 0 ? (
+          <Table>
+            <thead>
+              <tr>
+                <Th class="w-16">排名</Th>
+                <Th>选手</Th>
+                <Th>队伍</Th>
+                <Th class="text-right">积分</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {players.map((p: any, i: number) => (
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <Td>
+                    {i < 3 ? (
+                      <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold ${
+                        i === 0 ? 'bg-amber-100 text-amber-700' : 
+                        i === 1 ? 'bg-slate-200 text-slate-600' : 
+                        'bg-orange-100 text-orange-700'
+                      }`}>{i + 1}</span>
+                    ) : (
+                      <span class="text-slate-400 pl-2">{i + 1}</span>
+                    )}
+                  </Td>
+                  <Td class="font-medium text-slate-800">{p.name}</Td>
+                  <Td>{p.team || <span class="text-slate-300">-</span>}</Td>
+                  <Td class="text-right">
+                    <span class="font-semibold text-pp-600">{p.rating}</span>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : (
+          <EmptyState icon="🏆" title="暂无排名数据" />
+        )}
+      </Card>
+    </div>
+  </Layout>
 );
 
 // Notices page
 export const NoticesPage = ({ notices }: { notices: any[] }) => (
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>公告通知</title>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
-      <style>{`
-        body { max-width: 900px; }
-        .notice { border-left: 4px solid #0066cc; padding: 15px; margin: 15px 0; background: #f5f5f5; }
-        .notice-title { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; }
-        .notice-time { color: #888; font-size: 0.9em; }
-        .notice-content { margin-top: 10px; white-space: pre-wrap; }
-        a { text-decoration: none; }
-      `}</style>
-    </head>
-    <body>
-      <h1>📢 公告通知</h1>
-      <p><a href="/">← 返回首页</a></p>
-      {notices.map((n: any) => (
-        <div class="notice">
-          <div class="notice-title">{n.title || '公告'}</div>
-          <div class="notice-time">{n.created_at || ''}</div>
-          <div class="notice-content">{n.content}</div>
+  <Layout title="赛事公告">
+    <Nav current="/notices" />
+    <div class="max-w-4xl mx-auto px-8 py-10 fade-in">
+      <PageHeader title="赛事公告" subtitle="最新通知与公告" />
+      
+      {notices.length > 0 ? (
+        <div class="space-y-4">
+          {notices.map((n: any) => (
+            <Card hover={true}>
+              <div class="flex items-start justify-between mb-3">
+                <h3 class="font-medium text-slate-800">{n.title}</h3>
+                <span class="text-xs text-slate-400 whitespace-nowrap ml-4">{n.created_at?.slice(0, 10)}</span>
+              </div>
+              <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{n.content}</p>
+            </Card>
+          ))}
         </div>
-      ))}
-      {notices.length === 0 && <p>暂无公告</p>}
-    </body>
-  </html>
+      ) : (
+        <Card hover={false}>
+          <EmptyState icon="📢" title="暂无公告" description="敬请期待" />
+        </Card>
+      )}
+    </div>
+  </Layout>
 );
 
 // Progress page
 export const ProgressPage = ({ events }: { events: any[] }) => (
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>赛程进度</title>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
-      <style>{`
-        body { max-width: 900px; }
-        .event { margin: 20px 0; }
-        .event-title { font-weight: bold; margin-bottom: 8px; }
-        .progress-bar { background: #e0e0e0; border-radius: 10px; height: 24px; overflow: hidden; }
-        .progress-fill { background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
-        .stats { color: #666; font-size: 0.9em; margin-top: 5px; }
-        a { text-decoration: none; }
-      `}</style>
-    </head>
-    <body>
-      <h1>📊 赛程进度</h1>
-      <p><a href="/">← 返回首页</a></p>
-      {events.map((e: any) => {
-        const pct = e.total > 0 ? Math.floor(e.finished * 100 / e.total) : 0;
-        return (
-          <div class="event">
-            <div class="event-title">{e.title} ({e.key})</div>
-            <div class="progress-bar">
-              <div class="progress-fill" style={`width: ${pct}%`}>{pct > 10 ? `${pct}%` : ''}</div>
-            </div>
-            <div class="stats">已完成 {e.finished} / {e.total} 场 ({pct}%)</div>
+  <Layout title="赛事进度">
+    <Nav current="/progress" />
+    <div class="max-w-4xl mx-auto px-8 py-10 fade-in">
+      <PageHeader title="赛事进度" subtitle="各项目完成情况" />
+      
+      <Card hover={false}>
+        {events.length > 0 ? (
+          <div class="space-y-5">
+            {events.map((e: any) => {
+              const pct = e.total > 0 ? Math.round(e.finished / e.total * 100) : 0;
+              return (
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="font-medium text-slate-800 text-sm">{e.title}</span>
+                    <div class="flex items-center gap-3">
+                      <span class="text-xs text-slate-500">{e.finished} / {e.total} 场</span>
+                      <Badge color={pct === 100 ? 'green' : pct > 0 ? 'yellow' : 'gray'}>
+                        {pct}%
+                      </Badge>
+                    </div>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div 
+                      class={`h-2 rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-pp-400 to-pp-500'}`}
+                      style={`width:${pct}%`}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
-      {events.length === 0 && <p>暂无项目</p>}
-    </body>
-  </html>
+        ) : (
+          <EmptyState icon="📊" title="暂无项目数据" />
+        )}
+      </Card>
+    </div>
+  </Layout>
 );
