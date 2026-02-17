@@ -6,6 +6,8 @@ import { SchedulePage } from '../views/schedule';
 import { ResultsListPage, ResultsDetailPage } from '../views/results';
 import { AdminPage } from '../views/admin';
 import { ScorePage, ScoreNotFound } from '../views/score';
+import { TournamentEditPage, EventsEditPage } from '../views/admin-edit';
+import { TeamsEditPage, PlayersEditPage, NoticesEditPage } from '../views/admin-crud';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -216,4 +218,34 @@ pages.get('/score/:pid', async (c) => {
 
   const { results: sRows } = await db.prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no').bind(r.id).all();
   return c.html(<ScorePage match={{ ...r, scores: sRows } as any} />);
+});
+
+// Admin sub-pages
+pages.get('/admin/tournament', async (c) => {
+  const t = await c.env.DB.prepare("SELECT COALESCE(info,'') as info, COALESCE(venue,'') as venue, COALESCE(start_date,'') as start_date, COALESCE(tables_count,8) as tables FROM tournaments WHERE id=1").first();
+  return c.html(<TournamentEditPage info={t?.info as string || ''} venue={t?.venue as string || ''} start_date={t?.start_date as string || ''} tables={t?.tables as number || 8} />);
+});
+
+pages.get('/admin/events', async (c) => {
+  const { results } = await c.env.DB.prepare("SELECT id, title, event_type as type, COALESCE(stage,'loop') as stage, groups, COALESCE(best_of,3) as best_of FROM events WHERE tournament_id=1").all();
+  return c.html(<EventsEditPage events={results as any} />);
+});
+
+pages.get('/admin/teams', async (c) => {
+  const { results } = await c.env.DB.prepare(`SELECT t.id, t.name, COALESCE(t.short_name,'') as short_name,
+    (SELECT COUNT(*) FROM players WHERE team_id=t.id) as count FROM teams t WHERE t.tournament_id=1 ORDER BY t.id`).all();
+  return c.html(<TeamsEditPage teams={results as any} />);
+});
+
+pages.get('/admin/players', async (c) => {
+  const db = c.env.DB;
+  const { results: players } = await db.prepare(`SELECT p.id, p.name, p.gender, p.rating, COALESCE(t.short_name,'') as team
+    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.id`).all();
+  const { results: teams } = await db.prepare('SELECT id, name FROM teams WHERE tournament_id=1 ORDER BY id').all();
+  return c.html(<PlayersEditPage players={players as any} teams={teams as any} />);
+});
+
+pages.get('/admin/notices', async (c) => {
+  const { results } = await c.env.DB.prepare("SELECT id, COALESCE(title,'') as title, content, created_at FROM notices ORDER BY created_at DESC").all();
+  return c.html(<NoticesEditPage notices={results as any} />);
 });

@@ -178,6 +178,25 @@ adminApi.delete('/api/admin/events', async (c) => {
   return c.json({ success: true });
 });
 
+// /api/admin/notice
+adminApi.get('/api/admin/notice', async (c) => {
+  const { results } = await c.env.DB.prepare("SELECT id, COALESCE(title,'') as title, content, created_at FROM notices ORDER BY created_at DESC").all();
+  return c.json({ notices: results });
+});
+
+adminApi.post('/api/admin/notice', async (c) => {
+  const { id, title, content } = await c.req.json<{ id?: number; title: string; content: string }>();
+  if (!id) await c.env.DB.prepare("INSERT INTO notices (tournament_id, title, content, created_at) VALUES (1,?,?,datetime('now'))").bind(title, content).run();
+  else await c.env.DB.prepare('UPDATE notices SET title=?, content=? WHERE id=?').bind(title, content, id).run();
+  return c.json({ success: true });
+});
+
+adminApi.delete('/api/admin/notice', async (c) => {
+  const { id } = await c.req.json<{ id: number }>();
+  await c.env.DB.prepare('DELETE FROM notices WHERE id=?').bind(id).run();
+  return c.json({ success: true });
+});
+
 // /api/admin/backup - export all data as JSON
 adminApi.get('/api/admin/backup', async (c) => {
   const tables = ['tournaments', 'events', 'teams', 'players', 'group_tables', 'group_entries', 'matches', 'scores', 'notices', 'brackets', 'draws', 'referees', 'leaders', 'ratings', 'settings'];
