@@ -1,24 +1,39 @@
-# 🏓 PaddlePal (拍档)
+# 🏓 拍档 PaddlePal
 
-A lightweight table tennis tournament management system.
+轻量级乒乓球赛事管理系统。
 
-Manage events, players, teams, draws, scoring, and results — all from your browser.
+## 功能
 
-## Features
+**赛事管理**
+- 创建和配置赛事（名称、地点、日期、球台数）
+- 支持多种比赛项目（单打、双打、团体）
+- 支持淘汰赛和循环赛赛制
 
-- Tournament setup with multiple events (singles, doubles, team)
-- Round-robin and knockout stage support
-- Live scoring and real-time match status
-- Cross tables and rankings
-- Schedule management
-- Player and team management
-- Data export (CSV)
-- Database backup and restore
+**选手与队伍**
+- 选手信息管理（姓名、性别、积分）
+- 队伍管理与队旗上传
+- CSV 批量导入导出
 
-## Live
+**比赛进程**
+- 自动生成对阵签表
+- 实时比分录入
+- 检录与球台分配
+- 比赛进度追踪
+
+**信息展示**
+- 实时比分大屏（适合投影）
+- 赛程公告滚动屏
+- 成绩查询与排名
+- 积分排行榜
+
+**数据管理**
+- 选手/成绩导出
+- 赛事公告发布
+
+## 在线体验
 
 https://paddlepal.53.workers.dev
 
-## License
+## 许可
 
 MIT
