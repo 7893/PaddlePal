@@ -19,7 +19,6 @@ app.post('/api/import/players', async (c) => {
     const r = rows[i];
     if (!r || !r[1]) continue;
 
-    const eventType = r[1]?.toString().toUpperCase();
     const teamStr = r[2]?.toString() || '';
     const [teamName, shortName] = teamStr.split('/');
     const name = r[3]?.toString()?.trim();

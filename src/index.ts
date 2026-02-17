@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { Env } from './types';
+import { errorHandler, requestLogger } from './middleware';
 import { publicApi } from './routes/public-api';
 import { adminApi } from './routes/admin-api';
 import { filesApi } from './routes/files-api';
@@ -8,9 +9,11 @@ import { exportApi } from './routes/export-api';
 import { ratingApi } from './routes/rating-api';
 import { pages } from './routes/pages';
 
-type Bindings = { DB: D1Database; FILES: R2Bucket };
+const app = new Hono<{ Bindings: Env }>();
 
-const app = new Hono<{ Bindings: Bindings }>();
+// Global middleware
+app.use('*', requestLogger);
+app.use('*', errorHandler);
 
 // SSR pages
 app.route('/', pages);
@@ -32,5 +35,10 @@ app.route('/', exportApi);
 
 // Rating API
 app.route('/', ratingApi);
+
+// 404 handler
+app.notFound((c) => {
+  return c.json({ success: false, error: 'Not found' }, 404);
+});
 
 export default app;
