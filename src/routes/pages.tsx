@@ -15,6 +15,7 @@ import { TeamMatchPage } from '../views/team-match';
 import { BigScreenLive, BigScreenResults, BigScreenSchedule } from '../views/bigscreen';
 import { RankingPage, NoticesPage, ProgressPage } from '../views/extra';
 import { BigScreenFlags, FlagUploadPage } from '../views/flags';
+import { DrawListPage } from '../views/draw-list';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -257,7 +258,21 @@ pages.get('/admin/notices', async (c) => {
   return c.html(<NoticesEditPage notices={results as any} />);
 });
 
-// Draw page
+// Draw list page - select event to draw
+pages.get('/admin/draw', async (c) => {
+  const db = c.env.DB;
+  const { results: events } = await db.prepare(`
+    SELECT e.id, e.key, e.title, 
+      COALESCE(e.event_type, 'singles') as type,
+      COALESCE(e.stage, 'knockout') as format,
+      (SELECT COUNT(*) FROM matches WHERE event_id = e.id) as match_count
+    FROM events e WHERE e.tournament_id = 1 ORDER BY e.id
+  `).all();
+  
+  return c.html(<DrawListPage events={events as any} />);
+});
+
+// Draw page for specific event
 pages.get('/admin/draw/:eventId', async (c) => {
   const db = c.env.DB;
   const eventId = c.req.param('eventId');

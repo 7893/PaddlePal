@@ -51,6 +51,7 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
       { href: '/admin', label: '管理概览' },
       { href: '/admin/tournament', label: '赛事设置' },
       { href: '/admin/events', label: '项目管理' },
+      { href: '/admin/draw', label: '抽签编排' },
       { href: '/admin/players', label: '选手管理' },
       { href: '/admin/teams', label: '队伍管理' },
       { href: '/admin/flags', label: '队旗管理' },
@@ -72,15 +73,17 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
   
   return (
     <nav class="glass sticky top-0 z-40 border-b border-slate-200/50">
-      <div class="max-w-7xl mx-auto px-8">
-        <div class="flex items-center h-16">
-          <a href="/" class="flex items-center gap-2.5 mr-12 group">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pp-400 to-pp-600 flex items-center justify-center shadow-lg shadow-pp-500/25 group-hover:shadow-pp-500/40 transition-shadow">
-              <span class="text-white text-base">🏓</span>
+      <div class="max-w-7xl mx-auto px-4 md:px-8">
+        <div class="flex items-center justify-between h-14 md:h-16">
+          <a href="/" class="flex items-center gap-2 md:gap-2.5 group">
+            <div class="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-pp-400 to-pp-600 flex items-center justify-center shadow-lg shadow-pp-500/25 group-hover:shadow-pp-500/40 transition-shadow">
+              <span class="text-white text-sm md:text-base">🏓</span>
             </div>
-            <span class="font-semibold text-slate-800 tracking-tight text-base">拍档</span>
+            <span class="font-semibold text-slate-800 tracking-tight text-sm md:text-base">拍档</span>
           </a>
-          <div class="flex items-center gap-1">
+          
+          {/* Desktop menu */}
+          <div class="hidden md:flex items-center gap-1">
             {menu.map(g => (
               <div class="dropdown">
                 <button class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100/70 transition-all duration-200">
@@ -102,6 +105,30 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
               </div>
             ))}
           </div>
+
+          {/* Mobile menu button */}
+          <button class="md:hidden p-2 text-slate-500 hover:text-slate-800" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile menu */}
+        <div id="mobile-menu" class="hidden md:hidden pb-4">
+          {menu.map(g => (
+            <div class="mb-3">
+              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 mb-1">{g.group}</div>
+              <div class="space-y-0.5">
+                {g.items.map(l => (
+                  <a href={l.href}
+                    class={`block px-3 py-2 rounded-lg text-sm ${isActive(l.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                    {l.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </nav>
