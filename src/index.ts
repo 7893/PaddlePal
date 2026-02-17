@@ -1,51 +1,20 @@
-import { Env } from './types';
-import { json } from './utils';
-import { handlePublicRoute } from './routes/public';
-import { handleAdminRoute } from './routes/admin';
+import { Hono } from 'hono';
+import type { Env } from './types';
+import { publicApi } from './routes/public-api';
+import { adminApi } from './routes/admin-api';
+import { pages } from './routes/pages';
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-    const path = url.pathname;
+type Bindings = { DB: D1Database };
 
-    // CORS headers
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
-      });
-    }
+const app = new Hono<{ Bindings: Bindings }>();
 
-    try {
-      // Public API routes
-      const publicRoutes = [
-        '/rawinfo', '/allplay', '/playing', '/toplay', '/oneplay',
-        '/playscore', '/playrank', '/playtime', '/playcull',
-        '/teammember', '/notice', '/member',
-        '/InquiryPage', '/PlayinfoPage',
-      ];
-      if (publicRoutes.includes(path)) {
-        return addCors(await handlePublicRoute(path, request, env));
-      }
+// SSR pages
+app.route('/', pages);
 
-      // Admin API routes
-      if (path.startsWith('/api/admin/') || path === '/RecordPage') {
-        return addCors(await handleAdminRoute(path, request, env));
-      }
+// Public JSON API (legacy compat)
+app.route('/', publicApi);
 
-      // Static assets handled by [assets] in wrangler.toml
-      return new Response('Not Found', { status: 404 });
-    } catch (e: any) {
-      return json({ error: e.message }, 500);
-    }
-  },
-};
+// Admin JSON API
+app.route('/', adminApi);
 
-function addCors(response: Response): Response {
-  const headers = new Headers(response.headers);
-  headers.set('Access-Control-Allow-Origin', '*');
-  return new Response(response.body, { status: response.status, headers });
-}
+export default app;
