@@ -35,7 +35,7 @@ export const SchedulePage: FC<{ matches: Match[]; info: string }> = ({ matches, 
             <tbody class="divide-y divide-gray-100">
               {matches.map(m => (
                 <tr class="hover:bg-gray-50">
-                  <td class="px-3 py-2 text-gray-400 font-mono text-xs">{m.pid}</td>
+                  <td class="px-3 py-2 text-gray-400 font-mono text-xs"><a href={`/score/${m.pid}`} class="text-pp-600 hover:underline">{m.pid}</a></td>
                   <td class="px-3 py-2 text-gray-600">{m.time}</td>
                   <td class="px-3 py-2 text-gray-600">{m.table_no}#</td>
                   <td class="px-3 py-2">

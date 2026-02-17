@@ -5,6 +5,7 @@ import { PlayersPage } from '../views/players';
 import { SchedulePage } from '../views/schedule';
 import { ResultsListPage, ResultsDetailPage } from '../views/results';
 import { AdminPage } from '../views/admin';
+import { ScorePage, ScoreNotFound } from '../views/score';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -195,4 +196,24 @@ pages.get('/admin', async (c) => {
     ORDER BY m.match_order DESC
   `).all();
   return c.html(<AdminPage info={t?.info as string || ''} venue={t?.venue as string || ''} teams={teams as any} players={players as any} events={events as any} matches={matches as any} />);
+});
+
+// Score entry
+pages.get('/score/:pid', async (c) => {
+  const db = c.env.DB;
+  const pid = c.req.param('pid');
+  const r = await db.prepare(`
+    SELECT m.id, m.match_order as pid, m.table_no, m.time, m.status, m.result, m.seat1, m.seat2,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      COALESCE(t1.short_name,'') as t1, COALESCE(t2.short_name,'') as t2,
+      e.title, COALESCE(e.best_of,3) as best_of
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+    WHERE m.match_order=?
+  `).bind(pid).first();
+  if (!r) return c.html(<ScoreNotFound pid={pid} />);
+
+  const { results: sRows } = await db.prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no').bind(r.id).all();
+  return c.html(<ScorePage match={{ ...r, scores: sRows } as any} />);
 });
