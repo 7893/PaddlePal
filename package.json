@@ -18,6 +18,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250214.0",
     "@eslint/js": "^10.0.1",
+    "@types/papaparse": "^5.5.2",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
     "eslint": "^10.0.0",
@@ -28,6 +29,6 @@
   },
   "dependencies": {
     "hono": "^4.11.9",
-    "xlsx": "^0.18.5"
+    "papaparse": "^5.5.3"
   }
 }
