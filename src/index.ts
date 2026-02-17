@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Env } from './types';
-import { errorHandler, requestLogger } from './middleware';
+import { errorHandler, requestLogger, corsMiddleware, rateLimiter, securityHeaders } from './middleware';
 import { publicApi } from './routes/public-api';
 import { adminApi } from './routes/admin-api';
 import { filesApi } from './routes/files-api';
@@ -14,6 +14,11 @@ const app = new Hono<{ Bindings: Env }>();
 // Global middleware
 app.use('*', requestLogger);
 app.use('*', errorHandler);
+app.use('*', corsMiddleware);
+app.use('*', securityHeaders);
+
+// Rate limit API routes only (not pages)
+app.use('/api/*', rateLimiter);
 
 // SSR pages
 app.route('/', pages);
