@@ -5,6 +5,7 @@ import { adminApi } from './routes/admin-api';
 import { filesApi } from './routes/files-api';
 import { importApi } from './routes/import-api';
 import { exportApi } from './routes/export-api';
+import { ratingApi } from './routes/rating-api';
 import { pages } from './routes/pages';
 
 type Bindings = { DB: D1Database; FILES: R2Bucket };
@@ -28,5 +29,8 @@ app.route('/', importApi);
 
 // Export API
 app.route('/', exportApi);
+
+// Rating API
+app.route('/', ratingApi);
 
 export default app;
