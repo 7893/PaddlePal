@@ -7,26 +7,30 @@ export const Layout: FC<{ title: string; children: Child }> = ({ title, children
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>{title} - 拍档 PaddlePal</title>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <script src="https://cdn.tailwindcss.com"></script>
       <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
       <script dangerouslySetInnerHTML={{
         __html: `tailwind.config={theme:{extend:{colors:{
-          pp:{50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534'},
-          slate:{50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b'}
-        },fontFamily:{sans:['Inter','Noto Sans SC','system-ui','sans-serif']}}}}` 
+          pp:{50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46'},
+          slate:{50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a'}
+        },fontFamily:{sans:['Inter','Noto Sans SC','system-ui','sans-serif']},letterSpacing:{tight:'-0.015em'}}}}`
       }} />
       <style dangerouslySetInnerHTML={{ __html: `
-        body { font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif; }
-        .fade-in { animation: fadeIn .25s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif; font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; }
+        .fade-in { animation: fadeIn .3s cubic-bezier(.4,0,.2,1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
         .dropdown { position: relative; }
-        .dropdown-menu { position: absolute; left: 0; top: 100%; padding-top: 4px; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: all .15s ease; }
-        .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
-        .glass { background: rgba(255,255,255,.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .dropdown-menu { position: absolute; left: 50%; transform: translateX(-50%) translateY(-6px); top: 100%; padding-top: 8px; opacity: 0; visibility: hidden; transition: all .2s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+        .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+        .glass { background: rgba(255,255,255,.85); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
+        .card-hover { transition: all .2s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 40px -12px rgba(0,0,0,.1); }
+        .gradient-text { background: linear-gradient(135deg, #059669 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
       `}} />
     </head>
-    <body class="bg-slate-50 min-h-screen text-slate-700">
+    <body class="bg-gradient-to-br from-slate-50 via-white to-slate-50 min-h-screen text-slate-600">
       {children}
     </body>
   </html>
@@ -67,27 +71,29 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
   const isActive = (href: string) => current === href || (href !== '/' && current?.startsWith(href));
   
   return (
-    <nav class="glass sticky top-0 z-40 border-b border-slate-200/60">
-      <div class="max-w-6xl mx-auto px-6">
-        <div class="flex items-center h-14">
-          <a href="/" class="flex items-center gap-2 mr-8">
-            <span class="text-xl">🏓</span>
-            <span class="font-semibold text-slate-800 tracking-tight">拍档</span>
+    <nav class="glass sticky top-0 z-40 border-b border-slate-200/50">
+      <div class="max-w-6xl mx-auto px-8">
+        <div class="flex items-center h-16">
+          <a href="/" class="flex items-center gap-2.5 mr-10 group">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pp-400 to-pp-600 flex items-center justify-center shadow-lg shadow-pp-500/25 group-hover:shadow-pp-500/40 transition-shadow">
+              <span class="text-white text-sm">🏓</span>
+            </div>
+            <span class="font-semibold text-slate-800 tracking-tight text-[15px]">拍档</span>
           </a>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-0.5">
             {menu.map(g => (
               <div class="dropdown">
-                <button class="px-3 py-2 text-[13px] text-slate-500 hover:text-slate-800 rounded-md hover:bg-slate-100/60 transition-colors">
+                <button class="px-4 py-2 text-[13px] font-medium text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100/70 transition-all duration-200">
                   {g.group}
-                  <svg class="inline-block w-3 h-3 ml-1 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  <svg class="inline-block w-3.5 h-3.5 ml-1 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 <div class="dropdown-menu z-50">
-                  <div class="bg-white rounded-lg shadow-lg shadow-slate-200/50 border border-slate-200/60 py-1.5 min-w-[150px]">
+                  <div class="bg-white/95 backdrop-blur-xl rounded-xl shadow-xl shadow-slate-200/50 border border-slate-200/50 py-2 min-w-[160px] overflow-hidden">
                     {g.items.map(l => (
                       <a href={l.href}
-                        class={`block px-3.5 py-2 text-[13px] transition-colors ${isActive(l.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'}`}>
+                        class={`block px-4 py-2.5 text-[13px] transition-all duration-150 ${isActive(l.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:pl-5'}`}>
                         {l.label}
                       </a>
                     ))}
@@ -102,26 +108,26 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
   );
 };
 
-export const Card: FC<{ title?: string; children: Child; class?: string }> = (props) => (
-  <div class={`bg-white rounded-xl shadow-sm shadow-slate-100 border border-slate-200/60 ${props.class || ''}`}>
-    {props.title && <div class="px-5 py-3.5 border-b border-slate-100 text-[15px] font-medium text-slate-800">{props.title}</div>}
-    <div class="p-5">{props.children}</div>
+export const Card: FC<{ title?: string; children: Child; class?: string; hover?: boolean }> = (props) => (
+  <div class={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm shadow-slate-100/80 border border-slate-200/40 ${props.hover !== false ? 'card-hover' : ''} ${props.class || ''}`}>
+    {props.title && <div class="px-6 py-4 border-b border-slate-100/80 text-[15px] font-medium text-slate-800 tracking-tight">{props.title}</div>}
+    <div class="p-6">{props.children}</div>
   </div>
 );
 
 export const Badge: FC<{ color: string; children: Child }> = ({ color, children }) => {
   const colors: Record<string, string> = {
-    green: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/20',
-    yellow: 'bg-amber-50 text-amber-600 ring-1 ring-amber-500/20',
-    red: 'bg-rose-50 text-rose-600 ring-1 ring-rose-500/20',
-    gray: 'bg-slate-50 text-slate-500 ring-1 ring-slate-500/10',
-    blue: 'bg-sky-50 text-sky-600 ring-1 ring-sky-500/20',
+    green: 'bg-emerald-50/80 text-emerald-600 ring-1 ring-inset ring-emerald-500/20',
+    yellow: 'bg-amber-50/80 text-amber-600 ring-1 ring-inset ring-amber-500/20',
+    red: 'bg-rose-50/80 text-rose-600 ring-1 ring-inset ring-rose-500/20',
+    gray: 'bg-slate-50/80 text-slate-500 ring-1 ring-inset ring-slate-500/10',
+    blue: 'bg-sky-50/80 text-sky-600 ring-1 ring-inset ring-sky-500/20',
   };
-  return <span class={`inline-block px-2 py-0.5 rounded-md text-xs font-medium ${colors[color] || colors.gray}`}>{children}</span>;
+  return <span class={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${colors[color] || colors.gray}`}>{children}</span>;
 };
 
 export const Table: FC<{ children: Child }> = ({ children }) => (
-  <div class="overflow-x-auto">
+  <div class="overflow-x-auto rounded-xl border border-slate-200/50">
     <table class="w-full text-[13px]">
       {children}
     </table>
@@ -129,28 +135,48 @@ export const Table: FC<{ children: Child }> = ({ children }) => (
 );
 
 export const Th: FC<{ children: Child; class?: string }> = ({ children, class: cls }) => (
-  <th class={`px-3 py-2.5 text-left text-xs font-medium text-slate-400 uppercase tracking-wider bg-slate-50/50 ${cls || ''}`}>{children}</th>
+  <th class={`px-4 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-50/80 first:rounded-tl-xl last:rounded-tr-xl ${cls || ''}`}>{children}</th>
 );
 
 export const Td: FC<{ children: Child; class?: string }> = ({ children, class: cls }) => (
-  <td class={`px-3 py-3 text-slate-600 border-t border-slate-100 ${cls || ''}`}>{children}</td>
+  <td class={`px-4 py-3.5 text-slate-600 border-t border-slate-100/80 ${cls || ''}`}>{children}</td>
 );
 
 export const Button: FC<{ href?: string; type?: string; variant?: string; size?: string; children: Child; class?: string }> = (props) => {
-  const base = 'inline-flex items-center justify-center font-medium rounded-lg transition-all';
+  const base = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200';
   const variants: Record<string, string> = {
-    primary: 'bg-pp-500 text-white hover:bg-pp-600 shadow-sm shadow-pp-500/25',
-    secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-    ghost: 'text-slate-500 hover:text-slate-700 hover:bg-slate-100',
-    danger: 'bg-rose-500 text-white hover:bg-rose-600 shadow-sm shadow-rose-500/25',
+    primary: 'bg-gradient-to-r from-pp-500 to-pp-600 text-white hover:from-pp-600 hover:to-pp-700 shadow-lg shadow-pp-500/25 hover:shadow-pp-500/40 hover:-translate-y-0.5',
+    secondary: 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/80 hover:-translate-y-0.5',
+    ghost: 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/60',
+    danger: 'bg-gradient-to-r from-rose-500 to-rose-600 text-white hover:from-rose-600 hover:to-rose-700 shadow-lg shadow-rose-500/25',
   };
   const sizes: Record<string, string> = {
-    sm: 'px-2.5 py-1.5 text-xs',
-    md: 'px-3.5 py-2 text-sm',
-    lg: 'px-5 py-2.5 text-sm',
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-4 py-2.5 text-sm',
+    lg: 'px-6 py-3 text-sm',
   };
   const cls = `${base} ${variants[props.variant || 'primary']} ${sizes[props.size || 'md']} ${props.class || ''}`;
   
   if (props.href) return <a href={props.href} class={cls}>{props.children}</a>;
   return <button type={(props.type as 'button' | 'submit' | 'reset') || 'button'} class={cls}>{props.children}</button>;
 };
+
+export const PageHeader: FC<{ title: string; subtitle?: string; children?: Child }> = ({ title, subtitle, children }) => (
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-slate-800 tracking-tight">{title}</h1>
+        {subtitle && <p class="mt-1 text-sm text-slate-500">{subtitle}</p>}
+      </div>
+      {children && <div class="flex items-center gap-3">{children}</div>}
+    </div>
+  </div>
+);
+
+export const EmptyState: FC<{ icon?: string; title: string; description?: string }> = ({ icon, title, description }) => (
+  <div class="text-center py-16">
+    {icon && <div class="text-4xl mb-4 opacity-40">{icon}</div>}
+    <h3 class="text-sm font-medium text-slate-500">{title}</h3>
+    {description && <p class="mt-1 text-xs text-slate-400">{description}</p>}
+  </div>
+);
