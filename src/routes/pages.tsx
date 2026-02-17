@@ -12,6 +12,7 @@ import { DrawPage } from '../views/draw';
 import { SearchPage } from '../views/search';
 import { BracketPage } from '../views/bracket';
 import { TeamMatchPage } from '../views/team-match';
+import { BigScreenLive, BigScreenResults, BigScreenSchedule } from '../views/bigscreen';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -337,4 +338,94 @@ pages.get('/team/:eventId', async (c) => {
     matches.push({ ...tm, rubbers: rubbers.length > 0 ? rubbers : [] });
   }
   return c.html(<TeamMatchPage event={ev.title as string} matches={matches as any} />);
+});
+
+// Big Screen: Live scores (dual panel)
+pages.get('/screen/live', async (c) => {
+  const db = c.env.DB;
+  const { results: playing } = await db.prepare(`
+    SELECT m.table_no as tb, e.key as gp, COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr,
+      COALESCE(t1.short_name,'') as tnl, COALESCE(t2.short_name,'') as tnr, m.result as score
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+    WHERE m.status='playing' ORDER BY m.table_no
+  `).all();
+  const { results: checkin } = await db.prepare(`
+    SELECT m.table_no as tb, e.key as gp, COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr,
+      COALESCE(t1.short_name,'') as tnl, COALESCE(t2.short_name,'') as tnr
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+    WHERE m.status='checkin' ORDER BY m.table_no
+  `).all();
+  return c.html(<BigScreenLive matches={playing as any} checkin={checkin as any} />);
+});
+
+// Big Screen: Results
+pages.get('/screen/results/:eventKey?', async (c) => {
+  const db = c.env.DB;
+  const eventKey = c.req.param('eventKey');
+  let results, title = '最新成绩';
+  if (eventKey) {
+    const ev = await db.prepare('SELECT id, title FROM events WHERE key=?').bind(eventKey).first();
+    if (ev) {
+      title = ev.title as string;
+      const { results: r } = await db.prepare(`
+        SELECT m.round, m.match_order as 'order', m.table_no as tb, m.result, m.winner_side as winner,
+          COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
+        FROM matches m
+        LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+        LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+        WHERE m.event_id=? AND m.status='finished' ORDER BY m.id DESC LIMIT 20
+      `).bind(ev.id).all();
+      results = r;
+    }
+  }
+  if (!results) {
+    const { results: r } = await db.prepare(`
+      SELECT m.round, m.match_order as 'order', m.table_no as tb, m.result, m.winner_side as winner,
+        COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
+      FROM matches m
+      LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+      LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+      WHERE m.status='finished' ORDER BY m.id DESC LIMIT 20
+    `).all();
+    results = r;
+  }
+  return c.html(<BigScreenResults event={title} results={results as any} />);
+});
+
+// Big Screen: Schedule
+pages.get('/screen/schedule/:eventKey?', async (c) => {
+  const db = c.env.DB;
+  const eventKey = c.req.param('eventKey');
+  let matches, title = '比赛秩序';
+  if (eventKey) {
+    const ev = await db.prepare('SELECT id, title FROM events WHERE key=?').bind(eventKey).first();
+    if (ev) {
+      title = ev.title as string;
+      const { results } = await db.prepare(`
+        SELECT m.time, m.table_no as tb, e.key as event, m.status,
+          COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
+        FROM matches m JOIN events e ON m.event_id=e.id
+        LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+        LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+        WHERE m.event_id=? ORDER BY m.time, m.table_no LIMIT 30
+      `).bind(ev.id).all();
+      matches = results;
+    }
+  }
+  if (!matches) {
+    const { results } = await db.prepare(`
+      SELECT m.time, m.table_no as tb, e.key as event, m.status,
+        COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
+      FROM matches m JOIN events e ON m.event_id=e.id
+      LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+      LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+      WHERE m.status IN ('scheduled','playing','checkin') ORDER BY m.time, m.table_no LIMIT 30
+    `).all();
+    matches = results;
+  }
+  return c.html(<BigScreenSchedule title={title} matches={matches as any} />);
 });
