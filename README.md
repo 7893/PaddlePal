@@ -1,28 +1,24 @@
-# PaddlePal 拍档
+# 🏓 PaddlePal (拍档)
 
-Table Tennis Tournament Management System — Cloudflare Workers + D1
+A lightweight table tennis tournament management system.
 
-## Stack
+Manage events, players, teams, draws, scoring, and results — all from your browser.
 
-- **Runtime**: Cloudflare Workers (TypeScript)
-- **Database**: Cloudflare D1 (SQLite)
-- **Frontend**: Static HTML + jQuery (served via Workers Assets)
+## Features
 
-## Development
+- Tournament setup with multiple events (singles, doubles, team)
+- Round-robin and knockout stage support
+- Live scoring and real-time match status
+- Cross tables and rankings
+- Schedule management
+- Player and team management
+- Data export (CSV)
+- Database backup and restore
 
-```bash
-npm install
-npm run db:init:local   # init local D1
-npm run dev             # start local dev server
-```
+## Live
 
-## Deploy
+https://paddlepal.53.workers.dev
 
-```bash
-npm run db:init         # init remote D1 (first time)
-npm run deploy          # deploy to Cloudflare
-```
+## License
 
-## Migrated from
-
-Original Windows desktop app "乒乓球助手" (SSZS, 2018) → Go rewrite → Cloudflare Workers
+MIT
