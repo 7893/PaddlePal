@@ -22,26 +22,59 @@ export const Layout: FC<{ title: string; children: Child }> = ({ title, children
 );
 
 export const Nav: FC<{ current?: string }> = ({ current }) => {
-  const links = [
-    { href: '/', label: '首页', icon: '🏠' },
-    { href: '/live', label: '实时比分', icon: '🏓' },
-    { href: '/schedule', label: '赛程', icon: '📋' },
-    { href: '/results', label: '成绩', icon: '🏆' },
-    { href: '/players', label: '选手', icon: '👥' },
-    { href: '/search', label: '查询', icon: '🔍' },
-    { href: '/admin', label: '管理', icon: '⚙️' },
+  const menu = [
+    { group: '赛事', items: [
+      { href: '/', label: '首页', icon: '🏠' },
+      { href: '/live', label: '实时比分', icon: '🏓' },
+      { href: '/schedule', label: '赛程', icon: '📋' },
+      { href: '/results', label: '成绩', icon: '🏆' },
+      { href: '/ranking', label: '积分榜', icon: '📊' },
+      { href: '/players', label: '选手', icon: '👥' },
+      { href: '/notices', label: '公告', icon: '📢' },
+    ]},
+    { group: '管理', items: [
+      { href: '/admin', label: '概览', icon: '📈' },
+      { href: '/admin/tournament', label: '赛事设置', icon: '⚙️' },
+      { href: '/admin/events', label: '项目', icon: '🎯' },
+      { href: '/admin/players', label: '选手', icon: '👤' },
+      { href: '/admin/teams', label: '队伍', icon: '🚩' },
+      { href: '/admin/flags', label: '队旗', icon: '🎌' },
+      { href: '/admin/notices', label: '公告', icon: '📝' },
+    ]},
+    { group: '大屏', items: [
+      { href: '/screen/live', label: '比分大屏', icon: '📺' },
+      { href: '/screen/flags', label: '队旗大屏', icon: '🚩' },
+      { href: '/screen/results', label: '成绩滚动', icon: '🔄' },
+      { href: '/screen/schedule', label: '赛程滚动', icon: '📜' },
+    ]},
+    { group: '工具', items: [
+      { href: '/search', label: '查询', icon: '🔍' },
+      { href: '/progress', label: '进度', icon: '📉' },
+    ]},
   ];
+  
   return (
     <nav class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-6xl mx-auto px-4">
-        <div class="flex items-center justify-between h-14">
-          <a href="/" class="text-lg font-bold text-pp-700">🏓 拍档</a>
-          <div class="flex gap-1">
-            {links.map(l => (
-              <a href={l.href}
-                class={`px-3 py-2 rounded-lg text-sm transition ${current === l.href ? 'bg-pp-50 text-pp-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}>
-                <span class="mr-1">{l.icon}</span>{l.label}
-              </a>
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-center h-14">
+          <a href="/" class="text-lg font-bold text-pp-700 mr-6">🏓 拍档</a>
+          <div class="flex gap-6 overflow-x-auto">
+            {menu.map(g => (
+              <div class="relative group">
+                <button class="px-2 py-2 text-sm text-gray-600 hover:text-pp-700 whitespace-nowrap">
+                  {g.group} ▾
+                </button>
+                <div class="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
+                  <div class="bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[140px]">
+                    {g.items.map(l => (
+                      <a href={l.href}
+                        class={`block px-4 py-2 text-sm transition ${current === l.href ? 'bg-pp-50 text-pp-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
+                        <span class="mr-2">{l.icon}</span>{l.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
