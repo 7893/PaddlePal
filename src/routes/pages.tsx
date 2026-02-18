@@ -16,6 +16,8 @@ import { BigScreenLive, BigScreenResults, BigScreenSchedule } from '../views/big
 import { RankingPage, NoticesPage, ProgressPage } from '../views/extra';
 import { BigScreenFlags, FlagUploadPage } from '../views/flags';
 import { DrawListPage } from '../views/draw-list';
+import { ExportPage } from '../views/export';
+import { DrawBoardPage } from '../views/draw-board';
 
 type Bindings = { DB: D1Database };
 export const pages = new Hono<{ Bindings: Bindings }>();
@@ -507,4 +509,64 @@ pages.get('/admin/flags', async (c) => {
     SELECT id, name, flag FROM teams WHERE tournament_id = 1 ORDER BY name
   `).all();
   return c.html(<FlagUploadPage teams={results as any} />);
+});
+
+// Export center page
+pages.get('/admin/export', async (c) => {
+  const db = c.env.DB;
+  const { results: events } = await db.prepare('SELECT key, title FROM events WHERE tournament_id = 1 ORDER BY id').all();
+  const tournament = await db.prepare("SELECT COALESCE(info,'') as name, COALESCE(venue,'') as venue, COALESCE(start_date,'') as date FROM tournaments WHERE id = 1").first();
+  return c.html(<ExportPage events={events as any} tournament={tournament as any} />);
+});
+
+// Draw board (projection display)
+pages.get('/screen/draw/:eventKey', async (c) => {
+  const db = c.env.DB;
+  const eventKey = c.req.param('eventKey');
+  const event = await db.prepare('SELECT id, key, title FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
+  if (!event) return c.text('Event not found', 404);
+
+  const { results: entries } = await db.prepare(`
+    SELECT d.position, d.seed, p.name as player, COALESCE(t.short_name,'') as team, p.rating, d.draw_time
+    FROM draws d
+    JOIN players p ON d.player_id = p.id
+    LEFT JOIN teams t ON p.team_id = t.id
+    WHERE d.event_id = ?
+    ORDER BY d.position
+  `).bind(event.id).all();
+
+  const total = await db.prepare(`
+    SELECT COUNT(*) as cnt FROM group_entries WHERE group_id IN (SELECT id FROM group_tables WHERE event_id = ?)
+  `).bind(event.id).first();
+  const totalPlayers = (total?.cnt as number) || 16;
+  const status = entries.length === 0 ? 'pending' : entries.length >= totalPlayers ? 'completed' : 'drawing';
+
+  const tournament = await db.prepare("SELECT COALESCE(info,'') as name FROM tournaments WHERE id = 1").first();
+
+  return c.html(<DrawBoardPage 
+    event={{ key: eventKey, title: event.title as string, entries: entries as any, status: status as any, totalPlayers }}
+    tournament={tournament?.name as string || ''}
+  />);
+});
+
+// Live API for polling
+pages.get('/api/live', async (c) => {
+  const db = c.env.DB;
+  const { results: playingRows } = await db.prepare(`
+    SELECT m.id, m.match_order as pid, m.table_no as tb, m.time as tm, e.key as gp, e.event_type as ev,
+      COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr,
+      COALESCE(t1.short_name,'') as tnl, COALESCE(t2.short_name,'') as tnr, m.result
+    FROM matches m JOIN events e ON m.event_id=e.id
+    LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
+    LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
+    WHERE m.status='playing' ORDER BY m.table_no
+  `).all();
+  
+  const playing = [];
+  for (const r of playingRows) {
+    const { results: sRows } = await db.prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no').bind(r.id).all();
+    playing.push({ ...r, score: sRows });
+  }
+  
+  return c.json({ playing });
 });

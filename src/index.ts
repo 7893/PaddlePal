@@ -7,6 +7,7 @@ import { filesApi } from './routes/files-api';
 import { importApi } from './routes/import-api';
 import { exportApi } from './routes/export-api';
 import { ratingApi } from './routes/rating-api';
+import { drawApi } from './routes/draw-api';
 import { pages } from './routes/pages';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -40,6 +41,9 @@ app.route('/', exportApi);
 
 // Rating API
 app.route('/', ratingApi);
+
+// Draw API
+app.route('/', drawApi);
 
 // 404 handler
 app.notFound((c) => {
