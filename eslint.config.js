@@ -9,7 +9,8 @@ export default tseslint.config(
   },
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // D1 query results are dynamically typed, any is acceptable for view props
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': 'warn',
       'prefer-const': 'error',
