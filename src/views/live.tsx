@@ -7,7 +7,12 @@ type Match = {
   result: string; score: { l: number; r: number }[];
 };
 
-export const LivePage: FC<{ playing: Match[]; upcoming: Match[] }> = ({ playing, upcoming }) => (
+type UpcomingMatch = {
+  id: number; pid: number; tb: number; tm: string; gp: string;
+  nl: string; nr: string;
+};
+
+export const LivePage: FC<{ playing: Match[]; upcoming: UpcomingMatch[] }> = ({ playing, upcoming }) => (
   <Layout title="实时比分">
     <Nav current="/live" />
     <div class="max-w-6xl mx-auto px-4 py-6 fade-in">
