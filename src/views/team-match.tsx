@@ -1,5 +1,5 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, Badge } from '../components/layout';
+import { Layout, Nav, Badge } from '../components/layout';
 
 type Rubber = { pid: number; order: number; p1: string; p2: string; result: string; status: string; winner: number };
 type TeamMatch = {

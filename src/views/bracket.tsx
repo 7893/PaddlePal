@@ -41,7 +41,7 @@ export const BracketPage: FC<{ title: string; rounds: BMatch[][]; maxRound: numb
                   <div class="absolute -top-1 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 whitespace-nowrap">
                     {roundLabels(ri)}
                   </div>
-                  {ms.map((m, mi) => (
+                  {ms.map((m, _mi) => (
                     <div class="relative">
                       {/* Connector lines */}
                       {ri > 0 && (

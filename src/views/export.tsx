@@ -1,5 +1,5 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, Button } from '../components/layout';
+import { Layout, Nav, Card } from '../components/layout';
 
 type ExportOptions = {
   events: { key: string; title: string }[];
@@ -162,9 +162,8 @@ function generateProgram() {
 // Printable score sheet component
 export const ScoreSheetPrint: FC<{
   matches: { pid: number; p1: string; p2: string; t1: string; t2: string; event: string; table: number; time: string; bestOf: number }[];
-  style: string;
   tournament: { name: string; venue: string; date: string };
-}> = ({ matches, style, tournament }) => (
+}> = ({ matches, tournament }) => (
   <html>
     <head>
       <meta charset="utf-8" />
