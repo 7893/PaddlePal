@@ -28,7 +28,7 @@
     "wrangler": "^4.65.0"
   },
   "dependencies": {
-    "hono": "^4.11.9",
+    "hono": "^4.11.10",
     "papaparse": "^5.5.3"
   }
 }
