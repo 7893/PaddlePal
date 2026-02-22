@@ -34,6 +34,9 @@ import { EliminationBracket } from '../views/elimination-bracket';
 import { GroupStandings } from '../views/group-standings';
 import { QRCodePage } from '../views/qrcode';
 import { TimelinePage } from '../views/timeline';
+import { MatchDetailPage } from '../views/match-detail';
+import { TeamRankingPage } from '../views/team-ranking';
+import { HelpPage } from '../views/help';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -753,6 +756,48 @@ pages.get('/timeline', async (c) => {
 
   return c.html(<TimelinePage matches={matches as any} date={date} />);
 });
+
+// Match detail
+pages.get('/match/:id', async (c) => {
+  const db = c.env.DB;
+  const matchId = c.req.param('id');
+
+  const match = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, m.status, COALESCE(m.confirmed,0) as confirmed,
+      e.title as event, m.player1_id, m.player2_id
+    FROM matches m LEFT JOIN events e ON m.event_id = e.id WHERE m.id = ?
+  `).bind(matchId).first();
+  if (!match) return c.text('Not found', 404);
+
+  const p1 = await db.prepare('SELECT p.name, COALESCE(t.name,"") as team FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?').bind(match.player1_id).first();
+  const p2 = await db.prepare('SELECT p.name, COALESCE(t.name,"") as team FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?').bind(match.player2_id).first();
+
+  const { results: scores } = await db.prepare('SELECT game_no as game, score_left as s1, score_right as s2 FROM scores WHERE match_id = ? ORDER BY game_no').bind(matchId).all();
+
+  return c.html(<MatchDetailPage match={match as any} p1={p1 as any || {}} p2={p2 as any || {}} games={scores as any} history={[]} />);
+});
+
+// Team ranking
+pages.get('/team-ranking', async (c) => {
+  const db = c.env.DB;
+
+  const { results: teams } = await db.prepare(`
+    SELECT t.id, t.name, COUNT(DISTINCT p.id) as players,
+      SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
+      COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as played
+    FROM teams t
+    LEFT JOIN players p ON p.team_id = t.id
+    LEFT JOIN matches m ON (m.player1_id = p.id OR m.player2_id = p.id) AND m.status = 'finished'
+    WHERE t.tournament_id = 1
+    GROUP BY t.id
+    ORDER BY wins DESC
+  `).all();
+
+  return c.html(<TeamRankingPage teams={teams as any} />);
+});
+
+// Help page
+pages.get('/help', (c) => c.html(<HelpPage />));
 
 // Draw page for specific event
 pages.get('/admin/draw/:eventId', async (c) => {
