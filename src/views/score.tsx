@@ -67,6 +67,17 @@ export const ScorePage: FC<{ match: MatchInfo }> = ({ match: m }) => (
         </div>
       </div>
 
+      {/* Quick input box */}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+        <div class="text-xs text-gray-400 mb-2">快捷输入（如 1109110811091103）</div>
+        <div class="flex gap-2">
+          <input type="text" id="quickInput" inputmode="numeric" pattern="[0-9]*" placeholder="连续输入所有局比分..."
+            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-lg font-mono focus:ring-2 focus:ring-pp-500 focus:border-pp-500" />
+          <button type="button" onclick="parseQuickInput()" class="px-4 py-2 bg-pp-600 text-white rounded-lg hover:bg-pp-700 active:bg-pp-800 transition">解析</button>
+        </div>
+        <div id="quickInputPreview" class="text-xs text-gray-500 mt-2 hidden"></div>
+      </div>
+
       {/* Detailed score form */}
       <details class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4">
         <summary class="px-5 py-3 cursor-pointer text-sm text-gray-500 hover:bg-gray-50">详细比分编辑</summary>
@@ -92,6 +103,10 @@ export const ScorePage: FC<{ match: MatchInfo }> = ({ match: m }) => (
 
       {/* Actions */}
       <div class="flex flex-col gap-2">
+        <label class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+          <input type="checkbox" id="autoNext" class="rounded border-gray-300" />
+          保存后自动跳转下一场
+        </label>
         <div class="flex gap-2">
           <button onclick="setStatus('playing')" class="flex-1 py-3 rounded-xl bg-amber-500 text-white font-medium hover:bg-amber-600 active:bg-amber-700 transition touch-manipulation">
             ▶ 开始比赛
@@ -209,7 +224,13 @@ function saveScore(){
   api('/api/admin/match/save',{match_id:matchId,scores:data}).then(function(res){
     if(res.success){
       if(navigator.vibrate) navigator.vibrate([50,50,50]);
-      location.reload();
+      // Auto advance to next match if checkbox is checked
+      var autoNext=document.getElementById('autoNext');
+      if(autoNext&&autoNext.checked){
+        location.href='/admin/score/'+(pid+1);
+      }else{
+        location.reload();
+      }
     }else alert('Error: '+res.error);
   });
 }
@@ -227,6 +248,45 @@ function walkover(side){
     if(res.success) location.reload();
   });
 }
+
+function parseQuickInput(){
+  var input=document.getElementById('quickInput').value.replace(/\\D/g,'');
+  if(input.length<4||input.length%4!==0){
+    alert('格式错误：请输入4的倍数位数字，如 1109110811091103');
+    return;
+  }
+  var parsed=[];
+  for(var i=0;i<input.length;i+=4){
+    var l=parseInt(input.substr(i,2),10);
+    var r=parseInt(input.substr(i+2,2),10);
+    parsed.push({l:l,r:r});
+  }
+  // Validate scores
+  var valid=true;
+  parsed.forEach(function(s,idx){
+    var win=Math.max(s.l,s.r);
+    var lose=Math.min(s.l,s.r);
+    if(win<11||(win===11&&win-lose<2)||(win>11&&win-lose!==2)){
+      if(!(s.l===0&&s.r===0)) valid=false;
+    }
+  });
+  if(!valid&&!confirm('比分可能不合法，是否继续？')) return;
+  // Apply to scores
+  scores=parsed.slice(0,bestOf);
+  currentGame=scores.length-1;
+  updateDisplay();
+  // Show preview
+  var preview=scores.map(function(s,i){return '第'+(i+1)+'局: '+s.l+'-'+s.r}).join(' | ');
+  var el=document.getElementById('quickInputPreview');
+  el.textContent='✓ '+preview;
+  el.className='text-xs text-green-600 mt-2';
+  if(navigator.vibrate) navigator.vibrate([30,30,30]);
+}
+
+// Quick input on Enter key
+document.getElementById('quickInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){e.preventDefault();parseQuickInput();}
+});
 
 updateDisplay();
 `}} />
