@@ -61,6 +61,7 @@ auth.post('/login', async (c) => {
   const sessionId = crypto.randomUUID();
   await c.env.SESSIONS.put(sessionId, JSON.stringify(validUser), { expirationTtl: 86400 });
   setCookie(c, 'session', sessionId, { path: '/', httpOnly: true, secure: true, sameSite: 'Lax', maxAge: 86400 });
+  setCookie(c, 'logged_in', '1', { path: '/', httpOnly: false, secure: true, sameSite: 'Lax', maxAge: 86400 });
   return c.redirect('/admin');
 });
 
@@ -70,6 +71,7 @@ auth.get('/logout', async (c) => {
   if (sessionId) {
     await c.env.SESSIONS.delete(sessionId);
     deleteCookie(c, 'session', { path: '/' });
+    deleteCookie(c, 'logged_in', { path: '/' });
   }
   return c.redirect('/');
 });

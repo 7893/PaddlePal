@@ -117,7 +117,7 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
       </div>
       <script dangerouslySetInnerHTML={{ __html: `
 (function(){
-  if(document.cookie.indexOf('session=')!==-1){
+  if(document.cookie.indexOf('logged_in=')!==-1){
     document.getElementById('login-btn').style.display='none';
     document.getElementById('user-info').style.display='flex';
     document.querySelectorAll('.admin-only').forEach(function(e){e.style.display='';});
