@@ -219,6 +219,7 @@ pages.get('/results/:key', async (c) => {
 // Admin
 pages.get('/admin', async (c) => {
   const db = c.env.DB;
+  const user = (c as any).get('user') || { name: '管理员', role: 'referee' };
   const t = await db.prepare("SELECT COALESCE(info,'') as info, COALESCE(venue,'') as venue FROM tournaments WHERE id=1").first();
   const { results: teams } = await db.prepare(`SELECT t.id, t.name, COALESCE(t.short_name,'') as short_name,
     (SELECT COUNT(*) FROM players WHERE team_id=t.id) as count FROM teams t WHERE t.tournament_id=1 ORDER BY t.id`).all();
@@ -232,7 +233,8 @@ pages.get('/admin', async (c) => {
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     ORDER BY m.match_order DESC
   `).all();
-  return c.html(<AdminPage info={t?.info as string || ''} venue={t?.venue as string || ''} teams={teams as any} players={players as any} events={events as any} matches={matches as any} />);
+  const info = { info: t?.info || '', venue: t?.venue || '', userName: user.name, userRole: user.role };
+  return c.html(<AdminPage info={info as any} venue={t?.venue as string || ''} teams={teams as any} players={players as any} events={events as any} matches={matches as any} />);
 });
 
 // Score entry

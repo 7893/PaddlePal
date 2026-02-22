@@ -15,7 +15,10 @@ export const AdminPage: FC<{
     <div class="max-w-6xl mx-auto px-4 py-6 fade-in">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-lg font-bold text-gray-800">⚙️ 管理后台</h2>
-        <a href="/logout" class="text-sm text-gray-500 hover:text-red-600">退出登录 →</a>
+        <div class="flex items-center gap-4">
+          <span class="text-sm text-gray-500">👤 {(info as any).userName || '管理员'} ({(info as any).userRole || 'referee'})</span>
+          <a href="/logout" class="text-sm text-gray-500 hover:text-red-600">退出 →</a>
+        </div>
       </div>
 
       {/* Tournament info */}
