@@ -48,9 +48,12 @@ export const DrawListPage: FC<{ events: EventItem[] }> = ({ events }) => (
                       <span class="text-slate-400">-</span>
                     )}
                   </Td>
-                  <Td class="text-right">
+                  <Td class="text-right space-x-2">
+                    <a href={`/admin/draw/roundrobin/${e.key}`} class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors">
+                      分组
+                    </a>
                     <a href={`/admin/draw/${e.id}`} class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-pp-600 hover:text-pp-700 hover:bg-pp-50 rounded-lg transition-colors">
-                      抽签 →
+                      淘汰
                     </a>
                   </Td>
                 </tr>

@@ -16,6 +16,7 @@ import { BigScreenLive, BigScreenResults, BigScreenSchedule } from '../views/big
 import { RankingPage, NoticesPage, ProgressPage } from '../views/extra';
 import { BigScreenFlags, FlagUploadPage } from '../views/flags';
 import { DrawListPage } from '../views/draw-list';
+import { DrawManagePage } from '../views/draw-manage';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -294,6 +295,38 @@ pages.get('/admin/draw', async (c) => {
   `).all();
   
   return c.html(<DrawListPage events={events as any} />);
+});
+
+// Round robin draw management
+pages.get('/admin/draw/roundrobin/:eventKey', async (c) => {
+  const db = c.env.DB;
+  const eventKey = c.req.param('eventKey');
+  
+  const event = await db.prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
+  if (!event) return c.text('Not found', 404);
+
+  const { results: gRows } = await db.prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name').bind(event.id).all();
+  
+  const groups = [];
+  for (const g of gRows) {
+    const { results: players } = await db.prepare(`
+      SELECT ge.position, ge.seed, p.id as player_id, p.name, COALESCE(t.short_name,'') as team
+      FROM group_entries ge JOIN players p ON ge.player_id = p.id
+      LEFT JOIN teams t ON p.team_id = t.id
+      WHERE ge.group_id = ? ORDER BY ge.position
+    `).bind(g.id).all();
+    groups.push({ id: g.id, name: g.name, players });
+  }
+
+  const assignedIds = groups.flatMap(g => g.players.map(p => p.player_id));
+  const { results: allPlayers } = await db.prepare(`
+    SELECT p.id, p.name, COALESCE(t.short_name,'') as team, p.rating
+    FROM players p LEFT JOIN teams t ON p.team_id = t.id
+    WHERE p.tournament_id = 1 ORDER BY p.rating DESC
+  `).all();
+  const unassigned = allPlayers.filter(p => !assignedIds.includes(p.id as number));
+
+  return c.html(<DrawManagePage eventKey={eventKey} eventTitle={event.title as string} groups={groups as any} unassigned={unassigned as any} />);
 });
 
 // Draw page for specific event
