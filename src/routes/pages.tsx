@@ -20,6 +20,7 @@ import { DrawManagePage } from '../views/draw-manage';
 import { ScheduleManagePage } from '../views/schedule-manage';
 import { ControlPanelPage } from '../views/control-panel';
 import { ConfirmPage } from '../views/confirm';
+import { UsersPage } from '../views/users';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -399,6 +400,19 @@ pages.get('/admin/confirm', async (c) => {
   `).all();
 
   return c.html(<ConfirmPage matches={matches as any} userRole={user.role} />);
+});
+
+// Users management page
+pages.get('/admin/users', async (c) => {
+  const db = c.env.DB;
+  const user = (c as any).get('user') || { role: 'public' };
+  const canManage = user.role === 'referee';
+
+  const { results: users } = await db.prepare(
+    'SELECT id, username, role, name, created_at FROM users ORDER BY id'
+  ).all();
+
+  return c.html(<UsersPage users={users as any} canManage={canManage} />);
 });
 
 // Draw page for specific event

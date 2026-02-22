@@ -11,6 +11,7 @@ import { drawApi } from './routes/draw-api';
 import { scheduleApi } from './routes/schedule-api';
 import { controlApi } from './routes/control-api';
 import { confirmApi } from './routes/confirm-api';
+import { usersApi } from './routes/users-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
@@ -64,6 +65,9 @@ app.route('/', controlApi);
 
 // Confirm API
 app.route('/', confirmApi);
+
+// Users API
+app.route('/', usersApi);
 
 // 404 handler
 app.notFound((c) => {
