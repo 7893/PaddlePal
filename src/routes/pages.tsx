@@ -23,6 +23,8 @@ import { ConfirmPage } from '../views/confirm';
 import { UsersPage } from '../views/users';
 import { BigScreenPage } from '../views/bigscreen';
 import { StatsPage } from '../views/stats';
+import { MyMatchesPage, PlayerSelectPage } from '../views/my-matches';
+import { CheckinPage } from '../views/checkin';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -466,6 +468,58 @@ pages.get('/stats', async (c) => {
   `).all();
 
   return c.html(<StatsPage players={players as any} teams={teams as any} />);
+});
+
+// My matches - player select
+pages.get('/my', async (c) => {
+  const db = c.env.DB;
+  const { results: players } = await db.prepare(`
+    SELECT p.id, p.name, COALESCE(t.name,'') as team
+    FROM players p LEFT JOIN teams t ON p.team_id = t.id
+    WHERE p.tournament_id = 1 ORDER BY p.name
+  `).all();
+  return c.html(<PlayerSelectPage players={players as any} />);
+});
+
+// My matches - player view
+pages.get('/my/:playerId', async (c) => {
+  const db = c.env.DB;
+  const playerId = c.req.param('playerId');
+
+  const player = await db.prepare('SELECT id, name FROM players WHERE id = ?').bind(playerId).first();
+  if (!player) return c.text('Not found', 404);
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, m.status, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.player1_id = ? OR m.player2_id = ?
+    ORDER BY m.time
+  `).bind(playerId, playerId).all();
+
+  return c.html(<MyMatchesPage player={player as any} matches={matches as any} />);
+});
+
+// Checkin page
+pages.get('/admin/checkin', async (c) => {
+  const db = c.env.DB;
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, COALESCE(m.checkin1,0) as checkin1, COALESCE(m.checkin2,0) as checkin2,
+      e.title as event, COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status = 'scheduled'
+    ORDER BY m.time, m.table_no
+    LIMIT 20
+  `).all();
+
+  return c.html(<CheckinPage matches={matches as any} />);
 });
 
 // Draw page for specific event
