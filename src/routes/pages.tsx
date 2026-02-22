@@ -38,6 +38,9 @@ import { MatchDetailPage } from '../views/match-detail';
 import { TeamRankingPage } from '../views/team-ranking';
 import { HelpPage } from '../views/help';
 import { DashboardPage } from '../views/dashboard';
+import { EventListPage } from '../views/event-list';
+import { TableStatusPage } from '../views/table-status';
+import { AboutPage } from '../views/about';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -824,6 +827,67 @@ pages.get('/dashboard', async (c) => {
   `).all();
 
   return c.html(<DashboardPage stats={stats as any} recentResults={recentResults as any} />);
+});
+
+// Event list
+pages.get('/events', async (c) => {
+  const db = c.env.DB;
+
+  const { results: events } = await db.prepare(`
+    SELECT e.id, e.key, e.title, e.event_type as type, COALESCE(e.stage,'loop') as stage,
+      (SELECT COUNT(*) FROM group_entries ge JOIN group_tables g ON ge.group_id = g.id WHERE g.event_id = e.id) as playerCount,
+      (SELECT COUNT(*) FROM matches WHERE event_id = e.id) as matchCount,
+      (SELECT COUNT(*) FROM matches WHERE event_id = e.id AND status = 'finished') as finished
+    FROM events e WHERE e.tournament_id = 1
+  `).all();
+
+  return c.html(<EventListPage events={events as any} />);
+});
+
+// Table status
+pages.get('/tables', async (c) => {
+  const db = c.env.DB;
+  const tournament = await db.prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+  const tableCount = (tournament?.tables as number) || 6;
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.table_no, m.status, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      COALESCE(m.score1,0) as score1, COALESCE(m.score2,0) as score2
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status IN ('playing', 'scheduled')
+  `).all();
+
+  const tables = Array.from({ length: tableCount }, (_, i) => {
+    const no = i + 1;
+    const playing = matches.find((m: any) => m.table_no === no && m.status === 'playing') as any;
+    const ready = matches.find((m: any) => m.table_no === no && m.status === 'scheduled') as any;
+    const current = playing || ready;
+    return {
+      no,
+      status: playing ? 'playing' : ready ? 'ready' : 'idle',
+      match: current ? { p1: current.p1, p2: current.p2, score1: current.score1, score2: current.score2, event: current.event } : undefined
+    };
+  });
+
+  return c.html(<TableStatusPage tables={tables as any} />);
+});
+
+// About page
+pages.get('/about', async (c) => {
+  const db = c.env.DB;
+  const t = await db.prepare('SELECT title, venue, start_date, end_date, organizer, contact FROM tournaments WHERE id = 1').first();
+
+  return c.html(<AboutPage tournament={{
+    title: (t?.title as string) || 'PaddlePal',
+    venue: (t?.venue as string) || '',
+    dates: t?.start_date ? `${t.start_date} ~ ${t.end_date || ''}` : '',
+    organizer: (t?.organizer as string) || '',
+    contact: (t?.contact as string) || ''
+  }} />);
 });
 
 // Draw page for specific event
