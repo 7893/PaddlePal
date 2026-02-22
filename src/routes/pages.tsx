@@ -17,6 +17,7 @@ import { RankingPage, NoticesPage, ProgressPage } from '../views/extra';
 import { BigScreenFlags, FlagUploadPage } from '../views/flags';
 import { DrawListPage } from '../views/draw-list';
 import { DrawManagePage } from '../views/draw-manage';
+import { ScheduleManagePage } from '../views/schedule-manage';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -327,6 +328,30 @@ pages.get('/admin/draw/roundrobin/:eventKey', async (c) => {
   const unassigned = allPlayers.filter(p => !assignedIds.includes(p.id as number));
 
   return c.html(<DrawManagePage eventKey={eventKey} eventTitle={event.title as string} groups={groups as any} unassigned={unassigned as any} />);
+});
+
+// Schedule management page
+pages.get('/admin/schedule/:eventKey', async (c) => {
+  const db = c.env.DB;
+  const eventKey = c.req.param('eventKey');
+
+  const event = await db.prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
+  if (!event) return c.text('Not found', 404);
+
+  const tournament = await db.prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+  const tableCount = (tournament?.tables as number) || 6;
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.match_order as pid, m.round, m.time, m.table_no,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2, m.status
+    FROM matches m
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.event_id = ?
+    ORDER BY m.time, m.table_no
+  `).bind(event.id).all();
+
+  return c.html(<ScheduleManagePage eventKey={eventKey} eventTitle={event.title as string} matches={matches as any} tableCount={tableCount} />);
 });
 
 // Draw page for specific event
