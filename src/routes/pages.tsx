@@ -37,6 +37,7 @@ import { TimelinePage } from '../views/timeline';
 import { MatchDetailPage } from '../views/match-detail';
 import { TeamRankingPage } from '../views/team-ranking';
 import { HelpPage } from '../views/help';
+import { DashboardPage } from '../views/dashboard';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -798,6 +799,32 @@ pages.get('/team-ranking', async (c) => {
 
 // Help page
 pages.get('/help', (c) => c.html(<HelpPage />));
+
+// Dashboard page
+pages.get('/dashboard', async (c) => {
+  const db = c.env.DB;
+
+  const stats = await db.prepare(`
+    SELECT
+      (SELECT COUNT(*) FROM players WHERE tournament_id = 1) as players,
+      (SELECT COUNT(*) FROM teams WHERE tournament_id = 1) as teams,
+      (SELECT COUNT(*) FROM matches) as total_matches,
+      (SELECT COUNT(*) FROM matches WHERE status = 'finished') as finished,
+      (SELECT COUNT(*) FROM matches WHERE status = 'playing') as playing,
+      (SELECT COUNT(*) FROM matches WHERE status = 'scheduled') as scheduled
+  `).first();
+
+  const { results: recentResults } = await db.prepare(`
+    SELECT m.id, COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2, m.score1, m.score2
+    FROM matches m
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status = 'finished'
+    ORDER BY m.id DESC LIMIT 5
+  `).all();
+
+  return c.html(<DashboardPage stats={stats as any} recentResults={recentResults as any} />);
+});
 
 // Draw page for specific event
 pages.get('/admin/draw/:eventId', async (c) => {

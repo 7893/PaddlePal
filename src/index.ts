@@ -17,6 +17,7 @@ import { checkinApi } from './routes/checkin-api';
 import { appealsApi } from './routes/appeals-api';
 import { settingsApi } from './routes/settings-api';
 import { knockoutApi } from './routes/knockout-api';
+import { utilApi } from './routes/util-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
@@ -88,6 +89,9 @@ app.route('/', settingsApi);
 
 // Knockout API
 app.route('/', knockoutApi);
+
+// Util API
+app.route('/', utilApi);
 
 // 404 handler
 app.notFound((c) => {
