@@ -7,6 +7,13 @@ export const adminApi = new Hono<{ Bindings: Bindings }>();
 adminApi.post('/api/admin/match/save', async (c) => {
   const { match_id, scores } = await c.req.json<{ match_id: number; scores: { game: number; left: number; right: number }[] }>();
   const db = c.env.DB;
+
+  // Check if confirmed
+  const match = await db.prepare('SELECT confirmed FROM matches WHERE id = ?').bind(match_id).first();
+  if (match?.confirmed) {
+    return c.json({ success: false, error: '已确认的比赛不能修改' });
+  }
+
   await db.prepare('DELETE FROM scores WHERE match_id=?').bind(match_id).run();
   let w1 = 0, w2 = 0;
   for (const s of scores) {

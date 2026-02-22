@@ -19,6 +19,7 @@ import { DrawListPage } from '../views/draw-list';
 import { DrawManagePage } from '../views/draw-manage';
 import { ScheduleManagePage } from '../views/schedule-manage';
 import { ControlPanelPage } from '../views/control-panel';
+import { ConfirmPage } from '../views/confirm';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -378,6 +379,26 @@ pages.get('/admin/control', async (c) => {
   `).all();
 
   return c.html(<ControlPanelPage tables={tables} matches={matches as any} />);
+});
+
+// Confirm page
+pages.get('/admin/confirm', async (c) => {
+  const db = c.env.DB;
+  const user = (c as any).get('user') || { role: 'public' };
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.match_order, m.time, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      m.score1, m.score2, m.games
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status = 'finished' AND COALESCE(m.confirmed, 0) = 0
+    ORDER BY m.time DESC
+  `).all();
+
+  return c.html(<ConfirmPage matches={matches as any} userRole={user.role} />);
 });
 
 // Draw page for specific event

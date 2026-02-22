@@ -10,6 +10,7 @@ import { ratingApi } from './routes/rating-api';
 import { drawApi } from './routes/draw-api';
 import { scheduleApi } from './routes/schedule-api';
 import { controlApi } from './routes/control-api';
+import { confirmApi } from './routes/confirm-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
@@ -60,6 +61,9 @@ app.route('/', scheduleApi);
 
 // Control API
 app.route('/', controlApi);
+
+// Confirm API
+app.route('/', confirmApi);
 
 // 404 handler
 app.notFound((c) => {
