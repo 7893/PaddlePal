@@ -4,12 +4,18 @@ PaddlePal implements a role-based access control system designed for table tenni
 
 ## ITTF Official Terminology
 
+Based on [ITTF Handbook for Match Officials](https://www.ittf.com):
+
 | 中文 | English | Description |
 |------|---------|-------------|
 | 裁判长 | Referee | 全面负责比赛规则的执行和裁决 |
 | 副裁判长 | Deputy Referee | 协助裁判长处理相关事宜 |
 | 裁判员 | Umpire | 执行具体赛台比赛的判罚 |
 | 副裁判员 | Assistant Umpire | 协助主裁判，负责计数、判罚擦网等 |
+| 计时员 | Timekeeper | 负责轮换发球法的计时 |
+| 数板员 | Stroke Counter | 负责轮换发球法的击球计数 |
+| 编排 | Scheduling | 赛程安排、场次分配 |
+| 记录 | Recording | 比分记录、成绩登记 |
 
 ## Permission Matrix
 
