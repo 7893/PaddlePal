@@ -93,6 +93,9 @@ export interface PaginatedResponse<T> {
 export interface Env {
   DB: D1Database;
   FILES: R2Bucket;
+  SESSIONS: KVNamespace;
+  ADMIN_USER: string;
+  ADMIN_PASS: string;
 }
 
 // View types for pages

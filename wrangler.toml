@@ -10,3 +10,11 @@ database_id = "7c3145ac-c540-4492-8b2e-766c5805a44a"
 [[r2_buckets]]
 bucket_name = "paddlepal-files"
 binding = "FILES"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "276b292c24ed4cccbbf12a1bc3d9a2f5"
+
+[vars]
+ADMIN_USER = "admin"
+ADMIN_PASS = "paddlepal2026"

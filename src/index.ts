@@ -9,6 +9,7 @@ import { exportApi } from './routes/export-api';
 import { ratingApi } from './routes/rating-api';
 import { drawApi } from './routes/draw-api';
 import { pages } from './routes/pages';
+import { auth, requireAuth } from './routes/auth';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -20,6 +21,13 @@ app.use('*', securityHeaders);
 
 // Rate limit API routes only (not pages)
 app.use('/api/*', rateLimiter);
+
+// Auth routes (login/logout)
+app.route('/', auth);
+
+// Protect admin routes
+app.use('/admin/*', requireAuth);
+app.use('/api/admin/*', requireAuth);
 
 // SSR pages
 app.route('/', pages);

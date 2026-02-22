@@ -13,7 +13,10 @@ export const AdminPage: FC<{
   <Layout title="管理后台">
     <Nav current="/admin" />
     <div class="max-w-6xl mx-auto px-4 py-6 fade-in">
-      <h2 class="text-lg font-bold text-gray-800 mb-6">⚙️ 管理后台</h2>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-bold text-gray-800">⚙️ 管理后台</h2>
+        <a href="/logout" class="text-sm text-gray-500 hover:text-red-600">退出登录 →</a>
+      </div>
 
       {/* Tournament info */}
       <Card title="🏆 赛事信息" class="mb-4">
