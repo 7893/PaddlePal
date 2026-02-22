@@ -36,35 +36,43 @@ export const Layout: FC<{ title: string; children: Child }> = ({ title, children
   </html>
 );
 
-export const Nav: FC<{ current?: string }> = ({ current }) => {
+export const Nav: FC<{ current?: string; user?: { name: string; role: string } }> = ({ current, user }) => {
   const menu = [
     { group: '赛事', items: [
       { href: '/', label: '首页' },
       { href: '/live', label: '实时比分' },
+      { href: '/tables', label: '球台状态' },
       { href: '/schedule', label: '赛程安排' },
+      { href: '/timeline', label: '时间线' },
+      { href: '/events', label: '比赛项目' },
       { href: '/results', label: '比赛成绩' },
-      { href: '/ranking', label: '积分排名' },
+      { href: '/stats', label: '统计排名' },
       { href: '/players', label: '参赛选手' },
-      { href: '/notices', label: '赛事公告' },
+      { href: '/my', label: '我的比赛' },
     ]},
     { group: '管理', items: [
       { href: '/admin', label: '管理概览' },
-      { href: '/admin/tournament', label: '赛事设置' },
-      { href: '/admin/events', label: '项目管理' },
+      { href: '/admin/control', label: '控场面板' },
+      { href: '/admin/checkin', label: '选手检录' },
+      { href: '/score', label: '比分录入' },
+      { href: '/admin/batch-score', label: '批量录入' },
+      { href: '/admin/confirm', label: '成绩确认' },
       { href: '/admin/draw', label: '抽签编排' },
-      { href: '/admin/players', label: '选手管理' },
-      { href: '/admin/teams', label: '队伍管理' },
-      { href: '/admin/flags', label: '队旗管理' },
-      { href: '/admin/notices', label: '公告管理' },
+      { href: '/admin/import-players', label: '导入选手' },
     ]},
-    { group: '大屏', items: [
+    { group: '系统', items: [
+      { href: '/admin/users', label: '用户管理' },
+      { href: '/admin/appeals', label: '申诉管理' },
+      { href: '/admin/logs', label: '操作日志' },
+      { href: '/admin/settings', label: '系统设置' },
+      { href: '/api/backup', label: '数据备份' },
+    ]},
+    { group: '更多', items: [
       { href: '/bigscreen', label: '实时大屏' },
-      { href: '/screen/live', label: '比分直播' },
-      { href: '/screen/flags', label: '队旗展示' },
-    ]},
-    { group: '工具', items: [
-      { href: '/stats', label: '统计报表' },
-      { href: '/search', label: '综合查询' },
+      { href: '/dashboard', label: '仪表盘' },
+      { href: '/qr', label: '扫码入口' },
+      { href: '/about', label: '关于赛事' },
+      { href: '/help', label: '使用帮助' },
     ]},
   ];
   
@@ -106,11 +114,21 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
           </div>
 
           {/* Mobile menu button */}
-          <button class="md:hidden p-2 text-slate-500 hover:text-slate-800" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          <div class="flex items-center gap-2">
+            {user ? (
+              <div class="hidden md:flex items-center gap-2">
+                <span class="text-sm text-slate-500">👤 {user.name}</span>
+                <a href="/logout" class="text-sm text-slate-400 hover:text-red-500">退出</a>
+              </div>
+            ) : (
+              <a href="/login" class="hidden md:block px-3 py-1.5 text-sm bg-pp-600 text-white rounded-lg hover:bg-pp-700">登录</a>
+            )}
+            <button class="md:hidden p-2 text-slate-500 hover:text-slate-800" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Mobile menu */}
@@ -128,6 +146,16 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
               </div>
             </div>
           ))}
+          <div class="border-t border-slate-200 pt-3 mt-2">
+            {user ? (
+              <div class="flex items-center justify-between px-3">
+                <span class="text-sm text-slate-500">👤 {user.name}</span>
+                <a href="/logout" class="text-sm text-red-500">退出登录</a>
+              </div>
+            ) : (
+              <a href="/login" class="block mx-2 py-2 text-center bg-pp-600 text-white rounded-lg">登录</a>
+            )}
+          </div>
         </div>
       </div>
     </nav>

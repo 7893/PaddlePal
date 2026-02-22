@@ -29,6 +29,13 @@ export const HomePage: FC<{
             <span class="flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{days} 天</span>
           </div>
         </div>
+        {/* Quick actions */}
+        <div class="flex flex-wrap gap-3 mt-6">
+          <a href="/live" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm backdrop-blur-sm transition-colors">📺 实时比分</a>
+          <a href="/schedule" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm backdrop-blur-sm transition-colors">📅 赛程安排</a>
+          <a href="/my" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm backdrop-blur-sm transition-colors">🏓 我的比赛</a>
+          <a href="/login" class="px-4 py-2 bg-pp-500 hover:bg-pp-600 text-white rounded-lg text-sm transition-colors">🔐 管理登录</a>
+        </div>
       </div>
 
       {/* Events grid */}
