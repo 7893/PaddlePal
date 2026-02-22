@@ -18,6 +18,7 @@ import { BigScreenFlags, FlagUploadPage } from '../views/flags';
 import { DrawListPage } from '../views/draw-list';
 import { DrawManagePage } from '../views/draw-manage';
 import { ScheduleManagePage } from '../views/schedule-manage';
+import { ControlPanelPage } from '../views/control-panel';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -352,6 +353,29 @@ pages.get('/admin/schedule/:eventKey', async (c) => {
   `).bind(event.id).all();
 
   return c.html(<ScheduleManagePage eventKey={eventKey} eventTitle={event.title as string} matches={matches as any} tableCount={tableCount} />);
+});
+
+// Control panel
+pages.get('/admin/control', async (c) => {
+  const db = c.env.DB;
+
+  const tournament = await db.prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+  const tables = (tournament?.tables as number) || 6;
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.table_no, m.time, m.status,
+      COALESCE(p1.name,'TBD') as p1, COALESCE(p2.name,'TBD') as p2,
+      COALESCE(m.score1,0) as score1, COALESCE(m.score2,0) as score2,
+      e.title as event_title
+    FROM matches m
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    LEFT JOIN events e ON m.event_id = e.id
+    WHERE m.status IN ('scheduled', 'playing')
+    ORDER BY m.time, m.table_no
+  `).all();
+
+  return c.html(<ControlPanelPage tables={tables} matches={matches as any} />);
 });
 
 // Draw page for specific event

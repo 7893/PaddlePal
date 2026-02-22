@@ -9,6 +9,7 @@ import { exportApi } from './routes/export-api';
 import { ratingApi } from './routes/rating-api';
 import { drawApi } from './routes/draw-api';
 import { scheduleApi } from './routes/schedule-api';
+import { controlApi } from './routes/control-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
@@ -56,6 +57,9 @@ app.route('/', drawApi);
 
 // Schedule API
 app.route('/', scheduleApi);
+
+// Control API
+app.route('/', controlApi);
 
 // 404 handler
 app.notFound((c) => {

@@ -42,6 +42,26 @@ export const AdminPage: FC<{
         </div>
       </div>
 
+      {/* Quick actions */}
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <a href="/admin/draw" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-pp-300 hover:bg-pp-50 transition-colors">
+          <span class="text-xl">🎲</span>
+          <span class="font-medium text-gray-700">抽签管理</span>
+        </a>
+        <a href="/admin/control" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-red-300 hover:bg-red-50 transition-colors">
+          <span class="text-xl">🎮</span>
+          <span class="font-medium text-gray-700">控场面板</span>
+        </a>
+        <a href="/score" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-colors">
+          <span class="text-xl">📝</span>
+          <span class="font-medium text-gray-700">比分录入</span>
+        </a>
+        <a href="/live" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition-colors">
+          <span class="text-xl">📺</span>
+          <span class="font-medium text-gray-700">实时比分</span>
+        </a>
+      </div>
+
       {/* Events */}
       <Card title="📋 赛事项目" class="mb-4">
         <table class="w-full text-sm">
