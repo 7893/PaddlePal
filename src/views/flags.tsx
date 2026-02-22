@@ -51,7 +51,7 @@ export const FlagUploadPage = ({ teams }: { teams: any[] }) => (
                         accept="image/png,image/jpeg" 
                         class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer file:transition-colors"
                       />
-                      <Button type="submit" size="sm" variant="secondary">上传</Button>
+                      <button type="submit" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors">上传</button>
                     </form>
                   </Td>
                 </tr>
