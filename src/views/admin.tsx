@@ -75,6 +75,14 @@ export const AdminPage: FC<{
           <span class="text-xl">👥</span>
           <span class="font-medium text-gray-700">用户管理</span>
         </a>
+        <a href="/admin/appeals" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-yellow-300 hover:bg-yellow-50 transition-colors">
+          <span class="text-xl">📝</span>
+          <span class="font-medium text-gray-700">申诉管理</span>
+        </a>
+        <a href="/admin/logs" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-100 transition-colors">
+          <span class="text-xl">📜</span>
+          <span class="font-medium text-gray-700">操作日志</span>
+        </a>
       </div>
 
       {/* Events */}

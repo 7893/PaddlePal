@@ -14,6 +14,7 @@ import { confirmApi } from './routes/confirm-api';
 import { usersApi } from './routes/users-api';
 import { notifyApi } from './routes/notify-api';
 import { checkinApi } from './routes/checkin-api';
+import { appealsApi } from './routes/appeals-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
@@ -76,6 +77,9 @@ app.route('/', notifyApi);
 
 // Checkin API
 app.route('/', checkinApi);
+
+// Appeals API
+app.route('/', appealsApi);
 
 // 404 handler
 app.notFound((c) => {

@@ -25,6 +25,8 @@ import { BigScreenPage } from '../views/bigscreen';
 import { StatsPage } from '../views/stats';
 import { MyMatchesPage, PlayerSelectPage } from '../views/my-matches';
 import { CheckinPage } from '../views/checkin';
+import { AppealsPage } from '../views/appeals';
+import { AuditLogPage } from '../views/audit-log';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -520,6 +522,36 @@ pages.get('/admin/checkin', async (c) => {
   `).all();
 
   return c.html(<CheckinPage matches={matches as any} />);
+});
+
+// Appeals page
+pages.get('/admin/appeals', async (c) => {
+  const db = c.env.DB;
+  const user = (c as any).get('user') || { role: 'public' };
+
+  const { results: appeals } = await db.prepare(`
+    SELECT a.id, a.match_id, a.player_id, a.reason, a.status, a.created_at, a.resolution,
+      p.name as player_name, m.match_order
+    FROM appeals a
+    LEFT JOIN players p ON a.player_id = p.id
+    LEFT JOIN matches m ON a.match_id = m.id
+    ORDER BY a.created_at DESC
+  `).all();
+
+  const canResolve = user.role === 'referee' || user.role === 'deputy_referee';
+  return c.html(<AppealsPage appeals={appeals as any} canResolve={canResolve} />);
+});
+
+// Audit log page
+pages.get('/admin/logs', async (c) => {
+  const db = c.env.DB;
+
+  const { results: logs } = await db.prepare(`
+    SELECT id, action, target_type, target_id, user_name, details, created_at
+    FROM audit_logs ORDER BY created_at DESC LIMIT 100
+  `).all();
+
+  return c.html(<AuditLogPage logs={logs as any} />);
 });
 
 // Draw page for specific event
