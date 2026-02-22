@@ -36,95 +36,62 @@ export const Layout: FC<{ title: string; children: Child }> = ({ title, children
   </html>
 );
 
-export const Nav: FC<{ current?: string; user?: { name: string; role: string } }> = ({ current, user }) => {
-  const menu = [
-    { group: '赛事', items: [
-      { href: '/', label: '首页' },
-      { href: '/live', label: '实时比分' },
-      { href: '/tables', label: '球台状态' },
-      { href: '/schedule', label: '赛程安排' },
-      { href: '/timeline', label: '时间线' },
-      { href: '/events', label: '比赛项目' },
-      { href: '/results', label: '比赛成绩' },
-      { href: '/stats', label: '统计排名' },
-      { href: '/players', label: '参赛选手' },
-      { href: '/my', label: '我的比赛' },
-    ]},
-    { group: '管理', items: [
-      { href: '/admin', label: '管理概览' },
-      { href: '/admin/control', label: '控场面板' },
-      { href: '/admin/checkin', label: '选手检录' },
-      { href: '/score', label: '比分录入' },
-      { href: '/admin/batch-score', label: '批量录入' },
-      { href: '/admin/confirm', label: '成绩确认' },
-      { href: '/admin/draw', label: '抽签编排' },
-      { href: '/admin/import-players', label: '导入选手' },
-    ]},
-    { group: '系统', items: [
-      { href: '/admin/users', label: '用户管理' },
-      { href: '/admin/appeals', label: '申诉管理' },
-      { href: '/admin/logs', label: '操作日志' },
-      { href: '/admin/settings', label: '系统设置' },
-      { href: '/api/backup', label: '数据备份' },
-    ]},
-    { group: '更多', items: [
-      { href: '/bigscreen', label: '实时大屏' },
-      { href: '/dashboard', label: '仪表盘' },
-      { href: '/qr', label: '扫码入口' },
-      { href: '/about', label: '关于赛事' },
-      { href: '/help', label: '使用帮助' },
-    ]},
+export const Nav: FC<{ current?: string }> = ({ current }) => {
+  const publicMenu = [
+    { href: '/', label: '首页' },
+    { href: '/live', label: '实时比分' },
+    { href: '/schedule', label: '赛程' },
+    { href: '/events', label: '项目' },
+    { href: '/stats', label: '统计' },
+    { href: '/my', label: '我的比赛' },
   ];
-  
+
+  const adminMenu = [
+    { href: '/admin', label: '管理' },
+    { href: '/admin/control', label: '控场' },
+    { href: '/score', label: '录入' },
+    { href: '/admin/draw', label: '抽签' },
+  ];
+
   const isActive = (href: string) => current === href || (href !== '/' && current?.startsWith(href));
-  
+
   return (
     <nav class="glass sticky top-0 z-40 border-b border-slate-200/50">
-      <div class="max-w-7xl mx-auto px-4 md:px-8">
-        <div class="flex items-center justify-between h-14 md:h-16">
-          <a href="/" class="flex items-center gap-2 md:gap-2.5 group">
-            <div class="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-br from-pp-400 to-pp-600 flex items-center justify-center shadow-lg shadow-pp-500/25 group-hover:shadow-pp-500/40 transition-shadow">
-              <span class="text-white text-sm md:text-base">🏓</span>
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-center justify-between h-14">
+          {/* Logo */}
+          <a href="/" class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pp-400 to-pp-600 flex items-center justify-center">
+              <span class="text-white text-sm">🏓</span>
             </div>
-            <span class="font-semibold text-slate-800 tracking-tight text-sm md:text-base">拍档</span>
+            <span class="font-semibold text-slate-800 hidden sm:block">拍档</span>
           </a>
-          
+
           {/* Desktop menu */}
           <div class="hidden md:flex items-center gap-1">
-            {menu.map(g => (
-              <div class="dropdown">
-                <button class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100/70 transition-all duration-200">
-                  {g.group}
-                  <svg class="inline-block w-3.5 h-3.5 ml-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div class="dropdown-menu z-50">
-                  <div class="bg-white/95 backdrop-blur-xl rounded-xl shadow-xl shadow-slate-200/50 border border-slate-200/50 py-2 min-w-[160px] overflow-hidden">
-                    {g.items.map(l => (
-                      <a href={l.href}
-                        class={`block px-4 py-2.5 text-sm transition-all duration-150 ${isActive(l.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:pl-5'}`}>
-                        {l.label}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            {publicMenu.map(item => (
+              <a href={item.href} class={`px-3 py-2 text-sm rounded-lg transition-colors ${isActive(item.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-100'}`}>
+                {item.label}
+              </a>
+            ))}
+            <span class="mx-2 text-slate-300 admin-only" style="display:none">|</span>
+            {adminMenu.map(item => (
+              <a href={item.href} class={`admin-only px-3 py-2 text-sm rounded-lg transition-colors ${isActive(item.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-100'}`} style="display:none">
+                {item.label}
+              </a>
             ))}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Right side */}
           <div class="flex items-center gap-2">
-            {user ? (
-              <div class="hidden md:flex items-center gap-2">
-                <span class="text-sm text-slate-500">👤 {user.name}</span>
-                <a href="/logout" class="text-sm text-slate-400 hover:text-red-500">退出</a>
-              </div>
-            ) : (
-              <a href="/login" class="hidden md:block px-3 py-1.5 text-sm bg-pp-600 text-white rounded-lg hover:bg-pp-700">登录</a>
-            )}
-            <button class="md:hidden p-2 text-slate-500 hover:text-slate-800" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div id="user-info" class="hidden items-center gap-3">
+              <span class="text-sm text-slate-500 hidden sm:block">👤 <span id="user-name">管理员</span></span>
+              <a href="/logout" class="text-sm text-slate-400 hover:text-red-500">退出</a>
+            </div>
+            <a href="/login" id="login-btn" class="px-3 py-1.5 text-sm bg-pp-600 text-white rounded-lg hover:bg-pp-700">登录</a>
+            {/* Mobile menu button */}
+            <button class="md:hidden p-2 text-slate-500" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -133,31 +100,30 @@ export const Nav: FC<{ current?: string; user?: { name: string; role: string } }
 
         {/* Mobile menu */}
         <div id="mobile-menu" class="hidden md:hidden pb-4">
-          {menu.map(g => (
-            <div class="mb-3">
-              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 mb-1">{g.group}</div>
-              <div class="space-y-0.5">
-                {g.items.map(l => (
-                  <a href={l.href}
-                    class={`block px-3 py-2 rounded-lg text-sm ${isActive(l.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
-                    {l.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          ))}
-          <div class="border-t border-slate-200 pt-3 mt-2">
-            {user ? (
-              <div class="flex items-center justify-between px-3">
-                <span class="text-sm text-slate-500">👤 {user.name}</span>
-                <a href="/logout" class="text-sm text-red-500">退出登录</a>
-              </div>
-            ) : (
-              <a href="/login" class="block mx-2 py-2 text-center bg-pp-600 text-white rounded-lg">登录</a>
-            )}
+          <div class="space-y-1">
+            {publicMenu.map(item => (
+              <a href={item.href} class={`block px-3 py-2 rounded-lg text-sm ${isActive(item.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600'}`}>
+                {item.label}
+              </a>
+            ))}
+            <div class="border-t border-slate-200 my-2 admin-only" style="display:none"></div>
+            {adminMenu.map(item => (
+              <a href={item.href} class={`admin-only block px-3 py-2 rounded-lg text-sm ${isActive(item.href) ? 'bg-pp-50 text-pp-700 font-medium' : 'text-slate-600'}`} style="display:none">
+                {item.label}
+              </a>
+            ))}
           </div>
         </div>
       </div>
+      <script dangerouslySetInnerHTML={{ __html: `
+(function(){
+  if(document.cookie.indexOf('session=')!==-1){
+    document.getElementById('login-btn').style.display='none';
+    document.getElementById('user-info').style.display='flex';
+    document.querySelectorAll('.admin-only').forEach(function(e){e.style.display='';});
+  }
+})();
+      `}} />
     </nav>
   );
 };
