@@ -28,6 +28,8 @@ import { CheckinPage } from '../views/checkin';
 import { AppealsPage } from '../views/appeals';
 import { AuditLogPage } from '../views/audit-log';
 import { SettingsPage } from '../views/settings';
+import { PrintScoresheet, PrintResults, PrintSchedule } from '../views/print';
+import { PlayerDetailPage } from '../views/player-detail';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -570,6 +572,96 @@ pages.get('/admin/settings', async (c) => {
   `).first();
 
   return c.html(<SettingsPage settings={settings as any || {}} />);
+});
+
+// Print scoresheet
+pages.get('/print/scoresheet', async (c) => {
+  const db = c.env.DB;
+  const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status = 'scheduled'
+    ORDER BY m.time, m.table_no LIMIT 50
+  `).all();
+  return c.html(<PrintScoresheet matches={matches as any} title={tournament?.title as string || ''} />);
+});
+
+// Print results
+pages.get('/print/results', async (c) => {
+  const db = c.env.DB;
+  const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      m.score1, m.score2, m.games
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status = 'finished'
+    ORDER BY m.id DESC LIMIT 100
+  `).all();
+  return c.html(<PrintResults matches={matches as any} title={tournament?.title as string || ''} />);
+});
+
+// Print schedule
+pages.get('/print/schedule', async (c) => {
+  const db = c.env.DB;
+  const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      m.score1, m.score2
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    ORDER BY m.time, m.table_no
+  `).all();
+  return c.html(<PrintSchedule matches={matches as any} title={tournament?.title as string || ''} />);
+});
+
+// Player detail
+pages.get('/player/:id', async (c) => {
+  const db = c.env.DB;
+  const playerId = c.req.param('id');
+
+  const player = await db.prepare(`
+    SELECT p.id, p.name, COALESCE(t.name,'') as team, COALESCE(p.rating,0) as rating
+    FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?
+  `).bind(playerId).first();
+  if (!player) return c.text('Not found', 404);
+
+  const stats = await db.prepare(`
+    SELECT COUNT(*) as played,
+      SUM(CASE WHEN (m.player1_id = ? AND m.winner_side = 1) OR (m.player2_id = ? AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
+      SUM(CASE WHEN (m.player1_id = ? AND m.winner_side = 2) OR (m.player2_id = ? AND m.winner_side = 1) THEN 1 ELSE 0 END) as losses
+    FROM matches m WHERE (m.player1_id = ? OR m.player2_id = ?) AND m.status = 'finished'
+  `).bind(playerId, playerId, playerId, playerId, playerId, playerId).first();
+
+  const { results: recentMatches } = await db.prepare(`
+    SELECT m.time as date, m.score1, m.score2, m.winner_side,
+      CASE WHEN m.player1_id = ? THEN p2.name ELSE p1.name END as opponent
+    FROM matches m
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE (m.player1_id = ? OR m.player2_id = ?) AND m.status = 'finished'
+    ORDER BY m.id DESC LIMIT 10
+  `).bind(playerId, playerId, playerId).all();
+
+  const recent = recentMatches.map((m: any) => ({
+    date: m.date,
+    opponent: m.opponent,
+    score: `${m.score1}:${m.score2}`,
+    won: (m.winner_side === 1 && m.player1_id == playerId) || (m.winner_side === 2 && m.player2_id == playerId)
+  }));
+
+  return c.html(<PlayerDetailPage player={player as any} stats={stats as any} headToHead={[]} recentMatches={recent} />);
 });
 
 // Draw page for specific event
