@@ -12,6 +12,7 @@ import { scheduleApi } from './routes/schedule-api';
 import { controlApi } from './routes/control-api';
 import { confirmApi } from './routes/confirm-api';
 import { usersApi } from './routes/users-api';
+import { notifyApi } from './routes/notify-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
@@ -68,6 +69,9 @@ app.route('/', confirmApi);
 
 // Users API
 app.route('/', usersApi);
+
+// Notify API
+app.route('/', notifyApi);
 
 // 404 handler
 app.notFound((c) => {

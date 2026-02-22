@@ -21,6 +21,8 @@ import { ScheduleManagePage } from '../views/schedule-manage';
 import { ControlPanelPage } from '../views/control-panel';
 import { ConfirmPage } from '../views/confirm';
 import { UsersPage } from '../views/users';
+import { BigScreenPage } from '../views/bigscreen';
+import { StatsPage } from '../views/stats';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -413,6 +415,57 @@ pages.get('/admin/users', async (c) => {
   ).all();
 
   return c.html(<UsersPage users={users as any} canManage={canManage} />);
+});
+
+// Big screen
+pages.get('/bigscreen', async (c) => {
+  const db = c.env.DB;
+  const tournament = await db.prepare('SELECT title, COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.table_no, m.status, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      COALESCE(m.score1,0) as score1, COALESCE(m.score2,0) as score2
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status = 'playing'
+  `).all();
+
+  return c.html(<BigScreenPage title={tournament?.title as string || 'PaddlePal'} matches={matches as any} tables={(tournament?.tables as number) || 6} />);
+});
+
+// Stats page
+pages.get('/stats', async (c) => {
+  const db = c.env.DB;
+
+  const { results: players } = await db.prepare(`
+    SELECT p.id, p.name, COALESCE(t.name,'') as team,
+      COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as played,
+      SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
+      SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 2) OR (m.player2_id = p.id AND m.winner_side = 1) THEN 1 ELSE 0 END) as losses
+    FROM players p
+    LEFT JOIN teams t ON p.team_id = t.id
+    LEFT JOIN matches m ON (m.player1_id = p.id OR m.player2_id = p.id) AND m.status = 'finished'
+    WHERE p.tournament_id = 1
+    GROUP BY p.id
+    ORDER BY wins DESC, played ASC
+  `).all();
+
+  const { results: teams } = await db.prepare(`
+    SELECT t.name, COUNT(DISTINCT p.id) as players,
+      COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as total_played,
+      SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as total_wins
+    FROM teams t
+    LEFT JOIN players p ON p.team_id = t.id
+    LEFT JOIN matches m ON (m.player1_id = p.id OR m.player2_id = p.id) AND m.status = 'finished'
+    WHERE t.tournament_id = 1
+    GROUP BY t.id
+    ORDER BY total_wins DESC
+  `).all();
+
+  return c.html(<StatsPage players={players as any} teams={teams as any} />);
 });
 
 // Draw page for specific event

@@ -1,153 +1,94 @@
-// Big screen display pages
-export const BigScreenLive = ({ matches, checkin }: { matches: any[], checkin: any[] }) => (
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>实时比分 - 大屏</title>
-      <style>{`
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', sans-serif; background: #1a1a2e; color: #fff; }
-        .container { display: flex; height: 100vh; }
-        .panel { flex: 1; padding: 20px; overflow: hidden; }
-        .panel-left { border-right: 2px solid #444; }
-        h2 { text-align: center; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 20px; border-radius: 8px; font-size: 24px; }
-        .panel-right h2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #333; }
-        th { background: #2d2d44; font-size: 16px; }
-        td { font-size: 18px; }
-        tr:hover { background: #2d2d44; }
-        .score { font-weight: bold; font-size: 20px; color: #ffd700; }
-        .table-no { background: #4a4a6a; border-radius: 4px; padding: 4px 8px; }
-        .vs { color: #888; }
-        .player { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      `}</style>
-      <script dangerouslySetInnerHTML={{ __html: `setTimeout(() => location.reload(), 10000);` }} />
-    </head>
-    <body>
-      <div class="container">
-        <div class="panel panel-left">
-          <h2>🏓 比赛中</h2>
-          <table>
-            <thead><tr><th>台号</th><th>项目</th><th>选手</th><th>比分</th><th>选手</th></tr></thead>
-            <tbody>
-              {matches.map((m: any) => (
-                <tr>
-                  <td><span class="table-no">{m.tb}</span></td>
-                  <td>{m.gp}</td>
-                  <td class="player">{m.nl || m.tnl}</td>
-                  <td class="score">{m.score || '0:0'}</td>
-                  <td class="player">{m.nr || m.tnr}</td>
-                </tr>
-              ))}
-              {matches.length === 0 && <tr><td colspan={5}>暂无比赛</td></tr>}
-            </tbody>
-          </table>
-        </div>
-        <div class="panel panel-right">
-          <h2>📋 检录中</h2>
-          <table>
-            <thead><tr><th>台号</th><th>项目</th><th>选手</th><th class="vs">VS</th><th>选手</th></tr></thead>
-            <tbody>
-              {checkin.map((m: any) => (
-                <tr>
-                  <td><span class="table-no">{m.tb}</span></td>
-                  <td>{m.gp}</td>
-                  <td class="player">{m.nl || m.tnl}</td>
-                  <td class="vs">VS</td>
-                  <td class="player">{m.nr || m.tnr}</td>
-                </tr>
-              ))}
-              {checkin.length === 0 && <tr><td colspan={5}>暂无检录</td></tr>}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </body>
-  </html>
-);
+import type { FC } from 'hono/jsx';
 
-export const BigScreenResults = ({ event, results }: { event: string, results: any[] }) => (
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <title>成绩公告 - 大屏</title>
-      <style>{`
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', sans-serif; background: #0f0f23; color: #fff; min-height: 100vh; padding: 30px; }
-        h1 { text-align: center; padding: 20px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); margin-bottom: 30px; border-radius: 10px; font-size: 32px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
-        .card { background: #1e1e3f; border-radius: 10px; padding: 20px; }
-        .match-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #888; font-size: 14px; }
-        .players { display: flex; justify-content: space-between; align-items: center; font-size: 20px; }
-        .player { flex: 1; }
-        .player.right { text-align: right; }
-        .score { font-size: 28px; font-weight: bold; color: #ffd700; padding: 0 20px; }
-        .winner { color: #38ef7d; }
-      `}</style>
-      <script dangerouslySetInnerHTML={{ __html: `setTimeout(() => location.reload(), 15000);` }} />
-    </head>
-    <body>
-      <h1>🏆 {event || '成绩公告'}</h1>
-      <div class="grid">
-        {results.map((m: any) => (
-          <div class="card">
-            <div class="match-info">
-              <span>第{m.round}轮 #{m.order}</span>
-              <span>台{m.tb}</span>
-            </div>
-            <div class="players">
-              <div class={`player ${m.winner === 1 ? 'winner' : ''}`}>{m.p1}</div>
-              <div class="score">{m.result || '-'}</div>
-              <div class={`player right ${m.winner === 2 ? 'winner' : ''}`}>{m.p2}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </body>
-  </html>
-);
+type Match = {
+  table_no: number;
+  p1: string;
+  p2: string;
+  score1: number;
+  score2: number;
+  event: string;
+  status: string;
+};
 
-export const BigScreenSchedule = ({ title, matches }: { title: string, matches: any[] }) => (
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <title>赛程表 - 大屏</title>
-      <style>{`
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', sans-serif; background: #16213e; color: #fff; min-height: 100vh; padding: 30px; }
-        h1 { text-align: center; padding: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); margin-bottom: 30px; border-radius: 10px; font-size: 32px; color: #000; }
-        table { width: 100%; border-collapse: collapse; background: #1a1a3e; border-radius: 10px; overflow: hidden; }
-        th { background: #2d2d5a; padding: 15px; font-size: 18px; }
-        td { padding: 12px; text-align: center; border-bottom: 1px solid #333; font-size: 16px; }
-        tr:hover { background: #2d2d5a; }
-        .time { color: #feca57; }
-        .table-no { background: #4a4a8a; border-radius: 4px; padding: 4px 10px; }
-        .status-pending { color: #888; }
-        .status-playing { color: #38ef7d; }
-        .status-finished { color: #ffd700; }
-      `}</style>
-      <script dangerouslySetInnerHTML={{ __html: `setTimeout(() => location.reload(), 20000);` }} />
-    </head>
-    <body>
-      <h1>📅 {title || '比赛秩序'}</h1>
-      <table>
-        <thead><tr><th>时间</th><th>台号</th><th>项目</th><th>选手/队伍</th><th>VS</th><th>选手/队伍</th><th>状态</th></tr></thead>
-        <tbody>
-          {matches.map((m: any) => (
-            <tr>
-              <td class="time">{m.time || '-'}</td>
-              <td><span class="table-no">{m.tb}</span></td>
-              <td>{m.event}</td>
-              <td>{m.p1}</td>
-              <td>VS</td>
-              <td>{m.p2}</td>
-              <td class={`status-${m.status || 'pending'}`}>{m.status === 'finished' ? '已结束' : m.status === 'playing' ? '进行中' : '待开始'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </body>
-  </html>
+export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number }> = ({ title, matches, tables }) => {
+  const byTable: Record<number, Match | null> = {};
+  for (let i = 1; i <= tables; i++) byTable[i] = null;
+  for (const m of matches) if (m.status === 'playing') byTable[m.table_no] = m;
+
+  return (
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>实时大屏 - {title}</title>
+        <style dangerouslySetInnerHTML={{ __html: `
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; font-family: system-ui, sans-serif; color: white; }
+          .header { text-align: center; padding: 30px; background: rgba(0,0,0,0.3); }
+          .header h1 { font-size: 2.5rem; font-weight: bold; }
+          .header .time { font-size: 1.2rem; opacity: 0.7; margin-top: 10px; }
+          .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; padding: 30px; }
+          .table-card { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; backdrop-filter: blur(10px); }
+          .table-card.active { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); animation: pulse 2s infinite; }
+          .table-card.idle { opacity: 0.5; }
+          .table-no { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; }
+          .event { font-size: 0.9rem; opacity: 0.8; margin-bottom: 10px; }
+          .player { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
+          .player:last-child { border-bottom: none; }
+          .player-name { font-size: 1.8rem; font-weight: 500; }
+          .player-score { font-size: 3rem; font-weight: bold; }
+          .idle-text { text-align: center; padding: 40px; opacity: 0.5; font-size: 1.2rem; }
+          @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 30px 10px rgba(231,76,60,0.2); } }
+        `}} />
+      </head>
+      <body>
+        <div class="header">
+          <h1>🏓 {title}</h1>
+          <div class="time" id="clock"></div>
+        </div>
+        <div class="grid">
+          {Array.from({ length: tables }, (_, i) => {
+            const t = i + 1;
+            const m = byTable[t];
+            return (
+              <div class={`table-card ${m ? 'active' : 'idle'}`}>
+                <div class="table-no">{t} 号台</div>
+                {m ? (
+                  <>
+                    <div class="event">{m.event}</div>
+                    <div class="player">
+                      <span class="player-name">{m.p1}</span>
+                      <span class="player-score">{m.score1}</span>
+                    </div>
+                    <div class="player">
+                      <span class="player-name">{m.p2}</span>
+                      <span class="player-score">{m.score2}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div class="idle-text">暂无比赛</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: `
+          function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleString('zh-CN');
+          }
+          updateClock();
+          setInterval(updateClock, 1000);
+          setInterval(function() { location.reload(); }, 15000);
+        `}} />
+      </body>
+    </html>
+  );
+};
+
+
+// Legacy exports for compatibility
+export const BigScreenLive: FC<{ matches: any; checkin: any }> = ({ matches }) => (
+  <BigScreenPage title="实时比分" matches={matches} tables={6} />
 );
+export const BigScreenResults: FC = () => <div>Results</div>;
+export const BigScreenSchedule: FC = () => <div>Schedule</div>;

@@ -58,14 +58,13 @@ export const Nav: FC<{ current?: string }> = ({ current }) => {
       { href: '/admin/notices', label: '公告管理' },
     ]},
     { group: '大屏', items: [
+      { href: '/bigscreen', label: '实时大屏' },
       { href: '/screen/live', label: '比分直播' },
       { href: '/screen/flags', label: '队旗展示' },
-      { href: '/screen/results', label: '成绩轮播' },
-      { href: '/screen/schedule', label: '赛程轮播' },
     ]},
     { group: '工具', items: [
+      { href: '/stats', label: '统计报表' },
       { href: '/search', label: '综合查询' },
-      { href: '/progress', label: '赛事进度' },
     ]},
   ];
   
