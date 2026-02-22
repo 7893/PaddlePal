@@ -30,6 +30,9 @@ import { AuditLogPage } from '../views/audit-log';
 import { SettingsPage } from '../views/settings';
 import { PrintScoresheet, PrintResults, PrintSchedule } from '../views/print';
 import { PlayerDetailPage } from '../views/player-detail';
+import { EliminationBracket } from '../views/elimination-bracket';
+import { GroupStandings } from '../views/group-standings';
+import { QRCodePage } from '../views/qrcode';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -662,6 +665,73 @@ pages.get('/player/:id', async (c) => {
   }));
 
   return c.html(<PlayerDetailPage player={player as any} stats={stats as any} headToHead={[]} recentMatches={recent} />);
+});
+
+// Elimination bracket
+pages.get('/bracket/:eventKey', async (c) => {
+  const db = c.env.DB;
+  const eventKey = c.req.param('eventKey');
+
+  const event = await db.prepare('SELECT id, title FROM events WHERE key = ?').bind(eventKey).first();
+  if (!event) return c.text('Not found', 404);
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.round, m.bracket_pos as pos,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      m.score1, m.score2, m.winner_side as winner
+    FROM matches m
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.event_id = ? AND m.round > 0
+    ORDER BY m.round, m.bracket_pos
+  `).bind(event.id).all();
+
+  const maxRound = Math.max(...matches.map((m: any) => m.round || 0), 1);
+  return c.html(<EliminationBracket title={event.title as string} matches={matches as any} rounds={maxRound} />);
+});
+
+// Group standings
+pages.get('/standings/:eventKey', async (c) => {
+  const db = c.env.DB;
+  const eventKey = c.req.param('eventKey');
+
+  const event = await db.prepare('SELECT id, title FROM events WHERE key = ?').bind(eventKey).first();
+  if (!event) return c.text('Not found', 404);
+
+  const { results: groupRows } = await db.prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name').bind(event.id).all();
+
+  const groups = [];
+  for (const g of groupRows) {
+    const { results: entries } = await db.prepare(`
+      SELECT p.name, ge.position as pos,
+        COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as played,
+        SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
+        SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 2) OR (m.player2_id = p.id AND m.winner_side = 1) THEN 1 ELSE 0 END) as losses,
+        SUM(CASE WHEN m.player1_id = p.id THEN m.score1 ELSE m.score2 END) as gf,
+        SUM(CASE WHEN m.player1_id = p.id THEN m.score2 ELSE m.score1 END) as ga
+      FROM group_entries ge
+      JOIN players p ON ge.player_id = p.id
+      LEFT JOIN matches m ON (m.player1_id = p.id OR m.player2_id = p.id) AND m.event_id = ? AND m.status = 'finished'
+      WHERE ge.group_id = ?
+      GROUP BY p.id
+    `).bind(event.id, g.id).all();
+
+    groups.push({
+      name: g.name as string,
+      entries: entries.map((e: any) => ({ ...e, points: (e.wins || 0) * 2 }))
+    });
+  }
+
+  return c.html(<GroupStandings title={event.title as string} groups={groups as any} />);
+});
+
+// QR Code page
+pages.get('/qr', async (c) => {
+  const db = c.env.DB;
+  const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
+  const url = new URL(c.req.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
+  return c.html(<QRCodePage url={baseUrl} title={tournament?.title as string || 'PaddlePal'} />);
 });
 
 // Draw page for specific event
