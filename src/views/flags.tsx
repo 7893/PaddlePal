@@ -1,4 +1,4 @@
-import { Layout, Nav, Card, Button, Table, Th, Td, PageHeader, EmptyState } from '../components/layout';
+import { Layout, Nav, Card, Table, Th, Td, PageHeader, EmptyState } from '../components/layout';
 
 // Flag upload management page
 export const FlagUploadPage = ({ teams }: { teams: any[] }) => (

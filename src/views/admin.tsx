@@ -9,7 +9,7 @@ type Match = { pid: number; time: string; status: string; result: string; player
 export const AdminPage: FC<{
   info: string; venue: string; teams: Team[]; players: Player[];
   events: Event[]; matches: Match[];
-}> = ({ info, venue, teams, players, events, matches }) => (
+}> = ({ info: _info, venue: _venue, teams, players, events, matches }) => (
   <Layout title="管理后台">
     <Nav current="/admin" title="管理后台" />
     <PageWrapper>

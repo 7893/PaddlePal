@@ -6,7 +6,7 @@ type Match = {
   player1: string; player2: string; event: string; date: string;
 };
 
-export const SchedulePage: FC<{ matches: Match[]; info: string }> = ({ matches, info }) => {
+export const SchedulePage: FC<{ matches: Match[]; info: string }> = ({ matches, info: _info }) => {
   const finished = matches.filter(m => m.status === 'finished').length;
   const playing = matches.filter(m => m.status === 'playing').length;
   return (
