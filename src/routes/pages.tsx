@@ -41,6 +41,8 @@ import { DashboardPage } from '../views/dashboard';
 import { EventListPage } from '../views/event-list';
 import { TableStatusPage } from '../views/table-status';
 import { AboutPage } from '../views/about';
+import { BatchScorePage } from '../views/batch-score';
+import { ImportPlayersPage } from '../views/import-players';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -888,6 +890,30 @@ pages.get('/about', async (c) => {
     organizer: (t?.organizer as string) || '',
     contact: (t?.contact as string) || ''
   }} />);
+});
+
+// Batch score entry
+pages.get('/admin/batch-score', async (c) => {
+  const db = c.env.DB;
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, m.score1, m.score2,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
+    FROM matches m
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    WHERE m.status IN ('scheduled', 'playing')
+    ORDER BY m.time, m.table_no LIMIT 50
+  `).all();
+
+  return c.html(<BatchScorePage matches={matches as any} />);
+});
+
+// Import players
+pages.get('/admin/import-players', async (c) => {
+  const db = c.env.DB;
+  const { results: teams } = await db.prepare('SELECT id, name FROM teams WHERE tournament_id = 1 ORDER BY name').all();
+  return c.html(<ImportPlayersPage teams={teams as any} />);
 });
 
 // Draw page for specific event
