@@ -1,239 +1,239 @@
-# SSZS Legacy System Analysis
+# SSZS 遗留系统分析
 
-This document summarizes the analysis of the legacy SSZS (赛事助手) Windows application, which serves as the reference for PaddlePal's feature development.
+本文档总结了对 SSZS（赛事助手）Windows 桌面程序的分析，作为 PaddlePal 功能开发的参考。
 
-## Reference Tournament
+## 参考赛事
 
 **2026年漳浦县「庆元宵」乒乓球个人排名赛**
-- Date: February 28 - March 1, 2026
-- Venue: 乒协球馆 (6 tables)
-- Events: 甲组、乙组、丙组、女子组 Singles
-- Format: Stage 1 Round Robin → Stage 2 Elimination
+- 时间：2026年2月28日 - 3月1日
+- 地点：乒协球馆（6台）
+- 项目：甲组、乙组、丙组、女子组单打
+- 赛制：第一阶段分组循环 → 第二阶段淘汰赛
 
-## SSZS Main Modules
+## SSZS 主要模块
 
-### 1. Planning Panel (规划面板)
-- Event configuration (singles/doubles/team)
-- Stage settings (阶段): round robin, elimination, playoff
-- Player/team count per group
-- Advancement rules (晋级规则)
-- Starting rank configuration
+### 1. 规划面板
+- 项目配置（单打/双打/团体）
+- 阶段设置：循环赛、淘汰赛、附加赛
+- 每组人数/队数
+- 晋级规则
+- 起始名次配置
 
-### 2. Draw Panel (抽签面板)
-- Group assignment for round robin
-- Manual positioning (手工入位)
-- Automatic draw (自动抽签)
-- Seed placement (种子位)
-- Same-team separation (同队合理分开)
-- Print draw results
+### 2. 抽签面板
+- 分组循环抽签
+- 手工入位
+- 自动抽签
+- 种子位设置
+- 同队合理分开
+- 打印抽签结果
 
-### 3. Scheduling Panel (编排面板)
-- Generate match schedule (生成赛程)
-- Table/time allocation
-- Export to Excel
-- Import/export templates
-- Copy/paste schedule
+### 3. 编排面板
+- 生成赛程
+- 场地/时间分配
+- 导出Excel
+- 导入/导出模板
+- 复制/粘贴赛程
 
-### 4. Control Panel (控场面板)
-- Real-time monitoring of all tables (6台)
-- Table reassignment (调场)
-- Score entry (成绩录入)
-- Check-in management (检录)
-- Generate scoresheets (记分单)
-- Match status tracking
+### 4. 控场面板
+- 实时监控所有球台（6台）
+- 调场
+- 成绩录入
+- 检录管理
+- 生成记分单
+- 比赛状态跟踪
 
-### 5. Schedule View Panel (赛程面板)
-- View by date/time/table
-- Filter by event/stage
-- Color coding by group/round
+### 5. 赛程面板
+- 按日期/时间/台次查看
+- 按项目/阶段筛选
+- 按组别/轮次颜色标记
 
-### 6. Query Panel (查询面板)
-- Search by player name
-- Search by event
-- Match history
+### 6. 查询面板
+- 按运动员姓名查询
+- 按项目查询
+- 比赛历史记录
 
-## Key Configuration Options
+## 关键配置选项
 
-### Input Settings (输入设置)
+### 输入设置
 ```
-☑ 快速输入 (只输入负方分数)     - Quick input (only enter losing score)
-☑ 保存后自动跳到下一场          - Auto-advance after save
-☐ 单项及团体赛使用大比分        - Use game score for singles/team
-☐ 成绩录入后自动打印记分单      - Auto-print scoresheet after entry
-☑ 单行连续输入比分              - Single-line continuous score input
-☑ 录入成绩后是否自动关闭窗口    - Auto-close after score entry
-☑ 检查比分合法性                - Validate score legality
-☐ 每场比赛需要输入两次比分才能生效 - Require double entry
-☐ 每场成绩需要裁判长确认才能生效   - Require referee confirmation
-☐ 是否采集电子记分单            - Collect electronic scoresheets
-☑ 录入成绩后焦点切到场次号栏    - Focus on match number after entry
-☑ 团体赛未录入各单时保存成绩提示 - Warn if team match incomplete
-☑ 胜方姓名上打对勾显示          - Show checkmark on winner
-☐ 允许团体成员兼项              - Allow team member multi-entry
+☑ 快速输入（只输入负方分数）
+☑ 保存后自动跳到下一场
+☐ 单项及团体赛使用大比分
+☐ 成绩录入后自动打印记分单
+☑ 单行连续输入比分
+☑ 录入成绩后是否自动关闭窗口
+☑ 检查比分合法性
+☐ 每场比赛需要输入两次比分才能生效
+☐ 每场成绩需要裁判长确认才能生效
+☐ 是否采集电子记分单
+☑ 录入成绩后焦点切到场次号栏
+☑ 团体赛未录入各单时保存成绩提示
+☑ 胜方姓名上打对勾显示
+☐ 允许团体成员兼项
 ```
 
-### Form Settings (表单设置)
+### 表单设置
 
-**秩序册 (Program Book):**
-- 导出淘汰表 - Export elimination bracket
-- ITTF格式对阵图 - ITTF format bracket
-- 淘汰赛是否使用全局位置号 - Global position numbers
-- 晋级线斜线/加粗/高亮显示 - Advancement line styling
-- 打印位置号角标 - Print position markers
-- 按位置顺序显示比分 - Show scores by position
+**秩序册：**
+- 导出淘汰表
+- ITTF格式对阵图
+- 淘汰赛是否使用全局位置号
+- 晋级线斜线/加粗/高亮显示
+- 打印位置号角标
+- 按位置顺序显示比分
 
-**成绩册 (Results Book):**
-- 右上半区单元格: 大比分/积分 - Upper right: game score/points
-- 左下半区单元格: 详细比分 - Lower left: detailed scores
-- 导出循环表 - Export round robin table
-- 显示前置对阵表 - Show preliminary bracket
-- 显示彩色表格 - Color-coded tables
-- 高亮胜方比分 - Highlight winner scores
+**成绩册：**
+- 右上半区单元格：大比分/积分
+- 左下半区单元格：详细比分
+- 导出循环表
+- 显示前置对阵表
+- 显示彩色表格
+- 高亮胜方比分
 
-**记分单 (Scoresheets):**
-- 记分单模板_1/2/3 - Template options
-- 自定义记分单模板 - Custom templates
-- 每张纸打印 1/2/4 张表 - Sheets per page
-- 团体成员人数为3/5 - Team size 3 or 5
-- 允许重复打印记分单 - Allow reprint
-- 允许打印无名记分单 - Allow blank scoresheets
-- 双方入位才打印记分单 - Print only when both assigned
-- 淘汰赛未轮决出名次 - Elimination round rankings
-- 记分单使用队名简称 - Use team abbreviations
-- 批量出单顺序: 按场次号/按球台+时间 - Batch order
+**记分单：**
+- 记分单模板_1/2/3
+- 自定义记分单模板
+- 每张纸打印 1/2/4 张表
+- 团体成员人数为3/5
+- 允许重复打印记分单
+- 允许打印无名记分单
+- 双方入位才打印记分单
+- 淘汰赛未轮决出名次
+- 记分单使用队名简称
+- 批量出单顺序：按场次号/按球台+时间
 
-**节目单 (Event Program):**
-- 分组循环高亮显示不同组 - Highlight different groups
-- 单淘汰高亮显示不同轮次 - Highlight different rounds
-- 单淘汰显示上轮场次信息 - Show previous round info
-- 显示队名/姓名/团体名 - Display options
+**节目单：**
+- 分组循环高亮显示不同组
+- 单淘汰高亮显示不同轮次
+- 单淘汰显示上轮场次信息
+- 显示队名/姓名/团体名
 
-### Scheduling Settings (编排设置)
+### 编排设置
 ```
-分组循环轮转顺序:
+分组循环轮转顺序：
 ○ 1号位固定顺时针轮转
 ○ 1号位固定逆时针轮转
-○ 贝格尔轮转              - Berger rotation
+○ 贝格尔轮转
 ● 朱轮12-23轮转
 ○ ITTF轮转
 
-分组循环小组名:
-● 以字母表示              - Letters (A, B, C...)
-○ 以数字表示              - Numbers (1, 2, 3...)
+分组循环小组名：
+● 以字母表示（A, B, C...）
+○ 以数字表示（1, 2, 3...）
 ☐ 超过26组自动采用数字表示
 
-导出赛程信息:
+导出赛程信息：
 ● 横向排列
 ○ 纵向排列
 ☐ 按组排列
 ```
 
-### Draw Settings (抽签设置)
+### 抽签设置
 ```
-分组循环:
-默认组数: 4
-组内最大人数: 4
+分组循环：
+默认组数：4
+组内最大人数：4
 
-单淘汰:
-● 同队合理分开优先        - Prioritize same-team separation
-○ 位置平衡优先            - Prioritize position balance
+单淘汰：
+● 同队合理分开优先
+○ 位置平衡优先
 
-第2阶段前4名:
+第2阶段前4名：
 ● 1-4, 2-3 同半区
 ○ 2, 3随机分布
 ○ 3, 4随机分布
 
-控制措施:
+控制措施：
 ☑ 强制合理分开
 ☑ 手工入位检查合法性
 
-抽签结果:
+抽签结果：
 ☐ 有预编排时自动导入结果
 ☐ 无预编排自动生成新赛程
 ☑ 抽签完成后自动保存结果
-☐ 抽签结果打印(简打)
+☐ 抽签结果打印（简打）
 ☑ 分组循环简打按4组对齐
 ☑ 导入完成后退出窗口
 ```
 
-## Score Entry Interface
+## 成绩录入界面
 
-### Main Elements
-- 场次号 (Match ID): e.g., 90071
-- 球台 (Table): 1-6
-- 日期 (Date): 2026-2-28
-- 时间 (Time): 8:30
-- 双方运动员 (Players): 陈国荣 vs 林思琪
-- 大比分 (Game Score): 3:1
-- 局分 (Set Scores): 11-9, 11-8, 9-11, 11-3
+### 主要元素
+- 场次号：如 90071
+- 球台：1-6
+- 日期：2026-2-28
+- 时间：8:30
+- 双方运动员：陈国荣 vs 林思琪
+- 大比分：3:1
+- 局分：11-9, 11-8, 9-11, 11-3
 
-### Quick Input Format
-Continuous digit input: `1109110809111110`
-- Parsed as: 11-09, 11-08, 09-11, 11-10
-- System auto-detects winning score
+### 快捷输入格式
+连续数字输入：`1109110809111110`
+- 解析为：11-09, 11-08, 09-11, 11-10
+- 系统自动识别胜方
 
-### Action Buttons
-- 保存(S) - Save
-- 清成绩(C) - Clear scores
-- 上一场(P) - Previous match
-- 下一场(N) - Next match
-- 换主客(W) - Swap home/away
-- 计分单(□) - Scoresheet
-- 裁判长签单(E) - Referee signature
+### 操作按钮
+- 保存(S)
+- 清成绩(C)
+- 上一场(P)
+- 下一场(N)
+- 换主客(W)
+- 计分单(□)
+- 裁判长签单(E)
 
-### Waiver Options
-- ☐ 左弃权(L) - Left player waiver
-- ☐ 右弃权(R) - Right player waiver
+### 弃权选项
+- ☐ 左弃权(L)
+- ☐ 右弃权(R)
 
-## Export Tools
+## 导出工具
 
 ### U+ 秩序册/成绩册辅助排版工具 V1.7.07
 
-**一键自动排版 (One-click Auto Layout):**
-- 基础排版 - Basic layout
-- 页面设置 - Page setup
-- 列宽行高 - Column width/row height
-- 字体字号 - Font settings
-- 自动分页 - Auto pagination
+**一键自动排版：**
+- 基础排版
+- 页面设置
+- 列宽行高
+- 字体字号
+- 自动分页
 
-**美化排版 (Enhanced Layout):**
-- 序号左置 - Left-align numbers
-- 背景色 - Background colors
-- 边框线 - Borders
-- 行合并 - Row merging
+**美化排版：**
+- 序号左置
+- 背景色
+- 边框线
+- 行合并
 
-**参数设置:**
+**参数设置：**
 - 选择预设模板 → 秩序册（前置多行版）
 - 保存模板 / 查看模板
 
-**美化设置:**
+**美化设置：**
 - 选择预设模板 → 绿粉褐渐变模板
 
-## File Structure
+## 文件结构
 
 ```
-project_folder/
-├── data.db                           # Main database
-├── data (00-初始化).db               # Checkpoint: initialized
-├── data (01-导入方案后).db           # Checkpoint: after import plan
-├── data (02-导入名单后,抽签后).db    # Checkpoint: after roster & draw
-├── data (03-生成赛程后).db           # Checkpoint: after scheduling
-├── data (04-比赛开始前备份).db       # Checkpoint: before competition
-├── 比赛表1.xlsx                      # Schedule spreadsheet
-├── 比赛表1.pdf                       # Schedule PDF
-├── 编排1.xlsx                        # Scheduling result
-├── 记分单 (28日上午) A5横向.xlsx     # Scoresheets (morning)
-├── 记分单 (28日上午) A5横向.pdf
-├── 记分单 (28日下午) A5横向.xlsx     # Scoresheets (afternoon)
-├── 记分单 (28日下午) A5横向.pdf
-├── Record.log                        # Activity log
-├── backup/                           # Backup folder
-├── output/                           # Export output
-├── download/                         # Downloads
-└── pic/                              # Images
+项目文件夹/
+├── data.db                           # 主数据库
+├── data（00-初始化）.db              # 检查点：初始化
+├── data（01-导入方案后）.db          # 检查点：导入方案后
+├── data（02-导入名单后,抽签后）.db   # 检查点：名单和抽签后
+├── data（03-生成赛程后）.db          # 检查点：生成赛程后
+├── data（04-比赛开始前备份）.db      # 检查点：比赛开始前
+├── 比赛表1.xlsx                      # 赛程表
+├── 比赛表1.pdf                       # 赛程PDF
+├── 编排1.xlsx                        # 编排结果
+├── 记分单（28日上午）A5横向.xlsx     # 记分单（上午）
+├── 记分单（28日上午）A5横向.pdf
+├── 记分单（28日下午）A5横向.xlsx     # 记分单（下午）
+├── 记分单（28日下午）A5横向.pdf
+├── Record.log                        # 操作日志
+├── backup/                           # 备份文件夹
+├── output/                           # 导出输出
+├── download/                         # 下载
+└── pic/                              # 图片
 ```
 
-## Round Robin Table Format
+## 循环赛表格格式
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -255,7 +255,7 @@ project_folder/
 └─────┴────────┴────┴───┴───┴───┴───┴────┴────┴────┘
 ```
 
-## Elimination Bracket Format
+## 淘汰赛对阵图格式
 
 ```
 甲组单打第二阶段
@@ -276,71 +276,71 @@ project_folder/
        ├─ 90034/1(1)/17:00 ─┘
     8 ─┘
 
-    (附加赛区)
+    （附加赛区）
     90029/1(3)/15:45 ─┐
                       ├─ 决5、6名
     90030/1(4)/15:45 ─┘
 ```
 
-## Control Panel View
+## 控场面板视图
 
-Real-time table monitoring showing:
-- Date/Time
-- 6 tables (1台-6台)
-- Each cell displays:
-  - Event code: 丙组(XS)
-  - Player names: 陈国荣 林思琪
-  - Match ID: 90071
-  - Stage info: 1阶段A组1/5轮
-  - Current score: 3:0
-  - Schedule: 9:15/1 9:30/1
+实时球台监控显示：
+- 日期/时间
+- 6个球台（1台-6台）
+- 每个单元格显示：
+  - 项目代码：丙组(XS)
+  - 运动员姓名：陈国荣 林思琪
+  - 场次号：90071
+  - 阶段信息：1阶段A组1/5轮
+  - 当前比分：3:0
+  - 时间安排：9:15/1 9:30/1
 
-Color coding:
-- Red background: Currently playing
-- Yellow text: Completed
-- Normal: Scheduled
+颜色编码：
+- 红色背景：正在进行
+- 黄色文字：已完成
+- 正常：已安排
 
-## Implications for PaddlePal
+## 对 PaddlePal 的启示
 
-### Priority Features to Implement
+### 需要实现的优先功能
 
-1. **Planning Module**
-   - Event/stage configuration
-   - Group count and advancement rules
-   - Player count per group
+1. **规划模块**
+   - 项目/阶段配置
+   - 组数和晋级规则
+   - 每组人数设置
 
-2. **Draw Module**
-   - Round robin group assignment
-   - Seed positioning
-   - Same-team separation algorithm
-   - Manual override capability
+2. **抽签模块**
+   - 分组循环抽签
+   - 种子位设置
+   - 同队分开算法
+   - 手工调整功能
 
-3. **Scheduling Module**
-   - Auto-generate match schedule
-   - Table/time slot allocation
-   - Berger/ITTF rotation support
-   - Export to Excel/PDF
+3. **编排模块**
+   - 自动生成赛程
+   - 球台/时间段分配
+   - 贝格尔/ITTF轮转支持
+   - 导出Excel/PDF
 
-4. **Control Module**
-   - Multi-table real-time view
-   - Quick score entry (continuous digits)
-   - Table reassignment
-   - Referee confirmation workflow
+4. **控场模块**
+   - 多球台实时视图
+   - 快速比分录入（连续数字）
+   - 调场功能
+   - 裁判长确认流程
 
-5. **Export Module**
-   - Program book (秩序册)
-   - Results book (成绩册)
-   - Scoresheets (记分单) - batch print
-   - PDF generation
+5. **导出模块**
+   - 秩序册
+   - 成绩册
+   - 记分单（批量打印）
+   - PDF生成
 
-### Score Entry Enhancements
-- Support quick input format: `1109110809111110`
-- Auto-parse and validate scores
-- Referee confirmation toggle
-- Waiver handling (left/right)
-- Auto-advance to next match
+### 比分录入增强
+- 支持快捷输入格式：`1109110809111110`
+- 自动解析和验证比分
+- 裁判长确认开关
+- 弃权处理（左/右）
+- 自动跳转下一场
 
-### Database Checkpoint System
-- Implement backup points at key stages
-- Allow rollback to previous state
-- Track all modifications in log
+### 数据库检查点系统
+- 在关键阶段实现备份点
+- 允许回滚到之前状态
+- 在日志中跟踪所有修改
