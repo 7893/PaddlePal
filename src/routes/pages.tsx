@@ -33,6 +33,7 @@ import { PlayerDetailPage } from '../views/player-detail';
 import { EliminationBracket } from '../views/elimination-bracket';
 import { GroupStandings } from '../views/group-standings';
 import { QRCodePage } from '../views/qrcode';
+import { TimelinePage } from '../views/timeline';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -732,6 +733,25 @@ pages.get('/qr', async (c) => {
   const url = new URL(c.req.url);
   const baseUrl = `${url.protocol}//${url.host}`;
   return c.html(<QRCodePage url={baseUrl} title={tournament?.title as string || 'PaddlePal'} />);
+});
+
+// Timeline page
+pages.get('/timeline', async (c) => {
+  const db = c.env.DB;
+  const date = new Date().toISOString().slice(0, 10);
+
+  const { results: matches } = await db.prepare(`
+    SELECT m.id, m.time, m.table_no, m.status, e.title as event,
+      COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
+      CASE WHEN m.status = 'finished' THEN m.score1 || ':' || m.score2 ELSE '' END as score
+    FROM matches m
+    LEFT JOIN events e ON m.event_id = e.id
+    LEFT JOIN players p1 ON m.player1_id = p1.id
+    LEFT JOIN players p2 ON m.player2_id = p2.id
+    ORDER BY m.time, m.table_no
+  `).all();
+
+  return c.html(<TimelinePage matches={matches as any} date={date} />);
 });
 
 // Draw page for specific event
