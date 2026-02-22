@@ -27,6 +27,7 @@ import { MyMatchesPage, PlayerSelectPage } from '../views/my-matches';
 import { CheckinPage } from '../views/checkin';
 import { AppealsPage } from '../views/appeals';
 import { AuditLogPage } from '../views/audit-log';
+import { SettingsPage } from '../views/settings';
 import { ExportPage } from '../views/export';
 import { DrawBoardPage } from '../views/draw-board';
 import type { HomeEvent, LiveMatch, UpcomingMatch, PlayerMember, ScheduleMatch, ResultEvent } from '../types';
@@ -552,6 +553,23 @@ pages.get('/admin/logs', async (c) => {
   `).all();
 
   return c.html(<AuditLogPage logs={logs as any} />);
+});
+
+// Settings page
+pages.get('/admin/settings', async (c) => {
+  const db = c.env.DB;
+
+  const settings = await db.prepare(`
+    SELECT COALESCE(tables_count, 6) as tables_count,
+      COALESCE(minutes_per_match, 15) as minutes_per_match,
+      COALESCE(auto_advance, 1) as auto_advance,
+      COALESCE(require_confirm, 1) as require_confirm,
+      COALESCE(allow_appeals, 1) as allow_appeals,
+      COALESCE(show_rating, 1) as show_rating
+    FROM tournaments WHERE id = 1
+  `).first();
+
+  return c.html(<SettingsPage settings={settings as any || {}} />);
 });
 
 // Draw page for specific event

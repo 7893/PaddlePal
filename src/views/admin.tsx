@@ -83,6 +83,14 @@ export const AdminPage: FC<{
           <span class="text-xl">📜</span>
           <span class="font-medium text-gray-700">操作日志</span>
         </a>
+        <a href="/admin/settings" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-slate-400 hover:bg-slate-100 transition-colors">
+          <span class="text-xl">⚙️</span>
+          <span class="font-medium text-gray-700">系统设置</span>
+        </a>
+        <a href="/api/backup" class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-cyan-300 hover:bg-cyan-50 transition-colors">
+          <span class="text-xl">💾</span>
+          <span class="font-medium text-gray-700">数据备份</span>
+        </a>
       </div>
 
       {/* Events */}
