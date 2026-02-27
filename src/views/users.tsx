@@ -1,82 +1,91 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card } from '../components/layout';
+import { Layout, Nav, Card, PageWrapper, Footer } from '../components/layout';
 
 type User = { id: number; username: string; role: string; name: string; created_at: string };
 
 const ROLES = [
-  { value: 'referee', label: '裁判长' },
-  { value: 'deputy_referee', label: '副裁判长' },
-  { value: 'scheduler', label: '编排长' },
-  { value: 'recorder', label: '记录员' },
-  { value: 'umpire', label: '裁判员' },
+  { value: 'referee', label: '裁判长', color: 'red' },
+  { value: 'deputy_referee', label: '副裁判长', color: 'orange' },
+  { value: 'scheduler', label: '编排长', color: 'blue' },
+  { value: 'recorder', label: '记录员', color: 'green' },
+  { value: 'umpire', label: '裁判员', color: 'gray' },
 ];
 
 const roleLabel = (role: string) => ROLES.find(r => r.value === role)?.label || role;
+const roleColor = (role: string) => {
+  const colors: Record<string, string> = {
+    referee: 'bg-red-100 text-red-700',
+    deputy_referee: 'bg-orange-100 text-orange-700',
+    scheduler: 'bg-blue-100 text-blue-700',
+    recorder: 'bg-emerald-100 text-emerald-700',
+    umpire: 'bg-slate-100 text-slate-600',
+  };
+  return colors[role] || colors.umpire;
+};
 
 export const UsersPage: FC<{ users: User[]; canManage: boolean }> = ({ users, canManage }) => (
   <Layout title="用户管理">
-    <Nav current="/admin" />
-    <div class="max-w-4xl mx-auto px-4 py-6 fade-in">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-lg font-bold text-gray-800">👥 用户管理</h2>
-        <a href="/admin" class="text-sm text-gray-500 hover:text-pp-600">← 返回</a>
-      </div>
-
+    <Nav current="/admin/users" title="用户管理" />
+    <PageWrapper>
       {!canManage ? (
-        <Card>
-          <div class="text-center py-8 text-gray-500">
-            <div class="text-4xl mb-2">🔒</div>
-            <div>仅裁判长可管理用户</div>
-          </div>
-        </Card>
+        <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <div class="text-5xl mb-4 opacity-50">🔒</div>
+          <p class="text-slate-500">仅裁判长可管理用户</p>
+        </div>
       ) : (
         <>
-          <Card title="添加用户" class="mb-4">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <input type="text" id="newUsername" placeholder="用户名" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-              <input type="password" id="newPassword" placeholder="密码" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-              <input type="text" id="newName" placeholder="姓名" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-              <select id="newRole" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          {/* Add user */}
+          <Card title="添加用户" class="mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <input type="text" id="newUsername" placeholder="用户名" class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="password" id="newPassword" placeholder="密码" class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="text" id="newName" placeholder="姓名" class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <select id="newRole" class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
                 {ROLES.map(r => <option value={r.value}>{r.label}</option>)}
               </select>
-              <button onclick="addUser()" class="bg-pp-600 text-white rounded-lg hover:bg-pp-700 text-sm">添加</button>
+              <button onclick="addUser()" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25">添加</button>
             </div>
           </Card>
 
+          {/* User list */}
           <Card title={`用户列表 (${users.length})`}>
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b border-gray-200 text-left text-gray-500">
-                  <th class="py-2">用户名</th>
-                  <th class="py-2">姓名</th>
-                  <th class="py-2">角色</th>
-                  <th class="py-2">创建时间</th>
-                  <th class="py-2 text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                {users.map(u => (
-                  <tr class="hover:bg-gray-50" data-id={u.id}>
-                    <td class="py-2 font-medium">{u.username}</td>
-                    <td class="py-2 text-gray-600">{u.name}</td>
-                    <td class="py-2">
-                      <span class={`px-2 py-0.5 rounded text-xs ${u.role === 'referee' ? 'bg-red-100 text-red-700' : u.role === 'scheduler' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {roleLabel(u.role)}
-                      </span>
-                    </td>
-                    <td class="py-2 text-gray-400 text-xs">{u.created_at?.slice(0, 10)}</td>
-                    <td class="py-2 text-right">
-                      <button onclick={`resetPassword(${u.id})`} class="text-blue-600 hover:underline text-xs mr-2">重置密码</button>
-                      <button onclick={`deleteUser(${u.id})`} class="text-red-600 hover:underline text-xs">删除</button>
-                    </td>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-slate-200 text-left text-slate-500">
+                    <th class="py-3 font-semibold">用户名</th>
+                    <th class="py-3 font-semibold">姓名</th>
+                    <th class="py-3 font-semibold">角色</th>
+                    <th class="py-3 font-semibold">创建时间</th>
+                    <th class="py-3 font-semibold text-right">操作</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  {users.map(u => (
+                    <tr class="hover:bg-slate-50 transition-colors" data-id={u.id}>
+                      <td class="py-3 font-semibold text-slate-800">{u.username}</td>
+                      <td class="py-3 text-slate-600">{u.name}</td>
+                      <td class="py-3">
+                        <span class={`px-3 py-1 rounded-lg text-xs font-medium ${roleColor(u.role)}`}>
+                          {roleLabel(u.role)}
+                        </span>
+                      </td>
+                      <td class="py-3 text-slate-400">{u.created_at?.slice(0, 10)}</td>
+                      <td class="py-3 text-right space-x-2">
+                        <button onclick={`resetPassword(${u.id})`} class="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition-colors">重置密码</button>
+                        <button onclick={`deleteUser(${u.id})`} class="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg text-xs transition-colors">删除</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {users.length === 0 && <div class="text-center py-8 text-slate-400">暂无用户</div>}
+            </div>
           </Card>
         </>
       )}
-    </div>
+    </PageWrapper>
+    <Footer />
 
     <script dangerouslySetInnerHTML={{ __html: `
 function addUser() {
@@ -84,42 +93,19 @@ function addUser() {
   var password = document.getElementById('newPassword').value;
   var name = document.getElementById('newName').value;
   var role = document.getElementById('newRole').value;
-
   if (!username || !password) { alert('用户名和密码必填'); return; }
-
-  fetch('/api/users', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: username, password: password, name: name, role: role })
-  }).then(function(r) { return r.json(); }).then(function(res) {
-    if (res.success) location.reload();
-    else alert('错误: ' + res.error);
-  });
+  fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password, name, role }) })
+    .then(r => r.json()).then(res => { if (res.success) location.reload(); else alert('错误: ' + res.error); });
 }
-
 function resetPassword(id) {
   var newPass = prompt('输入新密码:');
   if (!newPass) return;
-
-  fetch('/api/users/' + id, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: newPass })
-  }).then(function(r) { return r.json(); }).then(function(res) {
-    if (res.success) alert('密码已重置');
-    else alert('错误: ' + res.error);
-  });
+  fetch('/api/users/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: newPass }) })
+    .then(r => r.json()).then(res => { if (res.success) alert('密码已重置'); else alert('错误: ' + res.error); });
 }
-
 function deleteUser(id) {
   if (!confirm('确定删除此用户？')) return;
-
-  fetch('/api/users/' + id, { method: 'DELETE' })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      if (res.success) location.reload();
-      else alert('错误: ' + res.error);
-    });
+  fetch('/api/users/' + id, { method: 'DELETE' }).then(r => r.json()).then(res => { if (res.success) location.reload(); else alert('错误: ' + res.error); });
 }
 `}} />
   </Layout>
