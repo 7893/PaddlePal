@@ -1,5 +1,6 @@
 import type { FC } from 'hono/jsx';
 import { Layout, Nav, Footer } from '../components/layout';
+import { StatCard, StatBox } from '../components/match';
 
 type Match = {
   id: number;
@@ -27,18 +28,9 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
       <div class="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
         <div class="grid grid-cols-3 gap-4 mb-8">
-          <div class="bg-white rounded-2xl p-5 border border-slate-200 text-center">
-            <div class="text-3xl font-bold text-slate-800">{tables}</div>
-            <div class="text-sm text-slate-500 mt-1">球台总数</div>
-          </div>
-          <div class="bg-gradient-to-br from-red-500 to-rose-500 rounded-2xl p-5 text-center text-white shadow-lg shadow-red-500/25">
-            <div class="text-3xl font-bold">{playing}</div>
-            <div class="text-sm text-red-100 mt-1">进行中</div>
-          </div>
-          <div class="bg-white rounded-2xl p-5 border border-slate-200 text-center">
-            <div class="text-3xl font-bold text-slate-800">{scheduled}</div>
-            <div class="text-sm text-slate-500 mt-1">待比赛</div>
-          </div>
+          <StatBox label="球台总数" value={tables} color="slate" />
+          <StatCard label="进行中" value={playing} color="red" />
+          <StatBox label="待比赛" value={scheduled} color="slate" />
         </div>
 
         <div class="flex items-center justify-between mb-6">

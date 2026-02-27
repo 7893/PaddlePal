@@ -1,5 +1,6 @@
 import type { FC } from 'hono/jsx';
 import { Layout, Nav, Card, Badge, PageWrapper, Footer } from '../components/layout';
+import { StatCard } from '../components/match';
 
 type Team = { id: number; name: string; short_name: string; count: number };
 type Player = { id: number; name: string; gender: string; team: string; team_id: number };
@@ -28,22 +29,10 @@ export const AdminPage: FC<{
     <PageWrapper>
       {/* Stats cards */}
       <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-        <div class="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/25">
-          <div class="text-4xl font-bold">{players.length}</div>
-          <div class="text-emerald-100 mt-1">参赛选手</div>
-        </div>
-        <div class="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/25">
-          <div class="text-4xl font-bold">{teams.length}</div>
-          <div class="text-blue-100 mt-1">参赛队伍</div>
-        </div>
-        <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-6 text-white shadow-lg shadow-amber-500/25">
-          <div class="text-4xl font-bold">{events.length}</div>
-          <div class="text-amber-100 mt-1">比赛项目</div>
-        </div>
-        <div class="bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg shadow-rose-500/25">
-          <div class="text-4xl font-bold">{matches.length}</div>
-          <div class="text-rose-100 mt-1">比赛场次</div>
-        </div>
+        <StatCard label="参赛选手" value={players.length} color="emerald" />
+        <StatCard label="参赛队伍" value={teams.length} color="blue" />
+        <StatCard label="比赛项目" value={events.length} color="amber" />
+        <StatCard label="比赛场次" value={matches.length} color="red" />
       </div>
 
       {/* Quick actions */}
