@@ -1,15 +1,8 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, PageWrapper, Footer } from '../components/layout';
+import { Layout, Nav, Card, PageWrapper, Footer, EmptyState } from '../components/layout';
+import { StatCard } from '../components/match';
 
-type Match = {
-  id: number;
-  time: string;
-  table_no: number;
-  event: string;
-  p1: string;
-  p2: string;
-  status: string;
-};
+type Match = { id: number; time: string; table_no: number; event: string; p1: string; p2: string; status: string };
 
 export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: Match[] }> = ({ player, matches }) => {
   const upcoming = matches.filter((m) => m.status === 'scheduled');
@@ -21,7 +14,6 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
       <Nav current="/my" title="我的比赛" />
       <PageWrapper>
         <div class="max-w-2xl mx-auto">
-          {/* Player info */}
           <div class="text-center mb-8">
             <div class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
               <span class="text-white text-3xl">🏓</span>
@@ -30,28 +22,18 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
             <p class="text-slate-500 mt-1">共 {matches.length} 场比赛</p>
           </div>
 
-          {/* Playing now */}
           {playing.length > 0 && (
-            <div class="bg-gradient-to-br from-red-500 to-rose-500 rounded-2xl p-6 mb-5 text-white shadow-lg shadow-red-500/25">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="w-3 h-3 bg-white rounded-full animate-pulse"></span>
-                <span class="font-semibold">正在进行</span>
-              </div>
-              {playing.map((m) => (
-                <div class="bg-white/10 rounded-xl p-4">
-                  <div class="flex justify-between items-center mb-2">
-                    <span class="font-bold text-lg">{m.table_no}号台</span>
-                    <span class="text-sm text-white/70">{m.event}</span>
-                  </div>
-                  <div class="text-lg font-medium">
-                    {m.p1} vs {m.p2}
-                  </div>
+            <div class="mb-5">
+              <StatCard label="正在进行" value={`${playing[0].table_no}号台`} color="red" icon="🔴" />
+              <div class="bg-white rounded-xl p-4 mt-2 border border-slate-200">
+                <div class="text-sm text-slate-500 mb-1">{playing[0].event}</div>
+                <div class="font-semibold text-slate-800">
+                  {playing[0].p1} vs {playing[0].p2}
                 </div>
-              ))}
+              </div>
             </div>
           )}
 
-          {/* Upcoming */}
           {upcoming.length > 0 && (
             <Card title={`📅 即将开始 (${upcoming.length})`} class="mb-5">
               <div class="space-y-3">
@@ -71,7 +53,6 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
             </Card>
           )}
 
-          {/* Finished */}
           {finished.length > 0 && (
             <Card title={`✅ 已完成 (${finished.length})`}>
               <div class="space-y-2">
@@ -87,15 +68,8 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
             </Card>
           )}
 
-          {/* Empty state */}
-          {matches.length === 0 && (
-            <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-              <div class="text-5xl mb-4 opacity-50">📭</div>
-              <p class="text-slate-400">暂无比赛安排</p>
-            </div>
-          )}
+          {matches.length === 0 && <EmptyState icon="📭" title="暂无比赛安排" />}
 
-          {/* Notify button */}
           <div class="mt-8 text-center">
             <button
               onclick="enableNotify()"
@@ -107,21 +81,9 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
         </div>
       </PageWrapper>
       <Footer />
-
       <script
         dangerouslySetInnerHTML={{
-          __html: `
-var playerId = ${player.id};
-function enableNotify() {
-  if (!('Notification' in window)) { alert('浏览器不支持通知'); return; }
-  Notification.requestPermission().then(function(perm) {
-    if (perm === 'granted') {
-      fetch('/api/notify/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ player_id: playerId, endpoint: 'browser-' + Date.now() }) });
-      alert('已开启比赛提醒');
-    }
-  });
-}
-`,
+          __html: `var playerId=${player.id};function enableNotify(){if(!('Notification'in window)){alert('浏览器不支持通知');return}Notification.requestPermission().then(function(p){if(p==='granted'){fetch('/api/notify/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({player_id:playerId,endpoint:'browser-'+Date.now()})});alert('已开启比赛提醒')}})}`,
         }}
       />
     </Layout>
@@ -132,25 +94,23 @@ export const MyMatchesSearch: FC = () => (
   <Layout title="我的比赛">
     <Nav current="/my" title="我的比赛" />
     <PageWrapper>
-      <div class="max-w-md mx-auto">
-        <div class="text-center mb-8">
-          <div class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
-            <span class="text-white text-3xl">🔍</span>
-          </div>
-          <h2 class="text-2xl font-bold text-slate-800">查找我的比赛</h2>
-          <p class="text-slate-500 mt-2">输入姓名查看比赛安排</p>
+      <div class="max-w-md mx-auto text-center">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
+          <span class="text-white text-3xl">🔍</span>
         </div>
+        <h2 class="text-2xl font-bold text-slate-800 mb-2">查找我的比赛</h2>
+        <p class="text-slate-500 mb-6">输入姓名查看比赛安排</p>
         <form action="/my" method="get" class="bg-white rounded-2xl border border-slate-200 p-6">
           <input
             type="text"
             name="name"
             placeholder="请输入姓名..."
             autofocus
-            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 mb-4"
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-lg focus:ring-2 focus:ring-emerald-500 mb-4"
           />
           <button
             type="submit"
-            class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25"
+            class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium shadow-lg shadow-emerald-500/25"
           >
             查找
           </button>
@@ -165,24 +125,25 @@ export const PlayerSelectPage: FC<{ players: { id: number; name: string; team: s
   <Layout title="选择选手">
     <Nav current="/my" title="我的比赛" />
     <PageWrapper>
-      <div class="max-w-2xl mx-auto">
-        <div class="text-center mb-8">
-          <h2 class="text-2xl font-bold text-slate-800">选择选手</h2>
-          <p class="text-slate-500 mt-2">点击姓名查看比赛安排</p>
-        </div>
+      <div class="max-w-2xl mx-auto text-center">
+        <h2 class="text-2xl font-bold text-slate-800 mb-2">选择选手</h2>
+        <p class="text-slate-500 mb-6">点击姓名查看比赛安排</p>
         <div class="bg-white rounded-2xl border border-slate-200 p-6">
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {players.map((p) => (
-              <a
-                href={`/my/${p.id}`}
-                class="p-4 bg-slate-50 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 border border-transparent transition-colors text-center"
-              >
-                <div class="font-semibold text-slate-800">{p.name}</div>
-                <div class="text-sm text-slate-400">{p.team}</div>
-              </a>
-            ))}
-          </div>
-          {players.length === 0 && <div class="text-center py-8 text-slate-400">暂无选手</div>}
+          {players.length > 0 ? (
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {players.map((p) => (
+                <a
+                  href={`/my/${p.id}`}
+                  class="p-4 bg-slate-50 rounded-xl hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-colors"
+                >
+                  <div class="font-semibold text-slate-800">{p.name}</div>
+                  <div class="text-sm text-slate-400">{p.team}</div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div class="py-8 text-slate-400">暂无选手</div>
+          )}
         </div>
       </div>
     </PageWrapper>

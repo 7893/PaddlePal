@@ -1,5 +1,6 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, PageWrapper, Footer } from '../components/layout';
+import { Layout, Nav, Card, PageWrapper, Footer, EmptyState } from '../components/layout';
+import { StatCard } from '../components/match';
 
 type Match = {
   id: number;
@@ -14,29 +15,18 @@ type Match = {
 
 export const CheckinPage: FC<{ matches: Match[] }> = ({ matches }) => {
   const ready = matches.filter((m) => m.checkin1 && m.checkin2).length;
-  const pending = matches.length - ready;
 
   return (
     <Layout title="选手检录">
       <Nav current="/admin/checkin" title="选手检录" />
       <PageWrapper>
-        {/* Stats */}
         <div class="grid grid-cols-2 gap-4 mb-8 max-w-md">
-          <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-center text-white shadow-lg shadow-amber-500/25">
-            <div class="text-3xl font-bold">{pending}</div>
-            <div class="text-sm text-amber-100 mt-1">待检录</div>
-          </div>
-          <div class="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl p-5 text-center text-white shadow-lg shadow-emerald-500/25">
-            <div class="text-3xl font-bold">{ready}</div>
-            <div class="text-sm text-emerald-100 mt-1">已就绪</div>
-          </div>
+          <StatCard label="待检录" value={matches.length - ready} color="amber" />
+          <StatCard label="已就绪" value={ready} color="emerald" />
         </div>
 
         {matches.length === 0 ? (
-          <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-            <div class="text-5xl mb-4 opacity-50">✨</div>
-            <p class="text-slate-400">暂无待检录比赛</p>
-          </div>
+          <EmptyState icon="✨" title="暂无待检录比赛" />
         ) : (
           <Card title={`待检录比赛 (${matches.length})`}>
             <div class="space-y-4">
@@ -49,32 +39,24 @@ export const CheckinPage: FC<{ matches: Match[] }> = ({ matches }) => {
                     </span>
                   </div>
                   <div class="grid grid-cols-2 gap-4">
-                    <div
-                      class={`p-4 rounded-xl border-2 cursor-pointer transition-all ${m.checkin1 ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-md'}`}
-                      onclick={`checkin(${m.id}, 1)`}
-                    >
-                      <div class="font-semibold text-slate-800">{m.p1}</div>
-                      <div class="text-sm mt-2">
-                        {m.checkin1 ? (
-                          <span class="text-emerald-600">✅ 已检录</span>
-                        ) : (
-                          <span class="text-slate-400">点击检录</span>
-                        )}
+                    {[
+                      { name: m.p1, done: m.checkin1, side: 1 },
+                      { name: m.p2, done: m.checkin2, side: 2 },
+                    ].map((p) => (
+                      <div
+                        class={`p-4 rounded-xl border-2 cursor-pointer transition-all ${p.done ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300'}`}
+                        onclick={`checkin(${m.id},${p.side})`}
+                      >
+                        <div class="font-semibold text-slate-800">{p.name}</div>
+                        <div class="text-sm mt-2">
+                          {p.done ? (
+                            <span class="text-emerald-600">✅ 已检录</span>
+                          ) : (
+                            <span class="text-slate-400">点击检录</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      class={`p-4 rounded-xl border-2 cursor-pointer transition-all ${m.checkin2 ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-md'}`}
-                      onclick={`checkin(${m.id}, 2)`}
-                    >
-                      <div class="font-semibold text-slate-800">{m.p2}</div>
-                      <div class="text-sm mt-2">
-                        {m.checkin2 ? (
-                          <span class="text-emerald-600">✅ 已检录</span>
-                        ) : (
-                          <span class="text-slate-400">点击检录</span>
-                        )}
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -83,15 +65,9 @@ export const CheckinPage: FC<{ matches: Match[] }> = ({ matches }) => {
         )}
       </PageWrapper>
       <Footer />
-
       <script
         dangerouslySetInnerHTML={{
-          __html: `
-function checkin(matchId, side) {
-  fetch('/api/checkin/' + matchId, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ side }) })
-    .then(r => r.json()).then(res => { if (res.success) { if (res.bothReady) alert('双方已检录，比赛开始！'); location.reload(); } });
-}
-`,
+          __html: `function checkin(id,side){fetch('/api/checkin/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({side})}).then(r=>r.json()).then(res=>{if(res.success){if(res.bothReady)alert('双方已检录，比赛开始！');location.reload()}})}`,
         }}
       />
     </Layout>
