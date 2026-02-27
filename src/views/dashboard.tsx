@@ -1,5 +1,6 @@
 import type { FC } from 'hono/jsx';
 import { Layout, Nav, Card, PageWrapper, Footer } from '../components/layout';
+import { StatCard } from '../components/match';
 
 export const DashboardPage: FC<{
   stats: {
@@ -18,29 +19,13 @@ export const DashboardPage: FC<{
     <Layout title="仪表盘">
       <Nav current="/dashboard" title="赛事仪表盘" />
       <PageWrapper>
-        {/* Stats */}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-          <div class="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/25">
-            <div class="text-4xl font-bold">{stats.players}</div>
-            <div class="text-blue-100 mt-1">参赛选手</div>
-          </div>
-          <div class="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/25">
-            <div class="text-4xl font-bold">{stats.teams}</div>
-            <div class="text-emerald-100 mt-1">参赛队伍</div>
-          </div>
-          <div class="bg-gradient-to-br from-red-500 to-rose-500 rounded-2xl p-6 text-white shadow-lg shadow-red-500/25">
-            <div class="text-4xl font-bold">{stats.playing}</div>
-            <div class="text-red-100 mt-1">进行中</div>
-          </div>
-          <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-6 text-white shadow-lg shadow-amber-500/25">
-            <div class="text-4xl font-bold">
-              {stats.finished}/{stats.total_matches}
-            </div>
-            <div class="text-amber-100 mt-1">已完成</div>
-          </div>
+          <StatCard label="参赛选手" value={stats.players} color="blue" />
+          <StatCard label="参赛队伍" value={stats.teams} color="emerald" />
+          <StatCard label="进行中" value={stats.playing} color="red" />
+          <StatCard label="已完成" value={`${stats.finished}/${stats.total_matches}`} color="amber" />
         </div>
 
-        {/* Progress */}
         <Card title="比赛进度" class="mb-6">
           <div class="flex items-center gap-4 mb-3">
             <div class="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
@@ -58,7 +43,6 @@ export const DashboardPage: FC<{
           </div>
         </Card>
 
-        {/* Recent results */}
         <Card title="最新成绩" class="mb-6">
           <div class="space-y-2">
             {recentResults.map((r) => (
@@ -77,7 +61,6 @@ export const DashboardPage: FC<{
           </div>
         </Card>
 
-        {/* Quick links */}
         <div class="grid grid-cols-4 gap-4">
           {[
             { href: '/live', icon: '📺', label: '实时比分' },
