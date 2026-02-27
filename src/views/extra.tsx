@@ -1,12 +1,10 @@
-import { Layout, Nav, Card, Badge, Table, Th, Td, PageHeader, EmptyState } from '../components/layout';
+import { Layout, Nav, Card, Badge, Table, Th, Td, EmptyState, PageWrapper, Footer } from '../components/layout';
 
-// Ranking page
 export const RankingPage = ({ players }: { players: any[] }) => (
   <Layout title="积分排名">
-    <Nav current="/ranking" />
-    <div class="max-w-4xl mx-auto px-8 py-10 fade-in">
-      <PageHeader title="积分排名" subtitle={`共 ${players.length} 名选手`} />
-      
+    <Nav current="/ranking" title="积分排名" />
+    <PageWrapper>
+      <p class="text-slate-500 mb-6">共 {players.length} 名选手</p>
       <Card hover={false}>
         {players.length > 0 ? (
           <Table>
@@ -23,39 +21,27 @@ export const RankingPage = ({ players }: { players: any[] }) => (
                 <tr class="hover:bg-slate-50/50 transition-colors">
                   <Td>
                     {i < 3 ? (
-                      <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold ${
-                        i === 0 ? 'bg-amber-100 text-amber-700' : 
-                        i === 1 ? 'bg-slate-200 text-slate-600' : 
-                        'bg-orange-100 text-orange-700'
-                      }`}>{i + 1}</span>
-                    ) : (
-                      <span class="text-slate-400 pl-2">{i + 1}</span>
-                    )}
+                      <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-200 text-slate-600' : 'bg-orange-100 text-orange-700'}`}>{i + 1}</span>
+                    ) : <span class="text-slate-400 pl-2">{i + 1}</span>}
                   </Td>
                   <Td class="font-medium text-slate-800">{p.name}</Td>
                   <Td>{p.team || <span class="text-slate-300">-</span>}</Td>
-                  <Td class="text-right">
-                    <span class="font-semibold text-pp-600">{p.rating}</span>
-                  </Td>
+                  <Td class="text-right"><span class="font-semibold text-emerald-600">{p.rating}</span></Td>
                 </tr>
               ))}
             </tbody>
           </Table>
-        ) : (
-          <EmptyState icon="🏆" title="暂无排名数据" />
-        )}
+        ) : <EmptyState icon="🏆" title="暂无排名数据" />}
       </Card>
-    </div>
+    </PageWrapper>
+    <Footer />
   </Layout>
 );
 
-// Notices page
 export const NoticesPage = ({ notices }: { notices: any[] }) => (
   <Layout title="赛事公告">
-    <Nav current="/notices" />
-    <div class="max-w-4xl mx-auto px-8 py-10 fade-in">
-      <PageHeader title="赛事公告" subtitle="最新通知与公告" />
-      
+    <Nav current="/notices" title="赛事公告" />
+    <PageWrapper>
       {notices.length > 0 ? (
         <div class="space-y-4">
           {notices.map((n: any) => (
@@ -69,21 +55,17 @@ export const NoticesPage = ({ notices }: { notices: any[] }) => (
           ))}
         </div>
       ) : (
-        <Card hover={false}>
-          <EmptyState icon="📢" title="暂无公告" description="敬请期待" />
-        </Card>
+        <Card hover={false}><EmptyState icon="📢" title="暂无公告" description="敬请期待" /></Card>
       )}
-    </div>
+    </PageWrapper>
+    <Footer />
   </Layout>
 );
 
-// Progress page
 export const ProgressPage = ({ events }: { events: any[] }) => (
   <Layout title="赛事进度">
-    <Nav current="/progress" />
-    <div class="max-w-4xl mx-auto px-8 py-10 fade-in">
-      <PageHeader title="赛事进度" subtitle="各项目完成情况" />
-      
+    <Nav current="/progress" title="赛事进度" />
+    <PageWrapper>
       <Card hover={false}>
         {events.length > 0 ? (
           <div class="space-y-5">
@@ -95,25 +77,19 @@ export const ProgressPage = ({ events }: { events: any[] }) => (
                     <span class="font-medium text-slate-800 text-sm">{e.title}</span>
                     <div class="flex items-center gap-3">
                       <span class="text-xs text-slate-500">{e.finished} / {e.total} 场</span>
-                      <Badge color={pct === 100 ? 'green' : pct > 0 ? 'yellow' : 'gray'}>
-                        {pct}%
-                      </Badge>
+                      <Badge color={pct === 100 ? 'green' : pct > 0 ? 'yellow' : 'gray'}>{pct}%</Badge>
                     </div>
                   </div>
-                  <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div 
-                      class={`h-2 rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-pp-400 to-pp-500'}`}
-                      style={`width:${pct}%`}
-                    ></div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div class={`h-2.5 rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-emerald-400 to-teal-500'}`} style={`width:${pct}%`}></div>
                   </div>
                 </div>
               );
             })}
           </div>
-        ) : (
-          <EmptyState icon="📊" title="暂无项目数据" />
-        )}
+        ) : <EmptyState icon="📊" title="暂无项目数据" />}
       </Card>
-    </div>
+    </PageWrapper>
+    <Footer />
   </Layout>
 );
