@@ -214,7 +214,8 @@ export const Button: FC<{
   color?: string;
   children: Child;
   class?: string;
-}> = ({ href, type, color = 'primary', children, class: cls }) => {
+  onclick?: string;
+}> = ({ href, type, color = 'primary', children, class: cls, onclick }) => {
   const colors: Record<string, string> = {
     primary:
       'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/25',
@@ -229,7 +230,7 @@ export const Button: FC<{
       </a>
     );
   return (
-    <button type={type || 'button'} class={base}>
+    <button type={type || 'button'} class={base} onclick={onclick}>
       {children}
     </button>
   );
@@ -279,4 +280,72 @@ export const EmptyState: FC<{ icon?: string; message?: string; title?: string; d
     <p class="text-slate-400">{message || title}</p>
     {description && <p class="text-slate-400 text-sm mt-1">{description}</p>}
   </div>
+);
+
+const inputBase =
+  'border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all';
+
+export const Input: FC<{
+  name?: string;
+  id?: string;
+  type?: string;
+  value?: string | number;
+  placeholder?: string;
+  class?: string;
+  required?: boolean;
+  autofocus?: boolean;
+}> = (p) => (
+  <input
+    type={p.type || 'text'}
+    name={p.name}
+    id={p.id}
+    value={p.value}
+    placeholder={p.placeholder}
+    required={p.required}
+    autofocus={p.autofocus}
+    class={`${inputBase} ${p.class || ''}`}
+  />
+);
+
+export const Select: FC<{ name?: string; id?: string; value?: string; class?: string; children: Child }> = (p) => (
+  <select name={p.name} id={p.id} value={p.value} class={`${inputBase} ${p.class || ''}`}>
+    {p.children}
+  </select>
+);
+
+export const Textarea: FC<{
+  name?: string;
+  id?: string;
+  value?: string;
+  placeholder?: string;
+  rows?: number;
+  class?: string;
+}> = (p) => (
+  <textarea
+    name={p.name}
+    id={p.id}
+    placeholder={p.placeholder}
+    rows={p.rows || 3}
+    class={`${inputBase} ${p.class || ''}`}
+  >
+    {p.value}
+  </textarea>
+);
+
+export const FormGroup: FC<{ label: string; children: Child }> = ({ label, children }) => (
+  <div class="space-y-1.5">
+    <label class="block text-sm font-medium text-slate-700">{label}</label>
+    {children}
+  </div>
+);
+
+export const Toggle: FC<{ id: string; checked?: boolean; label: string }> = ({ id, checked, label }) => (
+  <label class="flex items-center justify-between cursor-pointer">
+    <span class="text-slate-700">{label}</span>
+    <div class="relative">
+      <input type="checkbox" id={id} checked={checked} class="sr-only peer" />
+      <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-emerald-500 transition-colors"></div>
+      <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></div>
+    </div>
+  </label>
 );

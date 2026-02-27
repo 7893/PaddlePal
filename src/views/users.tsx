@@ -1,5 +1,5 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, PageWrapper, Footer, Badge, EmptyState } from '../components/layout';
+import { Layout, Nav, Card, PageWrapper, Footer, Badge, EmptyState, Input, Select, Button } from '../components/layout';
 
 type User = { id: number; username: string; role: string; name: string; created_at: string };
 
@@ -26,41 +26,17 @@ export const UsersPage: FC<{ users: User[]; canManage: boolean }> = ({ users, ca
         <>
           <Card title="添加用户" class="mb-6">
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <input
-                type="text"
-                id="newUsername"
-                placeholder="用户名"
-                class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500"
-              />
-              <input
-                type="password"
-                id="newPassword"
-                placeholder="密码"
-                class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500"
-              />
-              <input
-                type="text"
-                id="newName"
-                placeholder="姓名"
-                class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500"
-              />
-              <select
-                id="newRole"
-                class="border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500"
-              >
+              <Input id="newUsername" placeholder="用户名" />
+              <Input id="newPassword" type="password" placeholder="密码" />
+              <Input id="newName" placeholder="姓名" />
+              <Select id="newRole">
                 {ROLES.map((r) => (
                   <option value={r.value}>{r.label}</option>
                 ))}
-              </select>
-              <button
-                onclick="addUser()"
-                class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium shadow-lg shadow-emerald-500/25"
-              >
-                添加
-              </button>
+              </Select>
+              <Button onclick="addUser()">添加</Button>
             </div>
           </Card>
-
           <Card title={`用户列表 (${users.length})`}>
             {users.length > 0 ? (
               <table class="w-full text-sm">
