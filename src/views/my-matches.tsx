@@ -1,8 +1,21 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, PageWrapper, Footer, EmptyState } from '../components/layout';
+import { Layout, Nav, Card, PageWrapper, Footer, EmptyState, Input, Button } from '../components/layout';
 import { StatCard } from '../components/match';
 
 type Match = { id: number; time: string; table_no: number; event: string; p1: string; p2: string; status: string };
+
+const MatchItem: FC<{ m: Match; showStatus?: boolean }> = ({ m, showStatus }) => (
+  <div class={`p-4 ${showStatus ? 'bg-slate-50' : ''} rounded-xl`}>
+    <div class="flex justify-between items-center mb-2">
+      <span class="font-mono text-emerald-600 font-semibold">{m.time}</span>
+      <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-xs">{m.table_no}号台</span>
+    </div>
+    <div class="text-sm text-slate-500 mb-1">{m.event}</div>
+    <div class="font-semibold text-slate-800">
+      {m.p1} vs {m.p2}
+    </div>
+  </div>
+);
 
 export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: Match[] }> = ({ player, matches }) => {
   const upcoming = matches.filter((m) => m.status === 'scheduled');
@@ -21,7 +34,6 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
             <h2 class="text-2xl font-bold text-slate-800">{player.name}</h2>
             <p class="text-slate-500 mt-1">共 {matches.length} 场比赛</p>
           </div>
-
           {playing.length > 0 && (
             <div class="mb-5">
               <StatCard label="正在进行" value={`${playing[0].table_no}号台`} color="red" icon="🔴" />
@@ -33,26 +45,15 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
               </div>
             </div>
           )}
-
           {upcoming.length > 0 && (
             <Card title={`📅 即将开始 (${upcoming.length})`} class="mb-5">
               <div class="space-y-3">
                 {upcoming.map((m) => (
-                  <div class="p-4 bg-slate-50 rounded-xl">
-                    <div class="flex justify-between items-center mb-2">
-                      <span class="font-mono text-emerald-600 font-semibold">{m.time}</span>
-                      <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-xs">{m.table_no}号台</span>
-                    </div>
-                    <div class="text-sm text-slate-500 mb-1">{m.event}</div>
-                    <div class="font-semibold text-slate-800">
-                      {m.p1} vs {m.p2}
-                    </div>
-                  </div>
+                  <MatchItem m={m} showStatus />
                 ))}
               </div>
             </Card>
           )}
-
           {finished.length > 0 && (
             <Card title={`✅ 已完成 (${finished.length})`}>
               <div class="space-y-2">
@@ -67,23 +68,16 @@ export const MyMatchesPage: FC<{ player: { id: number; name: string }; matches: 
               </div>
             </Card>
           )}
-
           {matches.length === 0 && <EmptyState icon="📭" title="暂无比赛安排" />}
-
           <div class="mt-8 text-center">
-            <button
-              onclick="enableNotify()"
-              class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25"
-            >
-              🔔 开启比赛提醒
-            </button>
+            <Button onclick="enableNotify()">🔔 开启比赛提醒</Button>
           </div>
         </div>
       </PageWrapper>
       <Footer />
       <script
         dangerouslySetInnerHTML={{
-          __html: `var playerId=${player.id};function enableNotify(){if(!('Notification'in window)){alert('浏览器不支持通知');return}Notification.requestPermission().then(function(p){if(p==='granted'){fetch('/api/notify/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({player_id:playerId,endpoint:'browser-'+Date.now()})});alert('已开启比赛提醒')}})}`,
+          __html: `var pid=${player.id};function enableNotify(){if(!('Notification'in window)){alert('浏览器不支持通知');return}Notification.requestPermission().then(p=>{if(p==='granted'){fetch('/api/notify/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({player_id:pid,endpoint:'browser-'+Date.now()})});alert('已开启比赛提醒')}})}`,
         }}
       />
     </Layout>
@@ -101,19 +95,10 @@ export const MyMatchesSearch: FC = () => (
         <h2 class="text-2xl font-bold text-slate-800 mb-2">查找我的比赛</h2>
         <p class="text-slate-500 mb-6">输入姓名查看比赛安排</p>
         <form action="/my" method="get" class="bg-white rounded-2xl border border-slate-200 p-6">
-          <input
-            type="text"
-            name="name"
-            placeholder="请输入姓名..."
-            autofocus
-            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-lg focus:ring-2 focus:ring-emerald-500 mb-4"
-          />
-          <button
-            type="submit"
-            class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium shadow-lg shadow-emerald-500/25"
-          >
+          <Input name="name" placeholder="请输入姓名..." autofocus class="w-full text-lg py-3 mb-4" />
+          <Button type="submit" class="w-full py-3">
             查找
-          </button>
+          </Button>
         </form>
       </div>
     </PageWrapper>
@@ -134,7 +119,7 @@ export const PlayerSelectPage: FC<{ players: { id: number; name: string; team: s
               {players.map((p) => (
                 <a
                   href={`/my/${p.id}`}
-                  class="p-4 bg-slate-50 rounded-xl hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-colors"
+                  class="p-4 bg-slate-50 rounded-xl hover:bg-emerald-50 border border-transparent hover:border-emerald-200"
                 >
                   <div class="font-semibold text-slate-800">{p.name}</div>
                   <div class="text-sm text-slate-400">{p.team}</div>
