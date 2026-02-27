@@ -14,7 +14,8 @@ app.post('/api/import/players', async (c) => {
   const teamCache: Record<string, number> = {};
   let imported = 0;
 
-  for (let i = 1; i < rows.length; i++) { // Skip header
+  for (let i = 1; i < rows.length; i++) {
+    // Skip header
     const r = rows[i] as string[];
     if (!r || !r[2]) continue;
 
@@ -31,19 +32,27 @@ app.post('/api/import/players', async (c) => {
       if (teamCache[teamName]) {
         teamId = teamCache[teamName];
       } else {
-        const existing = await db.prepare('SELECT id FROM teams WHERE name = ? AND tournament_id = 1').bind(teamName).first();
+        const existing = await db
+          .prepare('SELECT id FROM teams WHERE name = ? AND tournament_id = 1')
+          .bind(teamName)
+          .first();
         if (existing) {
           teamId = existing.id as number;
         } else {
-          const res = await db.prepare('INSERT INTO teams (tournament_id, name, short_name) VALUES (1, ?, ?)').bind(teamName, shortName || teamName).run();
+          const res = await db
+            .prepare('INSERT INTO teams (tournament_id, name, short_name) VALUES (1, ?, ?)')
+            .bind(teamName, shortName || teamName)
+            .run();
           teamId = res.meta.last_row_id as number;
         }
         teamCache[teamName] = teamId;
       }
     }
 
-    await db.prepare('INSERT INTO players (tournament_id, team_id, name, gender, rating) VALUES (1, ?, ?, ?, ?)')
-      .bind(teamId, name, gender, seed ? parseInt(seed) : 1500).run();
+    await db
+      .prepare('INSERT INTO players (tournament_id, team_id, name, gender, rating) VALUES (1, ?, ?, ?, ?)')
+      .bind(teamId, name, gender, seed ? parseInt(seed) : 1500)
+      .run();
     imported++;
   }
 
@@ -67,8 +76,10 @@ app.post('/api/import/teams', async (c) => {
 
     if (!name) continue;
 
-    await db.prepare('INSERT INTO teams (tournament_id, name, short_name) VALUES (1, ?, ?)')
-      .bind(name, shortName).run();
+    await db
+      .prepare('INSERT INTO teams (tournament_id, name, short_name) VALUES (1, ?, ?)')
+      .bind(name, shortName)
+      .run();
     imported++;
   }
 
@@ -92,8 +103,7 @@ app.post('/api/import/referees', async (c) => {
 
     if (!name) continue;
 
-    await db.prepare('INSERT INTO referees (tournament_id, name, role) VALUES (1, ?, ?)')
-      .bind(name, role).run();
+    await db.prepare('INSERT INTO referees (tournament_id, name, role) VALUES (1, ?, ?)').bind(name, role).run();
     imported++;
   }
 
@@ -117,8 +127,7 @@ app.post('/api/import/leaders', async (c) => {
 
     if (!name) continue;
 
-    await db.prepare('INSERT INTO leaders (tournament_id, name, title) VALUES (1, ?, ?)')
-      .bind(name, title).run();
+    await db.prepare('INSERT INTO leaders (tournament_id, name, title) VALUES (1, ?, ?)').bind(name, title).run();
     imported++;
   }
 

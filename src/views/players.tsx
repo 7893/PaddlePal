@@ -18,13 +18,17 @@ export const PlayersPage: FC<{ members: Player[] }> = ({ members }) => (
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              {members.map(p => (
+              {members.map((p) => (
                 <tr class="hover:bg-slate-50 transition-colors">
                   <td class="py-3">
-                    <a href={`/player/${p.id}`} class="font-semibold text-slate-800 hover:text-emerald-600">{p.name}</a>
+                    <a href={`/player/${p.id}`} class="font-semibold text-slate-800 hover:text-emerald-600">
+                      {p.name}
+                    </a>
                   </td>
                   <td class="py-3">
-                    <span class={`px-2 py-1 rounded-lg text-xs font-medium ${p.gender === 'M' ? 'bg-blue-100 text-blue-700' : p.gender === 'W' ? 'bg-pink-100 text-pink-700' : 'bg-slate-100 text-slate-600'}`}>
+                    <span
+                      class={`px-2 py-1 rounded-lg text-xs font-medium ${p.gender === 'M' ? 'bg-blue-100 text-blue-700' : p.gender === 'W' ? 'bg-pink-100 text-pink-700' : 'bg-slate-100 text-slate-600'}`}
+                    >
                       {p.gender === 'M' ? '男' : p.gender === 'W' ? '女' : '混'}
                     </span>
                   </td>

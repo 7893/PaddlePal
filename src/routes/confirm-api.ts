@@ -20,10 +20,15 @@ app.post('/api/confirm/:matchId', async (c) => {
     return c.json({ error: '只能确认已完成的比赛' }, 400);
   }
 
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     UPDATE matches SET confirmed = 1, confirmed_by = ?, confirmed_at = datetime('now')
     WHERE id = ?
-  `).bind(user.name, matchId).run();
+  `
+    )
+    .bind(user.name, matchId)
+    .run();
 
   return c.json({ success: true });
 });
@@ -41,10 +46,15 @@ app.post('/api/confirm/batch', async (c) => {
   if (!matchIds?.length) return c.json({ error: '无效参数' }, 400);
 
   const placeholders = matchIds.map(() => '?').join(',');
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     UPDATE matches SET confirmed = 1, confirmed_by = ?, confirmed_at = datetime('now')
     WHERE id IN (${placeholders}) AND status = 'finished'
-  `).bind(user.name, ...matchIds).run();
+  `
+    )
+    .bind(user.name, ...matchIds)
+    .run();
 
   return c.json({ success: true, count: matchIds.length });
 });
@@ -59,8 +69,10 @@ app.post('/api/confirm/:matchId/revoke', async (c) => {
     return c.json({ error: '仅裁判长可撤销确认' }, 403);
   }
 
-  await db.prepare('UPDATE matches SET confirmed = 0, confirmed_by = NULL, confirmed_at = NULL WHERE id = ?')
-    .bind(matchId).run();
+  await db
+    .prepare('UPDATE matches SET confirmed = 0, confirmed_by = NULL, confirmed_at = NULL WHERE id = ?')
+    .bind(matchId)
+    .run();
 
   return c.json({ success: true });
 });
@@ -69,7 +81,9 @@ app.post('/api/confirm/:matchId/revoke', async (c) => {
 app.get('/api/confirm/pending', async (c) => {
   const db = c.env.DB;
 
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order, m.time, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       m.score1, m.score2, m.games
@@ -79,7 +93,9 @@ app.get('/api/confirm/pending', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status = 'finished' AND m.confirmed = 0
     ORDER BY m.time DESC
-  `).all();
+  `
+    )
+    .all();
 
   return c.json({ matches: results });
 });

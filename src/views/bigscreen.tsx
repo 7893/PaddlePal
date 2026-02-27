@@ -1,15 +1,20 @@
 import type { FC } from 'hono/jsx';
 
 type Match = {
-  table_no: number; p1: string; p2: string;
-  score1: number; score2: number; event: string; status: string;
+  table_no: number;
+  p1: string;
+  p2: string;
+  score1: number;
+  score2: number;
+  event: string;
+  status: string;
 };
 
 export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number }> = ({ title, matches, tables }) => {
   const byTable: Record<number, Match | null> = {};
   for (let i = 1; i <= tables; i++) byTable[i] = null;
   for (const m of matches) if (m.status === 'playing') byTable[m.table_no] = m;
-  const playing = matches.filter(m => m.status === 'playing').length;
+  const playing = matches.filter((m) => m.status === 'playing').length;
 
   return (
     <html>
@@ -17,8 +22,13 @@ export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>实时大屏 - {title}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-        <style dangerouslySetInnerHTML={{ __html: `
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
             background: linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #0f172a 100%); 
@@ -96,13 +106,15 @@ export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number
             0%, 100% { opacity: 1; } 
             50% { opacity: 0.7; } 
           }
-        `}} />
+        `,
+          }}
+        />
       </head>
       <body>
         <div class="bg-pattern"></div>
         <div class="glow-1"></div>
         <div class="glow-2"></div>
-        
+
         <div class="header">
           <div class="logo">
             <div class="logo-icon">🏓</div>
@@ -120,7 +132,7 @@ export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number
           </div>
           <div class="time" id="clock"></div>
         </div>
-        
+
         <div class="grid">
           {Array.from({ length: tables }, (_, i) => {
             const t = i + 1;
@@ -155,8 +167,10 @@ export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number
             );
           })}
         </div>
-        
-        <script dangerouslySetInnerHTML={{ __html: `
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           function updateClock() {
             document.getElementById('clock').textContent = new Date().toLocaleString('zh-CN', {
               year: 'numeric', month: '2-digit', day: '2-digit',
@@ -166,7 +180,9 @@ export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number
           updateClock();
           setInterval(updateClock, 1000);
           setInterval(function() { location.reload(); }, 15000);
-        `}} />
+        `,
+          }}
+        />
       </body>
     </html>
   );

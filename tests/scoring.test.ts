@@ -89,38 +89,63 @@ describe('countGamesWon', () => {
 
 describe('getMatchWinner', () => {
   it('should detect winner in best of 3', () => {
-    expect(getMatchWinner([
-      { left: 11, right: 9 },
-      { left: 11, right: 7 },
-    ], 3)).toBe('left');
+    expect(
+      getMatchWinner(
+        [
+          { left: 11, right: 9 },
+          { left: 11, right: 7 },
+        ],
+        3
+      )
+    ).toBe('left');
 
-    expect(getMatchWinner([
-      { left: 9, right: 11 },
-      { left: 7, right: 11 },
-    ], 3)).toBe('right');
+    expect(
+      getMatchWinner(
+        [
+          { left: 9, right: 11 },
+          { left: 7, right: 11 },
+        ],
+        3
+      )
+    ).toBe('right');
   });
 
   it('should detect winner in best of 5', () => {
-    expect(getMatchWinner([
-      { left: 11, right: 9 },
-      { left: 11, right: 7 },
-      { left: 11, right: 5 },
-    ], 5)).toBe('left');
+    expect(
+      getMatchWinner(
+        [
+          { left: 11, right: 9 },
+          { left: 11, right: 7 },
+          { left: 11, right: 5 },
+        ],
+        5
+      )
+    ).toBe('left');
 
-    expect(getMatchWinner([
-      { left: 11, right: 9 },
-      { left: 9, right: 11 },
-      { left: 11, right: 7 },
-      { left: 7, right: 11 },
-      { left: 5, right: 11 },
-    ], 5)).toBe('right');
+    expect(
+      getMatchWinner(
+        [
+          { left: 11, right: 9 },
+          { left: 9, right: 11 },
+          { left: 11, right: 7 },
+          { left: 7, right: 11 },
+          { left: 5, right: 11 },
+        ],
+        5
+      )
+    ).toBe('right');
   });
 
   it('should return null for incomplete match', () => {
-    expect(getMatchWinner([
-      { left: 11, right: 9 },
-      { left: 9, right: 11 },
-    ], 5)).toBeNull();
+    expect(
+      getMatchWinner(
+        [
+          { left: 11, right: 9 },
+          { left: 9, right: 11 },
+        ],
+        5
+      )
+    ).toBeNull();
   });
 });
 

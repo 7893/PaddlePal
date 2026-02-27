@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "PaddlePal (拍档) - Table Tennis Tournament Management System",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix",
+      "vitest related --run"
+    ]
+  },
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
@@ -10,10 +17,14 @@
     "db:init:local": "wrangler d1 execute paddlepal-db --local --file=sql/schema.sql",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250214.0",
@@ -21,7 +32,12 @@
     "@types/papaparse": "^5.5.2",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.56.0",
     "vitest": "^4.0.18",

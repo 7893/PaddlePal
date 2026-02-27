@@ -7,14 +7,14 @@ const app = new Hono<{ Bindings: Bindings }>();
 function bergerTable(n: number): number[][][] {
   const rounds: number[][][] = [];
   const players = Array.from({ length: n }, (_, i) => i + 1);
-  
+
   // 如果是奇数，添加轮空位
   if (n % 2 === 1) {
     players.push(0);
   }
   const count = players.length;
   const roundCount = count - 1;
-  
+
   for (let r = 0; r < roundCount; r++) {
     const matches: number[][] = [];
     for (let i = 0; i < count / 2; i++) {
@@ -37,10 +37,15 @@ app.get('/api/schedule/:eventKey', async (c) => {
   const eventKey = c.req.param('eventKey');
   const db = c.env.DB;
 
-  const event = await db.prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
+  const event = await db
+    .prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1')
+    .bind(eventKey)
+    .first();
   if (!event) return c.json({ error: 'Event not found' }, 404);
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order as pid, m.round, m.time, m.table_no,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2, m.status
     FROM matches m
@@ -48,7 +53,10 @@ app.get('/api/schedule/:eventKey', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.event_id = ?
     ORDER BY m.round, m.match_order
-  `).bind(event.id).all();
+  `
+    )
+    .bind(event.id)
+    .all();
 
   return c.json({ event: event.title, matches });
 });
@@ -67,7 +75,10 @@ app.post('/api/schedule/:eventKey/roundrobin', async (c) => {
   await db.prepare('DELETE FROM matches WHERE event_id = ?').bind(event.id).run();
 
   // 获取所有小组
-  const { results: groups } = await db.prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name').bind(event.id).all();
+  const { results: groups } = await db
+    .prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name')
+    .bind(event.id)
+    .all();
 
   let matchOrder = 1;
   const batch: any[] = [];
@@ -79,9 +90,14 @@ app.post('/api/schedule/:eventKey/roundrobin', async (c) => {
 
   for (const group of groups) {
     // 获取该组选手
-    const { results: players } = await db.prepare(`
+    const { results: players } = await db
+      .prepare(
+        `
       SELECT ge.player_id, ge.position FROM group_entries ge WHERE ge.group_id = ? ORDER BY ge.position
-    `).bind(group.id).all();
+    `
+      )
+      .bind(group.id)
+      .all();
 
     if (players.length < 2) continue;
 
@@ -90,11 +106,11 @@ app.post('/api/schedule/:eventKey/roundrobin', async (c) => {
 
     for (let roundIdx = 0; roundIdx < rounds.length; roundIdx++) {
       const roundMatches = rounds[roundIdx];
-      
+
       for (const [pos1, pos2] of roundMatches) {
-        const player1 = players.find(p => p.position === pos1);
-        const player2 = players.find(p => p.position === pos2);
-        
+        const player1 = players.find((p) => p.position === pos1);
+        const player2 = players.find((p) => p.position === pos2);
+
         if (!player1 || !player2) continue;
 
         const timeHour = Math.floor(currentMinutes / 60);
@@ -102,10 +118,14 @@ app.post('/api/schedule/:eventKey/roundrobin', async (c) => {
         const timeStr = `${timeHour.toString().padStart(2, '0')}:${timeMin.toString().padStart(2, '0')}`;
 
         batch.push(
-          db.prepare(`
+          db
+            .prepare(
+              `
             INSERT INTO matches (event_id, match_order, round, player1_id, player2_id, table_no, time, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'scheduled')
-          `).bind(event.id, matchOrder++, roundIdx + 1, player1.player_id, player2.player_id, currentTable, timeStr)
+          `
+            )
+            .bind(event.id, matchOrder++, roundIdx + 1, player1.player_id, player2.player_id, currentTable, timeStr)
         );
 
         // 下一个球台
@@ -129,7 +149,12 @@ app.post('/api/schedule/:eventKey/roundrobin', async (c) => {
 app.post('/api/schedule/:eventKey/knockout', async (c) => {
   const eventKey = c.req.param('eventKey');
   const db = c.env.DB;
-  const body = await c.req.json<{ playerCount: number; tableCount: number; startTime: string; minutesPerMatch: number }>();
+  const body = await c.req.json<{
+    playerCount: number;
+    tableCount: number;
+    startTime: string;
+    minutesPerMatch: number;
+  }>();
   const { playerCount = 8, tableCount = 4, startTime = '14:00', minutesPerMatch = 20 } = body;
 
   const event = await db.prepare('SELECT id FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
@@ -152,17 +177,21 @@ app.post('/api/schedule/:eventKey/knockout', async (c) => {
   // 生成每轮比赛
   for (let round = 1; round <= totalRounds; round++) {
     const matchesInRound = drawSize / Math.pow(2, round);
-    
+
     for (let i = 0; i < matchesInRound; i++) {
       const timeHour = Math.floor(currentMinutes / 60);
       const timeMin = currentMinutes % 60;
       const timeStr = `${timeHour.toString().padStart(2, '0')}:${timeMin.toString().padStart(2, '0')}`;
 
       batch.push(
-        db.prepare(`
+        db
+          .prepare(
+            `
           INSERT INTO matches (event_id, match_order, round, table_no, time, status)
           VALUES (?, ?, ?, ?, ?, 'scheduled')
-        `).bind(event.id, matchOrder++, round, currentTable, timeStr)
+        `
+          )
+          .bind(event.id, matchOrder++, round, currentTable, timeStr)
       );
 
       currentTable++;
@@ -202,7 +231,10 @@ app.post('/api/schedule/:eventKey/adjust', async (c) => {
   if (updates.length === 0) return c.json({ error: 'No updates' }, 400);
 
   params.push(body.matchId);
-  await db.prepare(`UPDATE matches SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run();
+  await db
+    .prepare(`UPDATE matches SET ${updates.join(', ')} WHERE id = ?`)
+    .bind(...params)
+    .run();
 
   return c.json({ success: true });
 });

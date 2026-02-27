@@ -34,7 +34,9 @@ app.post('/api/control/reassign', async (c) => {
 app.get('/api/control/status', async (c) => {
   const db = c.env.DB;
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.table_no, m.time, m.status,
       COALESCE(p1.name,'TBD') as p1, COALESCE(p2.name,'TBD') as p2,
       COALESCE(m.score1,0) as score1, COALESCE(m.score2,0) as score2,
@@ -45,7 +47,9 @@ app.get('/api/control/status', async (c) => {
     LEFT JOIN events e ON m.event_id = e.id
     WHERE m.status IN ('scheduled', 'playing')
     ORDER BY m.time, m.table_no
-  `).all();
+  `
+    )
+    .all();
 
   return c.json({ matches });
 });

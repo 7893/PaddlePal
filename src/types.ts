@@ -167,13 +167,34 @@ export type ResultEvent = {
 export type AdminTeam = { id: number; name: string; short_name: string; count: number };
 export type AdminPlayer = { id: number; name: string; gender: string; rating: number; team: string };
 export type AdminEvent = { id: number; title: string; type: string; stage: string; groups: number; best_of: number };
-export type AdminMatch = { pid: number; time: string; status: string; result: string; table: number; player1: string; player2: string; event: string };
+export type AdminMatch = {
+  pid: number;
+  time: string;
+  status: string;
+  result: string;
+  table: number;
+  player1: string;
+  player2: string;
+  event: string;
+};
 
 // Score page types
 export type ScoreInfo = {
-  id: number; pid: number; table_no: number; time: string; status: string; result: string;
-  seat1: number; seat2: number; p1: string; p2: string; t1: string; t2: string;
-  title: string; best_of: number; scores: { l: number; r: number }[];
+  id: number;
+  pid: number;
+  table_no: number;
+  time: string;
+  status: string;
+  result: string;
+  seat1: number;
+  seat2: number;
+  p1: string;
+  p2: string;
+  t1: string;
+  t2: string;
+  title: string;
+  best_of: number;
+  scores: { l: number; r: number }[];
 };
 
 // Draw page types
@@ -182,21 +203,55 @@ export type DrawPlayer = { id: number; name: string; team: string };
 export type DrawEventInfo = { id: number; title: string; stage: string };
 
 // Search result type
-export type SearchMatch = { pid: number; time: string; table_no: number; status: string; result: string; player1: string; player2: string; event: string };
+export type SearchMatch = {
+  pid: number;
+  time: string;
+  table_no: number;
+  status: string;
+  result: string;
+  player1: string;
+  player2: string;
+  event: string;
+};
 
 // Bracket types
-export type BracketMatch = { id: number; round: number; position: number; status: string; result: string; winner: number; p1: string; p2: string; pid?: number };
+export type BracketMatch = {
+  id: number;
+  round: number;
+  position: number;
+  status: string;
+  result: string;
+  winner: number;
+  p1: string;
+  p2: string;
+  pid?: number;
+};
 
 // Team match types
 export type TeamMatchInfo = {
-  id: number; match_order: number; time: string; table_no: number; status: string; result: string;
-  team1: string; team2: string; event: string;
+  id: number;
+  match_order: number;
+  time: string;
+  table_no: number;
+  status: string;
+  result: string;
+  team1: string;
+  team2: string;
+  event: string;
   rubbers: { pid: number; p1: string; p2: string; result: string; status: string }[];
 };
 
 // Big screen types
 export type ScreenMatch = { tb: number; gp: string; nl: string; nr: string; tnl: string; tnr: string; score?: string };
-export type ScreenResult = { round: number; order: number; tb: number; result: string; winner: number; p1: string; p2: string };
+export type ScreenResult = {
+  round: number;
+  order: number;
+  tb: number;
+  result: string;
+  winner: number;
+  p1: string;
+  p2: string;
+};
 export type ScreenSchedule = { time: string; tb: number; event: string; status: string; p1: string; p2: string };
 
 // Ranking/Extra types
@@ -205,5 +260,13 @@ export type NoticeItem = { title: string; content: string; created_at: string };
 export type ProgressEvent = { key: string; title: string; total: number; finished: number };
 
 // Flags types
-export type FlagMatch = { tb: number; event: string; score: string; p1: string; p2: string; flag1: string | null; flag2: string | null };
+export type FlagMatch = {
+  tb: number;
+  event: string;
+  score: string;
+  p1: string;
+  p2: string;
+  flag1: string | null;
+  flag2: string | null;
+};
 export type FlagTeam = { id: number; name: string; flag: string | null };

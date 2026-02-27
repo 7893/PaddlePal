@@ -23,14 +23,18 @@ export const TeamRankingPage: FC<{ teams: Team[] }> = ({ teams }) => (
               </thead>
               <tbody class="divide-y divide-slate-100">
                 {teams.map((t, i) => {
-                  const rate = t.played > 0 ? Math.round(t.wins / t.played * 100) : 0;
+                  const rate = t.played > 0 ? Math.round((t.wins / t.played) * 100) : 0;
                   return (
                     <tr class="hover:bg-slate-50 transition-colors">
                       <td class="py-4">
                         {i < 3 ? (
-                          <span class={`w-8 h-8 rounded-full inline-flex items-center justify-center text-white text-sm font-bold ${
-                            i === 0 ? 'bg-amber-400' : i === 1 ? 'bg-slate-400' : 'bg-amber-600'
-                          }`}>{i + 1}</span>
+                          <span
+                            class={`w-8 h-8 rounded-full inline-flex items-center justify-center text-white text-sm font-bold ${
+                              i === 0 ? 'bg-amber-400' : i === 1 ? 'bg-slate-400' : 'bg-amber-600'
+                            }`}
+                          >
+                            {i + 1}
+                          </span>
                         ) : (
                           <span class="text-slate-400 pl-2">{i + 1}</span>
                         )}
@@ -42,7 +46,10 @@ export const TeamRankingPage: FC<{ teams: Team[] }> = ({ teams }) => (
                       <td class="py-4">
                         <div class="flex items-center justify-center gap-3">
                           <div class="w-24 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full" style={`width:${rate}%`}></div>
+                            <div
+                              class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full"
+                              style={`width:${rate}%`}
+                            ></div>
                           </div>
                           <span class="text-sm text-slate-500 w-12">{rate}%</span>
                         </div>

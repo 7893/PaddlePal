@@ -49,7 +49,7 @@ describe('Type definitions', () => {
 
   it('should define Match with all status options', () => {
     const statuses: Match['status'][] = ['pending', 'checkin', 'playing', 'finished'];
-    statuses.forEach(status => {
+    statuses.forEach((status) => {
       const match: Partial<Match> = { status };
       expect(['pending', 'checkin', 'playing', 'finished']).toContain(match.status);
     });

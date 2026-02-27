@@ -57,7 +57,7 @@ const ALLOWED_ORIGINS = [
 export const corsMiddleware = async (c: Context, next: Next) => {
   const origin = c.req.header('Origin') || '';
   const isAllowed = ALLOWED_ORIGINS.includes(origin) || origin.endsWith('.workers.dev');
-  
+
   if (c.req.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
@@ -68,9 +68,9 @@ export const corsMiddleware = async (c: Context, next: Next) => {
       },
     });
   }
-  
+
   await next();
-  
+
   c.res.headers.set('Access-Control-Allow-Origin', isAllowed ? origin : ALLOWED_ORIGINS[0]);
 };
 
@@ -82,40 +82,43 @@ const RATE_WINDOW = 60 * 1000; // 1 minute
 export const rateLimiter = async (c: Context, next: Next) => {
   const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
   const now = Date.now();
-  
+
   let record = rateLimitMap.get(ip);
   if (!record || now > record.resetAt) {
     record = { count: 0, resetAt: now + RATE_WINDOW };
     rateLimitMap.set(ip, record);
   }
-  
+
   record.count++;
-  
+
   c.res.headers.set('X-RateLimit-Limit', String(RATE_LIMIT));
   c.res.headers.set('X-RateLimit-Remaining', String(Math.max(0, RATE_LIMIT - record.count)));
-  
+
   if (record.count > RATE_LIMIT) {
     throw Errors.tooManyRequests();
   }
-  
+
   await next();
 };
 
 // Security headers middleware (CSP)
 export const securityHeaders = async (c: Context, next: Next) => {
   await next();
-  
+
   // Content Security Policy
-  c.res.headers.set('Content-Security-Policy', [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.sheetjs.com https://fonts.googleapis.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob:",
-    "connect-src 'self'",
-    "frame-ancestors 'none'",
-  ].join('; '));
-  
+  c.res.headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.sheetjs.com https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob:",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
+    ].join('; ')
+  );
+
   // Other security headers
   c.res.headers.set('X-Content-Type-Options', 'nosniff');
   c.res.headers.set('X-Frame-Options', 'DENY');
@@ -129,7 +132,7 @@ export const validate = {
     if (isNaN(num) || num < 1) throw Errors.badRequest('Invalid ID');
     return num;
   },
-  
+
   string: (val: unknown, field: string, maxLen = 255): string => {
     if (typeof val !== 'string' || !val.trim()) {
       throw Errors.badRequest(`${field} is required`);
@@ -139,14 +142,14 @@ export const validate = {
     }
     return val.trim();
   },
-  
+
   optional: (val: unknown, maxLen = 255): string | null => {
     if (val === null || val === undefined || val === '') return null;
     if (typeof val !== 'string') throw Errors.badRequest('Invalid value');
     if (val.length > maxLen) throw Errors.badRequest('Value too long');
     return val.trim();
   },
-  
+
   email: (val: unknown): string => {
     const str = validate.string(val, 'Email');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)) {
@@ -154,7 +157,7 @@ export const validate = {
     }
     return str;
   },
-  
+
   enum: <T extends string>(val: unknown, allowed: T[], field: string): T => {
     if (!allowed.includes(val as T)) {
       throw Errors.badRequest(`${field} must be one of: ${allowed.join(', ')}`);

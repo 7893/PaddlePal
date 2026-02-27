@@ -1,7 +1,16 @@
 import type { FC } from 'hono/jsx';
 import { Layout, Nav, Badge, Card, PageWrapper, Footer } from '../components/layout';
 
-type Match = { pid: number; time: string; table_no: number; status: string; result: string; player1: string; player2: string; event: string };
+type Match = {
+  pid: number;
+  time: string;
+  table_no: number;
+  status: string;
+  result: string;
+  player1: string;
+  player2: string;
+  event: string;
+};
 
 export const SearchPage: FC<{ q: string; matches: Match[] }> = ({ q, matches }) => (
   <Layout title="查询">
@@ -9,8 +18,19 @@ export const SearchPage: FC<{ q: string; matches: Match[] }> = ({ q, matches }) 
     <PageWrapper>
       <div class="max-w-4xl mx-auto">
         <form method="get" action="/search" class="flex gap-3 mb-8">
-          <input name="q" value={q} placeholder="输入选手姓名..." class="flex-1 border border-slate-200 rounded-xl px-5 py-3 text-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" autofocus />
-          <button type="submit" class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25">搜索</button>
+          <input
+            name="q"
+            value={q}
+            placeholder="输入选手姓名..."
+            class="flex-1 border border-slate-200 rounded-xl px-5 py-3 text-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            autofocus
+          />
+          <button
+            type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25"
+          >
+            搜索
+          </button>
         </form>
 
         {q && <div class="text-slate-500 mb-4">找到 {matches.length} 场比赛</div>}
@@ -31,9 +51,13 @@ export const SearchPage: FC<{ q: string; matches: Match[] }> = ({ q, matches }) 
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                  {matches.map(m => (
+                  {matches.map((m) => (
                     <tr class="hover:bg-slate-50 transition-colors">
-                      <td class="py-3"><a href={`/score/${m.pid}`} class="text-emerald-600 hover:text-emerald-700 font-medium">{m.pid}</a></td>
+                      <td class="py-3">
+                        <a href={`/score/${m.pid}`} class="text-emerald-600 hover:text-emerald-700 font-medium">
+                          {m.pid}
+                        </a>
+                      </td>
                       <td class="py-3">
                         <span class="font-semibold text-slate-800">{m.player1}</span>
                         <span class="text-slate-400 mx-2">vs</span>
@@ -41,7 +65,9 @@ export const SearchPage: FC<{ q: string; matches: Match[] }> = ({ q, matches }) 
                       </td>
                       <td class="py-3 text-slate-500">{m.event}</td>
                       <td class="py-3 text-slate-600 font-medium">{m.time}</td>
-                      <td class="py-3"><span class="px-2 py-1 bg-slate-100 rounded-lg text-slate-600">{m.table_no}号</span></td>
+                      <td class="py-3">
+                        <span class="px-2 py-1 bg-slate-100 rounded-lg text-slate-600">{m.table_no}号</span>
+                      </td>
                       <td class="py-3 font-mono font-medium">{m.result || '-'}</td>
                       <td class="py-3">
                         <Badge color={m.status === 'finished' ? 'green' : m.status === 'playing' ? 'red' : 'gray'}>

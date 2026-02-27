@@ -4,11 +4,24 @@ import { Layout, Nav, Card, Badge, PageWrapper, Footer } from '../components/lay
 type Team = { id: number; name: string; short_name: string; count: number };
 type Player = { id: number; name: string; gender: string; team: string; team_id: number };
 type Event = { id: number; title: string; type: string; stage: string; groups: number; best_of: number };
-type Match = { pid: number; time: string; status: string; result: string; player1: string; player2: string; event: string; table: number };
+type Match = {
+  pid: number;
+  time: string;
+  status: string;
+  result: string;
+  player1: string;
+  player2: string;
+  event: string;
+  table: number;
+};
 
 export const AdminPage: FC<{
-  info: string; venue: string; teams: Team[]; players: Player[];
-  events: Event[]; matches: Match[];
+  info: string;
+  venue: string;
+  teams: Team[];
+  players: Player[];
+  events: Event[];
+  matches: Match[];
 }> = ({ info: _info, venue: _venue, teams, players, events, matches }) => (
   <Layout title="管理后台">
     <Nav current="/admin" title="管理后台" />
@@ -50,8 +63,11 @@ export const AdminPage: FC<{
             { href: '/admin/settings', icon: '⚙️', label: '系统设置', color: 'gray' },
             { href: '/api/backup', icon: '💾', label: '数据备份', color: 'cyan' },
             { href: '/batch-score', icon: '⚡', label: '批量录入', color: 'teal' },
-          ].map(item => (
-            <a href={item.href} class="flex flex-col items-center gap-2 p-5 bg-white border border-slate-200 rounded-2xl hover:shadow-lg hover:border-slate-300 transition-all group">
+          ].map((item) => (
+            <a
+              href={item.href}
+              class="flex flex-col items-center gap-2 p-5 bg-white border border-slate-200 rounded-2xl hover:shadow-lg hover:border-slate-300 transition-all group"
+            >
               <span class="text-3xl group-hover:scale-110 transition-transform">{item.icon}</span>
               <span class="text-sm font-medium text-slate-700">{item.label}</span>
             </a>
@@ -63,11 +79,39 @@ export const AdminPage: FC<{
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-slate-800 mb-4">导出文档</h2>
         <div class="flex flex-wrap gap-3">
-          <a href="/api/export/program" target="_blank" class="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors">📕 秩序册</a>
-          <a href="/api/export/results-book" target="_blank" class="px-5 py-2.5 bg-green-50 text-green-600 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors">📗 成绩册</a>
-          <a href="/api/export/scoresheets" target="_blank" class="px-5 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors">📝 记录表</a>
-          <a href="/api/export/csv/players" class="px-5 py-2.5 bg-amber-50 text-amber-600 rounded-xl text-sm font-medium hover:bg-amber-100 transition-colors">📥 选手CSV</a>
-          <a href="/api/export/csv/results" class="px-5 py-2.5 bg-purple-50 text-purple-600 rounded-xl text-sm font-medium hover:bg-purple-100 transition-colors">📥 成绩CSV</a>
+          <a
+            href="/api/export/program"
+            target="_blank"
+            class="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors"
+          >
+            📕 秩序册
+          </a>
+          <a
+            href="/api/export/results-book"
+            target="_blank"
+            class="px-5 py-2.5 bg-green-50 text-green-600 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors"
+          >
+            📗 成绩册
+          </a>
+          <a
+            href="/api/export/scoresheets"
+            target="_blank"
+            class="px-5 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors"
+          >
+            📝 记录表
+          </a>
+          <a
+            href="/api/export/csv/players"
+            class="px-5 py-2.5 bg-amber-50 text-amber-600 rounded-xl text-sm font-medium hover:bg-amber-100 transition-colors"
+          >
+            📥 选手CSV
+          </a>
+          <a
+            href="/api/export/csv/results"
+            class="px-5 py-2.5 bg-purple-50 text-purple-600 rounded-xl text-sm font-medium hover:bg-purple-100 transition-colors"
+          >
+            📥 成绩CSV
+          </a>
         </div>
       </div>
 
@@ -75,11 +119,13 @@ export const AdminPage: FC<{
         {/* Events */}
         <Card title="📋 赛事项目">
           <div class="space-y-3">
-            {events.map(e => (
+            {events.map((e) => (
               <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
                 <div>
                   <div class="font-semibold text-slate-800">{e.title}</div>
-                  <div class="text-sm text-slate-500">{e.type} · {e.best_of}局{Math.ceil(e.best_of / 2)}胜</div>
+                  <div class="text-sm text-slate-500">
+                    {e.type} · {e.best_of}局{Math.ceil(e.best_of / 2)}胜
+                  </div>
                 </div>
                 <Badge color={e.stage === 'loop' ? 'blue' : 'yellow'}>{e.stage === 'loop' ? '循环赛' : '淘汰赛'}</Badge>
               </div>
@@ -91,7 +137,7 @@ export const AdminPage: FC<{
         {/* Teams */}
         <Card title="👥 参赛队伍">
           <div class="grid grid-cols-2 gap-3">
-            {teams.map(t => (
+            {teams.map((t) => (
               <div class="p-4 bg-slate-50 rounded-xl">
                 <div class="font-semibold text-slate-800">{t.name}</div>
                 <div class="text-sm text-slate-500">{t.count} 名选手</div>
@@ -115,7 +161,7 @@ export const AdminPage: FC<{
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              {matches.slice(0, 15).map(m => (
+              {matches.slice(0, 15).map((m) => (
                 <tr class="hover:bg-slate-50 transition-colors">
                   <td class="py-3 text-slate-400 font-mono">{m.pid}</td>
                   <td class="py-3">

@@ -2,9 +2,15 @@ import type { FC } from 'hono/jsx';
 import { Layout, Nav, Footer } from '../components/layout';
 
 type Match = {
-  id: number; table_no: number; time: string;
-  p1: string; p2: string; score1: number; score2: number;
-  status: string; event_title: string;
+  id: number;
+  table_no: number;
+  time: string;
+  p1: string;
+  p2: string;
+  score1: number;
+  score2: number;
+  status: string;
+  event_title: string;
 };
 
 export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tables, matches }) => {
@@ -12,8 +18,8 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
   for (let i = 1; i <= tables; i++) byTable[i] = [];
   for (const m of matches) if (byTable[m.table_no]) byTable[m.table_no].push(m);
 
-  const playing = matches.filter(m => m.status === 'playing').length;
-  const scheduled = matches.filter(m => m.status === 'scheduled').length;
+  const playing = matches.filter((m) => m.status === 'playing').length;
+  const scheduled = matches.filter((m) => m.status === 'scheduled').length;
 
   return (
     <Layout title="控场面板">
@@ -38,8 +44,15 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-lg font-semibold text-slate-800">球台状态</h2>
           <div class="flex items-center gap-4">
-            <span class="text-sm text-slate-400" id="lastUpdate">--</span>
-            <button onclick="refresh()" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25">刷新</button>
+            <span class="text-sm text-slate-400" id="lastUpdate">
+              --
+            </span>
+            <button
+              onclick="refresh()"
+              class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25"
+            >
+              刷新
+            </button>
           </div>
         </div>
 
@@ -48,11 +61,14 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
           {Array.from({ length: tables }, (_, i) => {
             const tableNo = i + 1;
             const tableMatches = byTable[tableNo] || [];
-            const current = tableMatches.find(m => m.status === 'playing');
-            const next = tableMatches.find(m => m.status === 'scheduled');
+            const current = tableMatches.find((m) => m.status === 'playing');
+            const next = tableMatches.find((m) => m.status === 'scheduled');
 
             return (
-              <div class={`rounded-2xl border-2 p-5 transition-all ${current ? 'border-red-400 bg-gradient-to-br from-red-50 to-rose-50 shadow-lg' : 'border-slate-200 bg-white hover:shadow-md'}`} data-table={tableNo}>
+              <div
+                class={`rounded-2xl border-2 p-5 transition-all ${current ? 'border-red-400 bg-gradient-to-br from-red-50 to-rose-50 shadow-lg' : 'border-slate-200 bg-white hover:shadow-md'}`}
+                data-table={tableNo}
+              >
                 <div class="flex items-center justify-between mb-4">
                   <span class="text-xl font-bold text-slate-700">{tableNo}号台</span>
                   {current ? (
@@ -77,8 +93,18 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
                       <span class="text-2xl font-bold text-red-600 ml-2">{current.score2}</span>
                     </div>
                     <div class="pt-2 flex gap-2">
-                      <a href={`/score/${current.id}`} class="flex-1 text-center py-2 text-sm bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400">录入</a>
-                      <button onclick={`reassign(${current.id})`} class="flex-1 py-2 text-sm border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50">换台</button>
+                      <a
+                        href={`/score/${current.id}`}
+                        class="flex-1 text-center py-2 text-sm bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400"
+                      >
+                        录入
+                      </a>
+                      <button
+                        onclick={`reassign(${current.id})`}
+                        class="flex-1 py-2 text-sm border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50"
+                      >
+                        换台
+                      </button>
                     </div>
                   </div>
                 ) : next ? (
@@ -86,7 +112,12 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
                     <div class="text-xs text-slate-500">下一场 {next.time}</div>
                     <div class="text-sm text-slate-700 truncate font-medium">{next.p1}</div>
                     <div class="text-sm text-slate-700 truncate">vs {next.p2}</div>
-                    <button onclick={`startMatch(${next.id})`} class="w-full mt-2 py-2 text-sm bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600">开始比赛</button>
+                    <button
+                      onclick={`startMatch(${next.id})`}
+                      class="w-full mt-2 py-2 text-sm bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600"
+                    >
+                      开始比赛
+                    </button>
                   </div>
                 ) : (
                   <div class="text-center py-6 text-slate-400">
@@ -103,14 +134,19 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
         <div class="mt-8 bg-white rounded-2xl border border-slate-200 p-6">
           <h3 class="font-semibold text-slate-800 mb-4">📋 待比赛队列</h3>
           <div class="space-y-2 max-h-64 overflow-y-auto" id="queue">
-            {matches.filter(m => m.status === 'scheduled').slice(0, 10).map(m => (
-              <div class="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl text-sm">
-                <span class="text-slate-500 font-medium">{m.time}</span>
-                <span class="text-slate-700 font-medium">{m.p1} <span class="text-slate-400">vs</span> {m.p2}</span>
-                <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-xs">{m.table_no}号台</span>
-              </div>
-            ))}
-            {matches.filter(m => m.status === 'scheduled').length === 0 && (
+            {matches
+              .filter((m) => m.status === 'scheduled')
+              .slice(0, 10)
+              .map((m) => (
+                <div class="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl text-sm">
+                  <span class="text-slate-500 font-medium">{m.time}</span>
+                  <span class="text-slate-700 font-medium">
+                    {m.p1} <span class="text-slate-400">vs</span> {m.p2}
+                  </span>
+                  <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-xs">{m.table_no}号台</span>
+                </div>
+              ))}
+            {matches.filter((m) => m.status === 'scheduled').length === 0 && (
               <div class="text-center py-8 text-slate-400">暂无待比赛</div>
             )}
           </div>
@@ -118,7 +154,9 @@ export const ControlPanelPage: FC<{ tables: number; matches: Match[] }> = ({ tab
       </div>
       <Footer />
 
-      <script dangerouslySetInnerHTML={{ __html: `
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
 function refresh() { location.reload(); }
 function startMatch(matchId) {
   fetch('/api/control/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matchId: matchId }) })
@@ -132,7 +170,9 @@ function reassign(matchId) {
 }
 document.getElementById('lastUpdate').textContent = '更新: ' + new Date().toLocaleTimeString();
 setInterval(refresh, 30000);
-`}} />
+`,
+        }}
+      />
     </Layout>
   );
 };

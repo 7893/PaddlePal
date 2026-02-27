@@ -33,21 +33,32 @@ export const FlagUploadPage: FC<{ teams: { id: number; name: string; flag?: stri
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                  {teams.map(t => (
+                  {teams.map((t) => (
                     <tr class="hover:bg-slate-50 transition-colors">
                       <td class="py-3">
                         {t.flag ? (
                           <img src={t.flag} alt="" class="w-16 h-10 object-contain rounded-lg bg-slate-100" />
                         ) : (
-                          <div class="w-16 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-xs">无</div>
+                          <div class="w-16 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
+                            无
+                          </div>
                         )}
                       </td>
                       <td class="py-3 font-semibold text-slate-800">{t.name}</td>
                       <td class="py-3">
                         <form class="upload-form flex items-center gap-2" data-team-id={t.id}>
-                          <input type="file" name="flag" accept="image/png,image/jpeg" 
-                            class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 file:cursor-pointer file:transition-colors" />
-                          <button type="submit" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-medium transition-colors">上传</button>
+                          <input
+                            type="file"
+                            name="flag"
+                            accept="image/png,image/jpeg"
+                            class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 file:cursor-pointer file:transition-colors"
+                          />
+                          <button
+                            type="submit"
+                            class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-medium transition-colors"
+                          >
+                            上传
+                          </button>
                         </form>
                       </td>
                     </tr>
@@ -66,7 +77,9 @@ export const FlagUploadPage: FC<{ teams: { id: number; name: string; flag?: stri
     </PageWrapper>
     <Footer />
 
-    <script dangerouslySetInnerHTML={{ __html: `
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
       document.querySelectorAll('.upload-form').forEach(form => {
         form.onsubmit = async (e) => {
           e.preventDefault();
@@ -78,9 +91,10 @@ export const FlagUploadPage: FC<{ teams: { id: number; name: string; flag?: stri
           if (res.ok) { alert('上传成功'); location.reload(); } else { alert('上传失败'); }
         };
       });
-    `}} />
+    `,
+      }}
+    />
   </Layout>
 );
-
 
 export const BigScreenFlags: FC = () => <div>Flags</div>;

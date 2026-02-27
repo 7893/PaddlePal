@@ -17,22 +17,34 @@ export const ExportPage: FC<ExportOptions> = ({ events, tournament }) => (
 
       {/* Quick exports */}
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <button onclick="exportAll('players')" class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center">
+        <button
+          onclick="exportAll('players')"
+          class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center"
+        >
           <div class="text-2xl mb-2">👥</div>
           <div class="text-sm font-medium text-gray-700">选手名单</div>
           <div class="text-xs text-gray-400">CSV</div>
         </button>
-        <button onclick="exportAll('results')" class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center">
+        <button
+          onclick="exportAll('results')"
+          class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center"
+        >
           <div class="text-2xl mb-2">🏆</div>
           <div class="text-sm font-medium text-gray-700">全部成绩</div>
           <div class="text-xs text-gray-400">CSV</div>
         </button>
-        <button onclick="exportAll('schedule')" class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center">
+        <button
+          onclick="exportAll('schedule')"
+          class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center"
+        >
           <div class="text-2xl mb-2">📅</div>
           <div class="text-sm font-medium text-gray-700">赛程表</div>
           <div class="text-xs text-gray-400">CSV</div>
         </button>
-        <button onclick="exportAll('ratings')" class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center">
+        <button
+          onclick="exportAll('ratings')"
+          class="p-4 bg-white rounded-xl border border-gray-200 hover:border-pp-300 hover:shadow-md transition text-center"
+        >
           <div class="text-2xl mb-2">📊</div>
           <div class="text-sm font-medium text-gray-700">积分变动</div>
           <div class="text-xs text-gray-400">CSV</div>
@@ -44,9 +56,14 @@ export const ExportPage: FC<ExportOptions> = ({ events, tournament }) => (
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">选择项目</label>
-            <select id="eventSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pp-500 focus:border-pp-500">
+            <select
+              id="eventSelect"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pp-500 focus:border-pp-500"
+            >
               <option value="">全部项目</option>
-              {events.map(e => <option value={e.key}>{e.title}</option>)}
+              {events.map((e) => (
+                <option value={e.key}>{e.title}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -83,10 +100,16 @@ export const ExportPage: FC<ExportOptions> = ({ events, tournament }) => (
             </div>
           </div>
           <div class="flex gap-3">
-            <button onclick="generateScoreSheet()" class="flex-1 py-2.5 bg-pp-600 text-white rounded-lg font-medium hover:bg-pp-700 transition">
+            <button
+              onclick="generateScoreSheet()"
+              class="flex-1 py-2.5 bg-pp-600 text-white rounded-lg font-medium hover:bg-pp-700 transition"
+            >
               生成记分单 (Excel)
             </button>
-            <button onclick="printScoreSheet()" class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+            <button
+              onclick="printScoreSheet()"
+              class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition"
+            >
               🖨️ 打印
             </button>
           </div>
@@ -99,11 +122,21 @@ export const ExportPage: FC<ExportOptions> = ({ events, tournament }) => (
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">赛事名称</label>
-              <input type="text" id="progName" value={tournament.name} class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <input
+                type="text"
+                id="progName"
+                value={tournament.name}
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">比赛地点</label>
-              <input type="text" id="progVenue" value={tournament.venue} class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <input
+                type="text"
+                id="progVenue"
+                value={tournament.venue}
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
             </div>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -120,14 +153,19 @@ export const ExportPage: FC<ExportOptions> = ({ events, tournament }) => (
               <input type="checkbox" class="text-pp-600" id="incRules" /> 竞赛规程
             </label>
           </div>
-          <button onclick="generateProgram()" class="w-full py-2.5 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-800 transition">
+          <button
+            onclick="generateProgram()"
+            class="w-full py-2.5 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-800 transition"
+          >
             生成秩序册 (PDF)
           </button>
         </div>
       </Card>
     </div>
 
-    <script dangerouslySetInnerHTML={{ __html: `
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
 function exportAll(type) {
   window.location.href = '/api/export/' + type + '?format=csv';
 }
@@ -155,20 +193,34 @@ function generateProgram() {
   });
   window.location.href = '/api/export/program?' + params.toString();
 }
-`}} />
+`,
+      }}
+    />
   </Layout>
 );
 
 // Printable score sheet component
 export const ScoreSheetPrint: FC<{
-  matches: { pid: number; p1: string; p2: string; t1: string; t2: string; event: string; table: number; time: string; bestOf: number }[];
+  matches: {
+    pid: number;
+    p1: string;
+    p2: string;
+    t1: string;
+    t2: string;
+    event: string;
+    table: number;
+    time: string;
+    bestOf: number;
+  }[];
   tournament: { name: string; venue: string; date: string };
 }> = ({ matches, tournament }) => (
   <html>
     <head>
       <meta charset="utf-8" />
       <title>记分单 - {tournament.name}</title>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @page { size: A4; margin: 10mm; }
         @media print { .no-print { display: none; } .page-break { page-break-after: always; } }
         body { font-family: 'SimSun', serif; font-size: 12pt; }
@@ -188,18 +240,26 @@ export const ScoreSheetPrint: FC<{
         .result-box { display: inline-block; border: 2px solid #000; padding: 10px 30px; font-size: 18pt; font-weight: bold; }
         .signature { display: flex; justify-content: space-between; margin-top: 30px; font-size: 10pt; }
         .sig-line { border-top: 1px solid #000; width: 100px; display: inline-block; }
-      `}} />
+      `,
+        }}
+      />
     </head>
     <body>
       <div class="no-print" style="padding:10px;background:#f0f0f0;margin-bottom:20px;">
-        <button onclick="window.print()" style="padding:10px 20px;font-size:14pt;">🖨️ 打印</button>
-        <button onclick="window.close()" style="padding:10px 20px;font-size:14pt;margin-left:10px;">关闭</button>
+        <button onclick="window.print()" style="padding:10px 20px;font-size:14pt;">
+          🖨️ 打印
+        </button>
+        <button onclick="window.close()" style="padding:10px 20px;font-size:14pt;margin-left:10px;">
+          关闭
+        </button>
       </div>
       {matches.map((m, i) => (
         <div class={`sheet ${i < matches.length - 1 ? 'page-break' : ''}`}>
           <div class="header">
             <div class="title">{tournament.name}</div>
-            <div style="font-size:10pt;margin-top:5px;">{tournament.venue} · {tournament.date}</div>
+            <div style="font-size:10pt;margin-top:5px;">
+              {tournament.venue} · {tournament.date}
+            </div>
           </div>
           <div class="info">
             <span>场次: #{m.pid}</span>
@@ -223,19 +283,25 @@ export const ScoreSheetPrint: FC<{
               <thead>
                 <tr>
                   <th style="width:60px;">局</th>
-                  {Array.from({ length: m.bestOf }, (_, j) => <th>第{j + 1}局</th>)}
+                  {Array.from({ length: m.bestOf }, (_, j) => (
+                    <th>第{j + 1}局</th>
+                  ))}
                   <th style="width:80px;">局分</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>{m.p1}</td>
-                  {Array.from({ length: m.bestOf }, () => <td style="height:40px;"></td>)}
+                  {Array.from({ length: m.bestOf }, () => (
+                    <td style="height:40px;"></td>
+                  ))}
                   <td></td>
                 </tr>
                 <tr>
                   <td>{m.p2}</td>
-                  {Array.from({ length: m.bestOf }, () => <td style="height:40px;"></td>)}
+                  {Array.from({ length: m.bestOf }, () => (
+                    <td style="height:40px;"></td>
+                  ))}
                   <td></td>
                 </tr>
               </tbody>
@@ -245,8 +311,12 @@ export const ScoreSheetPrint: FC<{
             <div class="result-box">______ : ______</div>
           </div>
           <div class="signature">
-            <div>裁判员签名: <span class="sig-line"></span></div>
-            <div>选手签名: <span class="sig-line"></span> / <span class="sig-line"></span></div>
+            <div>
+              裁判员签名: <span class="sig-line"></span>
+            </div>
+            <div>
+              选手签名: <span class="sig-line"></span> / <span class="sig-line"></span>
+            </div>
           </div>
         </div>
       ))}

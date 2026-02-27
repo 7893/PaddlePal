@@ -8,7 +8,9 @@ export const QRCodePage: FC<{ url: string; title: string }> = ({ url, title }) =
       <title>扫码入口 - {title}</title>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
           font-family: 'Inter', system-ui, sans-serif; 
@@ -58,14 +60,18 @@ export const QRCodePage: FC<{ url: string; title: string }> = ({ url, title }) =
           border: 1px solid #e2e8f0;
         }
         .links a:hover { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-color: #a7f3d0; color: #059669; }
-      `}} />
+      `,
+        }}
+      />
     </head>
     <body>
       <div class="bg-pattern"></div>
       <div class="glow glow-1"></div>
       <div class="glow glow-2"></div>
       <div class="card">
-        <div class="logo"><span>🏓</span></div>
+        <div class="logo">
+          <span>🏓</span>
+        </div>
         <h1>{title}</h1>
         <p>扫描二维码访问赛事系统</p>
         <canvas id="qr"></canvas>
@@ -77,9 +83,13 @@ export const QRCodePage: FC<{ url: string; title: string }> = ({ url, title }) =
           <a href="/my">🏓 我的比赛</a>
         </div>
       </div>
-      <script dangerouslySetInnerHTML={{ __html: `
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
         QRCode.toCanvas(document.getElementById('qr'), '${url}', { width: 220, margin: 2 });
-      `}} />
+      `,
+        }}
+      />
     </body>
   </html>
 );

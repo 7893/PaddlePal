@@ -21,17 +21,27 @@ export const RankingPage = ({ players }: { players: any[] }) => (
                 <tr class="hover:bg-slate-50/50 transition-colors">
                   <Td>
                     {i < 3 ? (
-                      <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-200 text-slate-600' : 'bg-orange-100 text-orange-700'}`}>{i + 1}</span>
-                    ) : <span class="text-slate-400 pl-2">{i + 1}</span>}
+                      <span
+                        class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-200 text-slate-600' : 'bg-orange-100 text-orange-700'}`}
+                      >
+                        {i + 1}
+                      </span>
+                    ) : (
+                      <span class="text-slate-400 pl-2">{i + 1}</span>
+                    )}
                   </Td>
                   <Td class="font-medium text-slate-800">{p.name}</Td>
                   <Td>{p.team || <span class="text-slate-300">-</span>}</Td>
-                  <Td class="text-right"><span class="font-semibold text-emerald-600">{p.rating}</span></Td>
+                  <Td class="text-right">
+                    <span class="font-semibold text-emerald-600">{p.rating}</span>
+                  </Td>
                 </tr>
               ))}
             </tbody>
           </Table>
-        ) : <EmptyState icon="🏆" title="暂无排名数据" />}
+        ) : (
+          <EmptyState icon="🏆" title="暂无排名数据" />
+        )}
       </Card>
     </PageWrapper>
     <Footer />
@@ -55,7 +65,9 @@ export const NoticesPage = ({ notices }: { notices: any[] }) => (
           ))}
         </div>
       ) : (
-        <Card hover={false}><EmptyState icon="📢" title="暂无公告" description="敬请期待" /></Card>
+        <Card hover={false}>
+          <EmptyState icon="📢" title="暂无公告" description="敬请期待" />
+        </Card>
       )}
     </PageWrapper>
     <Footer />
@@ -70,24 +82,31 @@ export const ProgressPage = ({ events }: { events: any[] }) => (
         {events.length > 0 ? (
           <div class="space-y-5">
             {events.map((e: any) => {
-              const pct = e.total > 0 ? Math.round(e.finished / e.total * 100) : 0;
+              const pct = e.total > 0 ? Math.round((e.finished / e.total) * 100) : 0;
               return (
                 <div>
                   <div class="flex items-center justify-between mb-2">
                     <span class="font-medium text-slate-800 text-sm">{e.title}</span>
                     <div class="flex items-center gap-3">
-                      <span class="text-xs text-slate-500">{e.finished} / {e.total} 场</span>
+                      <span class="text-xs text-slate-500">
+                        {e.finished} / {e.total} 场
+                      </span>
                       <Badge color={pct === 100 ? 'green' : pct > 0 ? 'yellow' : 'gray'}>{pct}%</Badge>
                     </div>
                   </div>
                   <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                    <div class={`h-2.5 rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-emerald-400 to-teal-500'}`} style={`width:${pct}%`}></div>
+                    <div
+                      class={`h-2.5 rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-emerald-400 to-teal-500'}`}
+                      style={`width:${pct}%`}
+                    ></div>
                   </div>
                 </div>
               );
             })}
           </div>
-        ) : <EmptyState icon="📊" title="暂无项目数据" />}
+        ) : (
+          <EmptyState icon="📊" title="暂无项目数据" />
+        )}
       </Card>
     </PageWrapper>
     <Footer />

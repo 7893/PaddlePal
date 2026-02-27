@@ -1,7 +1,9 @@
 import type { FC } from 'hono/jsx';
 import { Layout, Nav, Card, PageWrapper, Footer } from '../components/layout';
 
-export const AboutPage: FC<{ tournament: { title: string; venue: string; dates: string; organizer: string; contact: string } }> = ({ tournament }) => (
+export const AboutPage: FC<{
+  tournament: { title: string; venue: string; dates: string; organizer: string; contact: string };
+}> = ({ tournament }) => (
   <Layout title="关于赛事">
     <Nav current="/about" title="关于赛事" />
     <PageWrapper>
@@ -22,7 +24,7 @@ export const AboutPage: FC<{ tournament: { title: string; venue: string; dates: 
               { icon: '📅', label: '比赛日期', value: tournament.dates },
               { icon: '🏢', label: '主办单位', value: tournament.organizer },
               { icon: '📞', label: '联系方式', value: tournament.contact },
-            ].map(item => (
+            ].map((item) => (
               <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
                 <span class="text-2xl">{item.icon}</span>
                 <div>
@@ -52,7 +54,10 @@ export const AboutPage: FC<{ tournament: { title: string; venue: string; dates: 
 
         {/* QR */}
         <div class="mt-8 text-center">
-          <a href="/qr" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25 transition-all">
+          <a
+            href="/qr"
+            class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25 transition-all"
+          >
             📱 扫码访问
           </a>
         </div>

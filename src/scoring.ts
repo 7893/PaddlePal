@@ -7,8 +7,11 @@ export type GameScore = { left: number; right: number };
  */
 export function parseScoreString(str: string): GameScore[] {
   if (!str || !str.trim()) return [];
-  return str.split(',').map(g => {
-    const [l, r] = g.trim().split('-').map(n => parseInt(n, 10) || 0);
+  return str.split(',').map((g) => {
+    const [l, r] = g
+      .trim()
+      .split('-')
+      .map((n) => parseInt(n, 10) || 0);
     return { left: l, right: r };
   });
 }
@@ -17,7 +20,7 @@ export function parseScoreString(str: string): GameScore[] {
  * Convert game scores to string format
  */
 export function scoreToString(games: GameScore[]): string {
-  return games.map(g => `${g.left}-${g.right}`).join(',');
+  return games.map((g) => `${g.left}-${g.right}`).join(',');
 }
 
 /**
@@ -34,7 +37,8 @@ export function isGameWon(score: GameScore): 'left' | 'right' | null {
  * Count games won by each side
  */
 export function countGamesWon(games: GameScore[]): { left: number; right: number } {
-  let left = 0, right = 0;
+  let left = 0,
+    right = 0;
   for (const g of games) {
     const winner = isGameWon(g);
     if (winner === 'left') left++;

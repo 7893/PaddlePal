@@ -43,13 +43,20 @@ auth.post('/login', async (c) => {
   const password = body.password as string;
 
   // Check database
-  const user = await db.prepare('SELECT id, username, password_hash, role, name FROM users WHERE username = ?')
-    .bind(username).first();
+  const user = await db
+    .prepare('SELECT id, username, password_hash, role, name FROM users WHERE username = ?')
+    .bind(username)
+    .first();
 
   let validUser: { id: number; username: string; role: string; name: string } | null = null;
 
   if (user && user.password_hash === password) {
-    validUser = { id: user.id as number, username: user.username as string, role: user.role as string, name: (user.name as string) || username };
+    validUser = {
+      id: user.id as number,
+      username: user.username as string,
+      role: user.role as string,
+      name: (user.name as string) || username,
+    };
   } else if (username === c.env.ADMIN_USER && password === c.env.ADMIN_PASS) {
     validUser = { id: 0, username: 'admin', role: 'referee', name: '管理员' };
   }

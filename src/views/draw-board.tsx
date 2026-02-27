@@ -25,7 +25,9 @@ export const DrawBoardPage: FC<{ event: DrawEvent; tournament: string }> = ({ ev
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>抽签公告 - {event.title}</title>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
           font-family: 'Microsoft YaHei', sans-serif; 
@@ -74,7 +76,9 @@ export const DrawBoardPage: FC<{ event: DrawEvent; tournament: string }> = ({ ev
         .progress { margin-top: 10px; }
         .progress-bar { height: 6px; background: #374151; border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.5s ease; }
-      `}} />
+      `,
+        }}
+      />
     </head>
     <body>
       <div class="container">
@@ -83,14 +87,18 @@ export const DrawBoardPage: FC<{ event: DrawEvent; tournament: string }> = ({ ev
           <div class="event-title">{event.title} 抽签</div>
           <div class="status">
             <span class={`status-badge status-${event.status}`}>
-              {event.status === 'pending' ? '⏳ 等待开始' : event.status === 'drawing' ? '🎲 抽签进行中' : '✅ 抽签完成'}
+              {event.status === 'pending'
+                ? '⏳ 等待开始'
+                : event.status === 'drawing'
+                  ? '🎲 抽签进行中'
+                  : '✅ 抽签完成'}
             </span>
           </div>
         </div>
 
         <div class="draw-grid" id="drawGrid">
           {Array.from({ length: event.totalPlayers }, (_, i) => {
-            const entry = event.entries.find(e => e.position === i + 1);
+            const entry = event.entries.find((e) => e.position === i + 1);
             return (
               <div class={`draw-slot ${entry ? 'filled' : ''}`} data-position={i + 1}>
                 <div class="slot-header">
@@ -111,7 +119,9 @@ export const DrawBoardPage: FC<{ event: DrawEvent; tournament: string }> = ({ ev
         </div>
 
         <div class="footer">
-          <div>已抽签: {event.entries.length} / {event.totalPlayers}</div>
+          <div>
+            已抽签: {event.entries.length} / {event.totalPlayers}
+          </div>
           <div class="progress">
             <div class="progress-bar">
               <div class="progress-fill" style={`width: ${(event.entries.length / event.totalPlayers) * 100}%`}></div>
@@ -120,7 +130,9 @@ export const DrawBoardPage: FC<{ event: DrawEvent; tournament: string }> = ({ ev
         </div>
       </div>
 
-      <script dangerouslySetInnerHTML={{ __html: `
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
 var eventKey = '${event.key}';
 var lastCount = ${event.entries.length};
 
@@ -160,7 +172,9 @@ async function pollDraw() {
 }
 
 setInterval(pollDraw, 2000);
-`}} />
+`,
+        }}
+      />
     </body>
   </html>
 );
@@ -178,47 +192,71 @@ export const DrawManagePage: FC<{ events: DrawEvent[] }> = ({ events }) => (
       </div>
 
       <div class="space-y-4">
-        {events.map(ev => (
+        {events.map((ev) => (
           <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="font-bold text-gray-800">{ev.title}</h3>
-                <p class="text-sm text-gray-500">{ev.entries.length} / {ev.totalPlayers} 已抽签</p>
+                <p class="text-sm text-gray-500">
+                  {ev.entries.length} / {ev.totalPlayers} 已抽签
+                </p>
               </div>
               <Badge color={ev.status === 'completed' ? 'green' : ev.status === 'drawing' ? 'red' : 'gray'}>
                 {ev.status === 'completed' ? '已完成' : ev.status === 'drawing' ? '进行中' : '待开始'}
               </Badge>
             </div>
-            
+
             <div class="w-full bg-gray-100 rounded-full h-2 mb-4">
-              <div class="bg-pp-500 h-2 rounded-full transition-all" style={`width: ${(ev.entries.length / ev.totalPlayers) * 100}%`}></div>
+              <div
+                class="bg-pp-500 h-2 rounded-full transition-all"
+                style={`width: ${(ev.entries.length / ev.totalPlayers) * 100}%`}
+              ></div>
             </div>
 
             <div class="flex gap-2">
-              <a href={`/screen/draw/${ev.key}`} target="_blank" class="px-3 py-2 text-sm bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition">
+              <a
+                href={`/screen/draw/${ev.key}`}
+                target="_blank"
+                class="px-3 py-2 text-sm bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition"
+              >
                 📺 公告牌
               </a>
               {ev.status === 'pending' && (
-                <button onclick={`startDraw('${ev.key}')`} class="px-3 py-2 text-sm bg-pp-600 text-white rounded-lg hover:bg-pp-700 transition">
+                <button
+                  onclick={`startDraw('${ev.key}')`}
+                  class="px-3 py-2 text-sm bg-pp-600 text-white rounded-lg hover:bg-pp-700 transition"
+                >
                   ▶ 开始抽签
                 </button>
               )}
               {ev.status === 'drawing' && (
                 <>
-                  <button onclick={`drawNext('${ev.key}')`} class="px-3 py-2 text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition">
+                  <button
+                    onclick={`drawNext('${ev.key}')`}
+                    class="px-3 py-2 text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"
+                  >
                     🎲 抽下一位
                   </button>
-                  <button onclick={`autoDraw('${ev.key}')`} class="px-3 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition">
+                  <button
+                    onclick={`autoDraw('${ev.key}')`}
+                    class="px-3 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition"
+                  >
                     ⚡ 自动完成
                   </button>
                 </>
               )}
               {ev.status === 'completed' && (
-                <a href={`/results/${ev.key}`} class="px-3 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition">
+                <a
+                  href={`/results/${ev.key}`}
+                  class="px-3 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition"
+                >
                   📋 查看签表
                 </a>
               )}
-              <button onclick={`resetDraw('${ev.key}')`} class="px-3 py-2 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition">
+              <button
+                onclick={`resetDraw('${ev.key}')`}
+                class="px-3 py-2 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition"
+              >
                 🔄 重置
               </button>
             </div>
@@ -227,7 +265,9 @@ export const DrawManagePage: FC<{ events: DrawEvent[] }> = ({ events }) => (
       </div>
     </div>
 
-    <script dangerouslySetInnerHTML={{ __html: `
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
 function api(url, body) {
   return fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body||{})}).then(r=>r.json());
 }
@@ -263,6 +303,8 @@ function resetDraw(key) {
     else alert('Error: ' + res.error);
   });
 }
-`}} />
+`,
+      }}
+    />
   </Layout>
 );

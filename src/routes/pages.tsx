@@ -53,24 +53,53 @@ export const pages = new Hono<{ Bindings: Bindings }>();
 // Home
 pages.get('/', async (c) => {
   const db = c.env.DB;
-  const t = await db.prepare("SELECT COALESCE(info,'') as info, COALESCE(venue,'') as addr, COALESCE(start_date,'') as date, COALESCE(tables_count,8) as tables, COALESCE(days,1) as days FROM tournaments WHERE id=1").first();
-  const { results: events } = await db.prepare(`
+  const t = await db
+    .prepare(
+      "SELECT COALESCE(info,'') as info, COALESCE(venue,'') as addr, COALESCE(start_date,'') as date, COALESCE(tables_count,8) as tables, COALESCE(days,1) as days FROM tournaments WHERE id=1"
+    )
+    .first();
+  const { results: events } = await db
+    .prepare(
+      `
     SELECT e.key, e.event_type as event, e.title,
       (SELECT COUNT(*) FROM matches WHERE event_id=e.id) as plays,
       (SELECT COUNT(*) FROM matches WHERE event_id=e.id AND status='finished') as finish
     FROM events e WHERE e.tournament_id=1 ORDER BY e.id
-  `).all();
-  const evs: HomeEvent[] = events.map(e => {
-    const plays = e.plays as number, finish = e.finish as number;
-    return { key: e.key as string, event: e.event as string, title: e.title as string, plays, finish, progress: plays > 0 ? `${Math.floor(finish * 100 / plays)}%` : '0%', beg_time: '', end_time: '' };
+  `
+    )
+    .all();
+  const evs: HomeEvent[] = events.map((e) => {
+    const plays = e.plays as number,
+      finish = e.finish as number;
+    return {
+      key: e.key as string,
+      event: e.event as string,
+      title: e.title as string,
+      plays,
+      finish,
+      progress: plays > 0 ? `${Math.floor((finish * 100) / plays)}%` : '0%',
+      beg_time: '',
+      end_time: '',
+    };
   });
-  return c.html(<HomePage info={t?.info as string || ''} addr={t?.addr as string || ''} date={t?.date as string || ''} tables={t?.tables as number || 8} days={t?.days as number || 1} events={evs} />);
+  return c.html(
+    <HomePage
+      info={(t?.info as string) || ''}
+      addr={(t?.addr as string) || ''}
+      date={(t?.date as string) || ''}
+      tables={(t?.tables as number) || 8}
+      days={(t?.days as number) || 1}
+      events={evs}
+    />
+  );
 });
 
 // Live
 pages.get('/live', async (c) => {
   const db = c.env.DB;
-  const { results: playingRows } = await db.prepare(`
+  const { results: playingRows } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order as pid, m.table_no as tb, m.time as tm, e.key as gp, e.event_type as ev,
       COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr,
       COALESCE(t1.short_name,'') as tnl, COALESCE(t2.short_name,'') as tnr, m.result
@@ -78,39 +107,66 @@ pages.get('/live', async (c) => {
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
     WHERE m.status='playing' ORDER BY m.table_no
-  `).all();
+  `
+    )
+    .all();
   const playing: LiveMatch[] = [];
   for (const r of playingRows) {
-    const { results: sRows } = await db.prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no').bind(r.id).all();
+    const { results: sRows } = await db
+      .prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no')
+      .bind(r.id)
+      .all();
     playing.push({
-      id: r.id as number, pid: r.pid as number, tb: r.tb as number, tm: r.tm as string,
-      gp: r.gp as string, ev: r.ev as string, nl: r.nl as string, nr: r.nr as string,
-      tnl: r.tnl as string, tnr: r.tnr as string, result: r.result as string,
-      score: sRows.map(s => ({ l: s.l as number, r: s.r as number }))
+      id: r.id as number,
+      pid: r.pid as number,
+      tb: r.tb as number,
+      tm: r.tm as string,
+      gp: r.gp as string,
+      ev: r.ev as string,
+      nl: r.nl as string,
+      nr: r.nr as string,
+      tnl: r.tnl as string,
+      tnr: r.tnr as string,
+      result: r.result as string,
+      score: sRows.map((s) => ({ l: s.l as number, r: s.r as number })),
     });
   }
-  const { results: upcomingRows } = await db.prepare(`
+  const { results: upcomingRows } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order as pid, m.table_no as tb, m.time as tm, e.key as gp,
       COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr
     FROM matches m JOIN events e ON m.event_id=e.id
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     WHERE m.status='scheduled' ORDER BY m.time, m.table_no LIMIT 10
-  `).all();
-  const upcoming: UpcomingMatch[] = upcomingRows.map(r => ({
-    id: r.id as number, pid: r.pid as number, tb: r.tb as number, tm: r.tm as string,
-    gp: r.gp as string, nl: r.nl as string, nr: r.nr as string
+  `
+    )
+    .all();
+  const upcoming: UpcomingMatch[] = upcomingRows.map((r) => ({
+    id: r.id as number,
+    pid: r.pid as number,
+    tb: r.tb as number,
+    tm: r.tm as string,
+    gp: r.gp as string,
+    nl: r.nl as string,
+    nr: r.nr as string,
   }));
   return c.html(<LivePage playing={playing} upcoming={upcoming} />);
 });
 
 // Players
 pages.get('/players', async (c) => {
-  const { results } = await c.env.DB.prepare(`
+  const { results } = await c.env.DB.prepare(
+    `
     SELECT p.id, p.name, p.gender, COALESCE(t.short_name,'') as team
     FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY t.id, p.name
-  `).all();
-  const members: PlayerMember[] = results.map(r => ({
-    id: r.id as number, name: r.name as string, gender: r.gender as string, team: r.team as string
+  `
+  ).all();
+  const members: PlayerMember[] = results.map((r) => ({
+    id: r.id as number,
+    name: r.name as string,
+    gender: r.gender as string,
+    team: r.team as string,
   }));
   return c.html(<PlayersPage members={members} />);
 });
@@ -119,69 +175,103 @@ pages.get('/players', async (c) => {
 pages.get('/schedule', async (c) => {
   const db = c.env.DB;
   const t = await db.prepare("SELECT COALESCE(info,'') as info FROM tournaments WHERE id=1").first();
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT m.match_order as pid, m.time, m.table_no, m.date, m.status, m.result,
       COALESCE(p1.name,'') as player1, COALESCE(p2.name,'') as player2, e.title as event
     FROM matches m JOIN events e ON m.event_id=e.id
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     ORDER BY m.date, m.time, m.table_no, m.match_order
-  `).all();
-  const matches: ScheduleMatch[] = results.map(r => ({
-    pid: r.pid as number, time: r.time as string, table_no: r.table_no as number,
-    date: r.date as string, status: r.status as string, result: r.result as string,
-    player1: r.player1 as string, player2: r.player2 as string, event: r.event as string
+  `
+    )
+    .all();
+  const matches: ScheduleMatch[] = results.map((r) => ({
+    pid: r.pid as number,
+    time: r.time as string,
+    table_no: r.table_no as number,
+    date: r.date as string,
+    status: r.status as string,
+    result: r.result as string,
+    player1: r.player1 as string,
+    player2: r.player2 as string,
+    event: r.event as string,
   }));
-  return c.html(<SchedulePage matches={matches} info={t?.info as string || ''} />);
+  return c.html(<SchedulePage matches={matches} info={(t?.info as string) || ''} />);
 });
 
 // Results list
 pages.get('/results', async (c) => {
   const db = c.env.DB;
   const t = await db.prepare("SELECT COALESCE(info,'') as info FROM tournaments WHERE id=1").first();
-  const { results: eventRows } = await db.prepare(`
+  const { results: eventRows } = await db
+    .prepare(
+      `
     SELECT e.key, e.title, e.event_type as type, COALESCE(e.stage,'loop') as stage,
       (SELECT COUNT(*) FROM matches WHERE event_id=e.id) as plays,
       (SELECT COUNT(*) FROM matches WHERE event_id=e.id AND status='finished') as finish
     FROM events e WHERE e.tournament_id=1 ORDER BY e.id
-  `).all();
-  const events: ResultEvent[] = eventRows.map(r => ({
-    key: r.key as string, title: r.title as string, type: r.type as string,
-    stage: r.stage as string, plays: r.plays as number, finish: r.finish as number
+  `
+    )
+    .all();
+  const events: ResultEvent[] = eventRows.map((r) => ({
+    key: r.key as string,
+    title: r.title as string,
+    type: r.type as string,
+    stage: r.stage as string,
+    plays: r.plays as number,
+    finish: r.finish as number,
   }));
-  return c.html(<ResultsListPage events={events} info={t?.info as string || ''} />);
+  return c.html(<ResultsListPage events={events} info={(t?.info as string) || ''} />);
 });
 
 // Results detail
 pages.get('/results/:key', async (c) => {
   const db = c.env.DB;
   const key = c.req.param('key');
-  const ev = await db.prepare("SELECT id, title, event_type, COALESCE(stage,'loop') as stage, groups FROM events WHERE key=?").bind(key).first();
+  const ev = await db
+    .prepare("SELECT id, title, event_type, COALESCE(stage,'loop') as stage, groups FROM events WHERE key=?")
+    .bind(key)
+    .first();
   if (!ev) return c.text('Not found', 404);
 
   // Rankings
-  const { results: gRows } = await db.prepare('SELECT id, group_name FROM group_tables WHERE event_id=? ORDER BY group_index').bind(ev.id).all();
+  const { results: gRows } = await db
+    .prepare('SELECT id, group_name FROM group_tables WHERE event_id=? ORDER BY group_index')
+    .bind(ev.id)
+    .all();
   const ranks = [];
   const crosses = [];
 
   for (const g of gRows) {
     // Rank data
-    const { results: rRows } = await db.prepare(`
+    const { results: rRows } = await db
+      .prepare(
+        `
       SELECT ge.rank, COALESCE(p.name,'') as name, COALESCE(t.short_name,'') as team
       FROM group_entries ge LEFT JOIN players p ON ge.player_id=p.id
       LEFT JOIN teams t ON COALESCE(ge.team_id, p.team_id)=t.id
       WHERE ge.group_id=? ORDER BY ge.rank, ge.position
-    `).bind(g.id).all();
+    `
+      )
+      .bind(g.id)
+      .all();
     if (rRows.length > 0) {
-      ranks.push({ group: g.group_name as string, rows: rRows.map(r => [r.rank, r.name, r.team]) });
+      ranks.push({ group: g.group_name as string, rows: rRows.map((r) => [r.rank, r.name, r.team]) });
     }
 
     // Cross table
-    const { results: entries } = await db.prepare(`
+    const { results: entries } = await db
+      .prepare(
+        `
       SELECT ge.player_id, ge.position, ge.rank, COALESCE(p.name,'') as name, COALESCE(t.short_name,'') as team
       FROM group_entries ge LEFT JOIN players p ON ge.player_id=p.id
       LEFT JOIN teams t ON COALESCE(ge.team_id, p.team_id)=t.id
       WHERE ge.group_id=? ORDER BY ge.position
-    `).bind(g.id).all();
+    `
+      )
+      .bind(g.id)
+      .all();
 
     if (entries.length < 2) continue;
 
@@ -197,25 +287,42 @@ pages.get('/results/:key', async (c) => {
       let points = 0;
 
       for (let j = 0; j < n; j++) {
-        if (i === j) { cells.push(''); continue; }
+        if (i === j) {
+          cells.push('');
+          continue;
+        }
         const opp = entries[j];
         const oppPid = opp.player_id as number;
 
-        const m = await db.prepare(`
+        const m = await db
+          .prepare(
+            `
           SELECT m.id, m.result, m.player1_id FROM matches m
           WHERE m.group_id=? AND ((m.player1_id=? AND m.player3_id=?) OR (m.player1_id=? AND m.player3_id=?))
-        `).bind(g.id, pid, oppPid, oppPid, pid).first();
+        `
+          )
+          .bind(g.id, pid, oppPid, oppPid, pid)
+          .first();
 
-        if (!m) { cells.push(''); continue; }
+        if (!m) {
+          cells.push('');
+          continue;
+        }
 
         const isLeft = (m.player1_id as number) === pid;
         const result = (m.result as string) || '';
-        const { results: sRows } = await db.prepare('SELECT score_left, score_right FROM scores WHERE match_id=? ORDER BY game_no').bind(m.id).all();
+        const { results: sRows } = await db
+          .prepare('SELECT score_left, score_right FROM scores WHERE match_id=? ORDER BY game_no')
+          .bind(m.id)
+          .all();
 
-        let wl = 0, wr = 0;
+        let wl = 0,
+          wr = 0;
         for (const s of sRows) {
-          const sl = s.score_left as number, sr = s.score_right as number;
-          if (sl > sr) wl++; else if (sr > sl) wr++;
+          const sl = s.score_left as number,
+            sr = s.score_right as number;
+          if (sl > sr) wl++;
+          else if (sr > sl) wr++;
         }
         const myWin = isLeft ? wl : wr;
         const oppWin = isLeft ? wr : wl;
@@ -230,42 +337,75 @@ pages.get('/results/:key', async (c) => {
 
       rows.push({
         player: [e.position as number, e.name as string, e.team as string] as [number, string, string],
-        cells, points, rank: e.rank as number,
+        cells,
+        points,
+        rank: e.rank as number,
       });
     }
 
     crosses.push({ name: g.group_name as string, header, rows });
   }
 
-  return c.html(<ResultsDetailPage title={ev.title as string} stage={ev.stage as string} ranks={ranks as any} crosses={crosses} />);
+  return c.html(
+    <ResultsDetailPage title={ev.title as string} stage={ev.stage as string} ranks={ranks as any} crosses={crosses} />
+  );
 });
 
 // Admin
 pages.get('/admin', async (c) => {
   const db = c.env.DB;
   const user = (c as any).get('user') || { name: '管理员', role: 'referee' };
-  const t = await db.prepare("SELECT COALESCE(info,'') as info, COALESCE(venue,'') as venue FROM tournaments WHERE id=1").first();
-  const { results: teams } = await db.prepare(`SELECT t.id, t.name, COALESCE(t.short_name,'') as short_name,
-    (SELECT COUNT(*) FROM players WHERE team_id=t.id) as count FROM teams t WHERE t.tournament_id=1 ORDER BY t.id`).all();
-  const { results: players } = await db.prepare(`SELECT p.id, p.name, p.gender, p.rating, COALESCE(t.short_name,'') as team
-    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.rating DESC`).all();
-  const { results: events } = await db.prepare("SELECT id, title, event_type as type, COALESCE(stage,'loop') as stage, groups, COALESCE(best_of,3) as best_of FROM events WHERE tournament_id=1").all();
-  const { results: matches } = await db.prepare(`
+  const t = await db
+    .prepare("SELECT COALESCE(info,'') as info, COALESCE(venue,'') as venue FROM tournaments WHERE id=1")
+    .first();
+  const { results: teams } = await db
+    .prepare(
+      `SELECT t.id, t.name, COALESCE(t.short_name,'') as short_name,
+    (SELECT COUNT(*) FROM players WHERE team_id=t.id) as count FROM teams t WHERE t.tournament_id=1 ORDER BY t.id`
+    )
+    .all();
+  const { results: players } = await db
+    .prepare(
+      `SELECT p.id, p.name, p.gender, p.rating, COALESCE(t.short_name,'') as team
+    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.rating DESC`
+    )
+    .all();
+  const { results: events } = await db
+    .prepare(
+      "SELECT id, title, event_type as type, COALESCE(stage,'loop') as stage, groups, COALESCE(best_of,3) as best_of FROM events WHERE tournament_id=1"
+    )
+    .all();
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.match_order as pid, m.time, m.status, m.result, m.table_no as 'table',
       COALESCE(p1.name,'') as player1, COALESCE(p2.name,'') as player2, e.title as event
     FROM matches m JOIN events e ON m.event_id=e.id
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     ORDER BY m.match_order DESC
-  `).all();
+  `
+    )
+    .all();
   const info = { info: t?.info || '', venue: t?.venue || '', userName: user.name, userRole: user.role };
-  return c.html(<AdminPage info={info as any} venue={t?.venue as string || ''} teams={teams as any} players={players as any} events={events as any} matches={matches as any} />);
+  return c.html(
+    <AdminPage
+      info={info as any}
+      venue={(t?.venue as string) || ''}
+      teams={teams as any}
+      players={players as any}
+      events={events as any}
+      matches={matches as any}
+    />
+  );
 });
 
 // Score entry
 pages.get('/score/:pid', async (c) => {
   const db = c.env.DB;
   const pid = c.req.param('pid');
-  const r = await db.prepare(`
+  const r = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order as pid, m.table_no, m.time, m.status, m.result, m.seat1, m.seat2,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       COALESCE(t1.short_name,'') as t1, COALESCE(t2.short_name,'') as t2,
@@ -274,54 +414,83 @@ pages.get('/score/:pid', async (c) => {
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
     WHERE m.match_order=?
-  `).bind(pid).first();
+  `
+    )
+    .bind(pid)
+    .first();
   if (!r) return c.html(<ScoreNotFound pid={pid} />);
 
-  const { results: sRows } = await db.prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no').bind(r.id).all();
+  const { results: sRows } = await db
+    .prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no')
+    .bind(r.id)
+    .all();
   return c.html(<ScorePage match={{ ...r, scores: sRows } as any} />);
 });
 
 // Admin sub-pages
 pages.get('/admin/tournament', async (c) => {
-  const t = await c.env.DB.prepare("SELECT COALESCE(info,'') as info, COALESCE(venue,'') as venue, COALESCE(start_date,'') as start_date, COALESCE(tables_count,8) as tables FROM tournaments WHERE id=1").first();
-  return c.html(<TournamentEditPage info={t?.info as string || ''} venue={t?.venue as string || ''} start_date={t?.start_date as string || ''} tables={t?.tables as number || 8} />);
+  const t = await c.env.DB.prepare(
+    "SELECT COALESCE(info,'') as info, COALESCE(venue,'') as venue, COALESCE(start_date,'') as start_date, COALESCE(tables_count,8) as tables FROM tournaments WHERE id=1"
+  ).first();
+  return c.html(
+    <TournamentEditPage
+      info={(t?.info as string) || ''}
+      venue={(t?.venue as string) || ''}
+      start_date={(t?.start_date as string) || ''}
+      tables={(t?.tables as number) || 8}
+    />
+  );
 });
 
 pages.get('/admin/events', async (c) => {
-  const { results } = await c.env.DB.prepare("SELECT id, title, event_type as type, COALESCE(stage,'loop') as stage, groups, COALESCE(best_of,3) as best_of FROM events WHERE tournament_id=1").all();
+  const { results } = await c.env.DB.prepare(
+    "SELECT id, title, event_type as type, COALESCE(stage,'loop') as stage, groups, COALESCE(best_of,3) as best_of FROM events WHERE tournament_id=1"
+  ).all();
   return c.html(<EventsEditPage events={results as any} />);
 });
 
 pages.get('/admin/teams', async (c) => {
-  const { results } = await c.env.DB.prepare(`SELECT t.id, t.name, COALESCE(t.short_name,'') as short_name,
-    (SELECT COUNT(*) FROM players WHERE team_id=t.id) as count FROM teams t WHERE t.tournament_id=1 ORDER BY t.id`).all();
+  const { results } = await c.env.DB.prepare(
+    `SELECT t.id, t.name, COALESCE(t.short_name,'') as short_name,
+    (SELECT COUNT(*) FROM players WHERE team_id=t.id) as count FROM teams t WHERE t.tournament_id=1 ORDER BY t.id`
+  ).all();
   return c.html(<TeamsEditPage teams={results as any} />);
 });
 
 pages.get('/admin/players', async (c) => {
   const db = c.env.DB;
-  const { results: players } = await db.prepare(`SELECT p.id, p.name, p.gender, p.rating, COALESCE(t.short_name,'') as team
-    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.id`).all();
+  const { results: players } = await db
+    .prepare(
+      `SELECT p.id, p.name, p.gender, p.rating, COALESCE(t.short_name,'') as team
+    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.id`
+    )
+    .all();
   const { results: teams } = await db.prepare('SELECT id, name FROM teams WHERE tournament_id=1 ORDER BY id').all();
   return c.html(<PlayersEditPage players={players as any} teams={teams as any} />);
 });
 
 pages.get('/admin/notices', async (c) => {
-  const { results } = await c.env.DB.prepare("SELECT id, COALESCE(title,'') as title, content, created_at FROM notices ORDER BY created_at DESC").all();
+  const { results } = await c.env.DB.prepare(
+    "SELECT id, COALESCE(title,'') as title, content, created_at FROM notices ORDER BY created_at DESC"
+  ).all();
   return c.html(<NoticesEditPage notices={results as any} />);
 });
 
 // Draw list page - select event to draw
 pages.get('/admin/draw', async (c) => {
   const db = c.env.DB;
-  const { results: events } = await db.prepare(`
+  const { results: events } = await db
+    .prepare(
+      `
     SELECT e.id, e.key, e.title, 
       COALESCE(e.event_type, 'singles') as type,
       COALESCE(e.stage, 'knockout') as format,
       (SELECT COUNT(*) FROM matches WHERE event_id = e.id) as match_count
     FROM events e WHERE e.tournament_id = 1 ORDER BY e.id
-  `).all();
-  
+  `
+    )
+    .all();
+
   return c.html(<DrawListPage events={events as any} />);
 });
 
@@ -329,32 +498,54 @@ pages.get('/admin/draw', async (c) => {
 pages.get('/admin/draw/roundrobin/:eventKey', async (c) => {
   const db = c.env.DB;
   const eventKey = c.req.param('eventKey');
-  
-  const event = await db.prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
+
+  const event = await db
+    .prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1')
+    .bind(eventKey)
+    .first();
   if (!event) return c.text('Not found', 404);
 
-  const { results: gRows } = await db.prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name').bind(event.id).all();
-  
+  const { results: gRows } = await db
+    .prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name')
+    .bind(event.id)
+    .all();
+
   const groups = [];
   for (const g of gRows) {
-    const { results: players } = await db.prepare(`
+    const { results: players } = await db
+      .prepare(
+        `
       SELECT ge.position, ge.seed, p.id as player_id, p.name, COALESCE(t.short_name,'') as team
       FROM group_entries ge JOIN players p ON ge.player_id = p.id
       LEFT JOIN teams t ON p.team_id = t.id
       WHERE ge.group_id = ? ORDER BY ge.position
-    `).bind(g.id).all();
+    `
+      )
+      .bind(g.id)
+      .all();
     groups.push({ id: g.id, name: g.name, players });
   }
 
-  const assignedIds = groups.flatMap(g => g.players.map(p => p.player_id));
-  const { results: allPlayers } = await db.prepare(`
+  const assignedIds = groups.flatMap((g) => g.players.map((p) => p.player_id));
+  const { results: allPlayers } = await db
+    .prepare(
+      `
     SELECT p.id, p.name, COALESCE(t.short_name,'') as team, p.rating
     FROM players p LEFT JOIN teams t ON p.team_id = t.id
     WHERE p.tournament_id = 1 ORDER BY p.rating DESC
-  `).all();
-  const unassigned = allPlayers.filter(p => !assignedIds.includes(p.id as number));
+  `
+    )
+    .all();
+  const unassigned = allPlayers.filter((p) => !assignedIds.includes(p.id as number));
 
-  return c.html(<DrawManagePage eventKey={eventKey} eventTitle={event.title as string} groups={groups as any} unassigned={unassigned as any} />);
+  return c.html(
+    <DrawManagePage
+      eventKey={eventKey}
+      eventTitle={event.title as string}
+      groups={groups as any}
+      unassigned={unassigned as any}
+    />
+  );
 });
 
 // Schedule management page
@@ -362,13 +553,20 @@ pages.get('/admin/schedule/:eventKey', async (c) => {
   const db = c.env.DB;
   const eventKey = c.req.param('eventKey');
 
-  const event = await db.prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
+  const event = await db
+    .prepare('SELECT id, title FROM events WHERE key = ? AND tournament_id = 1')
+    .bind(eventKey)
+    .first();
   if (!event) return c.text('Not found', 404);
 
-  const tournament = await db.prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+  const tournament = await db
+    .prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1')
+    .first();
   const tableCount = (tournament?.tables as number) || 6;
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order as pid, m.round, m.time, m.table_no,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2, m.status
     FROM matches m
@@ -376,19 +574,33 @@ pages.get('/admin/schedule/:eventKey', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.event_id = ?
     ORDER BY m.time, m.table_no
-  `).bind(event.id).all();
+  `
+    )
+    .bind(event.id)
+    .all();
 
-  return c.html(<ScheduleManagePage eventKey={eventKey} eventTitle={event.title as string} matches={matches as any} tableCount={tableCount} />);
+  return c.html(
+    <ScheduleManagePage
+      eventKey={eventKey}
+      eventTitle={event.title as string}
+      matches={matches as any}
+      tableCount={tableCount}
+    />
+  );
 });
 
 // Control panel
 pages.get('/admin/control', async (c) => {
   const db = c.env.DB;
 
-  const tournament = await db.prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+  const tournament = await db
+    .prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1')
+    .first();
   const tables = (tournament?.tables as number) || 6;
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.table_no, m.time, m.status,
       COALESCE(p1.name,'TBD') as p1, COALESCE(p2.name,'TBD') as p2,
       COALESCE(m.score1,0) as score1, COALESCE(m.score2,0) as score2,
@@ -399,7 +611,9 @@ pages.get('/admin/control', async (c) => {
     LEFT JOIN events e ON m.event_id = e.id
     WHERE m.status IN ('scheduled', 'playing')
     ORDER BY m.time, m.table_no
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<ControlPanelPage tables={tables} matches={matches as any} />);
 });
@@ -409,7 +623,9 @@ pages.get('/admin/confirm', async (c) => {
   const db = c.env.DB;
   const user = (c as any).get('user') || { role: 'public' };
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order, m.time, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       m.score1, m.score2, m.games
@@ -419,7 +635,9 @@ pages.get('/admin/confirm', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status = 'finished' AND COALESCE(m.confirmed, 0) = 0
     ORDER BY m.time DESC
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<ConfirmPage matches={matches as any} userRole={user.role} />);
 });
@@ -430,9 +648,9 @@ pages.get('/admin/users', async (c) => {
   const user = (c as any).get('user') || { role: 'public' };
   const canManage = user.role === 'referee';
 
-  const { results: users } = await db.prepare(
-    'SELECT id, username, role, name, created_at FROM users ORDER BY id'
-  ).all();
+  const { results: users } = await db
+    .prepare('SELECT id, username, role, name, created_at FROM users ORDER BY id')
+    .all();
 
   return c.html(<UsersPage users={users as any} canManage={canManage} />);
 });
@@ -440,9 +658,13 @@ pages.get('/admin/users', async (c) => {
 // Big screen
 pages.get('/bigscreen', async (c) => {
   const db = c.env.DB;
-  const tournament = await db.prepare('SELECT title, COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+  const tournament = await db
+    .prepare('SELECT title, COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1')
+    .first();
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.table_no, m.status, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       COALESCE(m.score1,0) as score1, COALESCE(m.score2,0) as score2
@@ -451,16 +673,26 @@ pages.get('/bigscreen', async (c) => {
     LEFT JOIN players p1 ON m.player1_id = p1.id
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status = 'playing'
-  `).all();
+  `
+    )
+    .all();
 
-  return c.html(<BigScreenPage title={tournament?.title as string || 'PaddlePal'} matches={matches as any} tables={(tournament?.tables as number) || 6} />);
+  return c.html(
+    <BigScreenPage
+      title={(tournament?.title as string) || 'PaddlePal'}
+      matches={matches as any}
+      tables={(tournament?.tables as number) || 6}
+    />
+  );
 });
 
 // Stats page
 pages.get('/stats', async (c) => {
   const db = c.env.DB;
 
-  const { results: players } = await db.prepare(`
+  const { results: players } = await db
+    .prepare(
+      `
     SELECT p.id, p.name, COALESCE(t.name,'') as team,
       COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as played,
       SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
@@ -471,9 +703,13 @@ pages.get('/stats', async (c) => {
     WHERE p.tournament_id = 1
     GROUP BY p.id
     ORDER BY wins DESC, played ASC
-  `).all();
+  `
+    )
+    .all();
 
-  const { results: teams } = await db.prepare(`
+  const { results: teams } = await db
+    .prepare(
+      `
     SELECT t.name, COUNT(DISTINCT p.id) as players,
       COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as total_played,
       SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as total_wins
@@ -483,7 +719,9 @@ pages.get('/stats', async (c) => {
     WHERE t.tournament_id = 1
     GROUP BY t.id
     ORDER BY total_wins DESC
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<StatsPage players={players as any} teams={teams as any} />);
 });
@@ -491,11 +729,15 @@ pages.get('/stats', async (c) => {
 // My matches - player select
 pages.get('/my', async (c) => {
   const db = c.env.DB;
-  const { results: players } = await db.prepare(`
+  const { results: players } = await db
+    .prepare(
+      `
     SELECT p.id, p.name, COALESCE(t.name,'') as team
     FROM players p LEFT JOIN teams t ON p.team_id = t.id
     WHERE p.tournament_id = 1 ORDER BY p.name
-  `).all();
+  `
+    )
+    .all();
   return c.html(<PlayerSelectPage players={players as any} />);
 });
 
@@ -507,7 +749,9 @@ pages.get('/my/:playerId', async (c) => {
   const player = await db.prepare('SELECT id, name FROM players WHERE id = ?').bind(playerId).first();
   if (!player) return c.text('Not found', 404);
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, m.status, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
     FROM matches m
@@ -516,7 +760,10 @@ pages.get('/my/:playerId', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.player1_id = ? OR m.player2_id = ?
     ORDER BY m.time
-  `).bind(playerId, playerId).all();
+  `
+    )
+    .bind(playerId, playerId)
+    .all();
 
   return c.html(<MyMatchesPage player={player as any} matches={matches as any} />);
 });
@@ -525,7 +772,9 @@ pages.get('/my/:playerId', async (c) => {
 pages.get('/admin/checkin', async (c) => {
   const db = c.env.DB;
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, COALESCE(m.checkin1,0) as checkin1, COALESCE(m.checkin2,0) as checkin2,
       e.title as event, COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
     FROM matches m
@@ -535,7 +784,9 @@ pages.get('/admin/checkin', async (c) => {
     WHERE m.status = 'scheduled'
     ORDER BY m.time, m.table_no
     LIMIT 20
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<CheckinPage matches={matches as any} />);
 });
@@ -545,14 +796,18 @@ pages.get('/admin/appeals', async (c) => {
   const db = c.env.DB;
   const user = (c as any).get('user') || { role: 'public' };
 
-  const { results: appeals } = await db.prepare(`
+  const { results: appeals } = await db
+    .prepare(
+      `
     SELECT a.id, a.match_id, a.player_id, a.reason, a.status, a.created_at, a.resolution,
       p.name as player_name, m.match_order
     FROM appeals a
     LEFT JOIN players p ON a.player_id = p.id
     LEFT JOIN matches m ON a.match_id = m.id
     ORDER BY a.created_at DESC
-  `).all();
+  `
+    )
+    .all();
 
   const canResolve = user.role === 'referee' || user.role === 'deputy_referee';
   return c.html(<AppealsPage appeals={appeals as any} canResolve={canResolve} />);
@@ -562,10 +817,14 @@ pages.get('/admin/appeals', async (c) => {
 pages.get('/admin/logs', async (c) => {
   const db = c.env.DB;
 
-  const { results: logs } = await db.prepare(`
+  const { results: logs } = await db
+    .prepare(
+      `
     SELECT id, action, target_type, target_id, user_name, details, created_at
     FROM audit_logs ORDER BY created_at DESC LIMIT 100
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<AuditLogPage logs={logs as any} />);
 });
@@ -574,7 +833,9 @@ pages.get('/admin/logs', async (c) => {
 pages.get('/admin/settings', async (c) => {
   const db = c.env.DB;
 
-  const settings = await db.prepare(`
+  const settings = await db
+    .prepare(
+      `
     SELECT COALESCE(tables_count, 6) as tables_count,
       COALESCE(minutes_per_match, 15) as minutes_per_match,
       COALESCE(auto_advance, 1) as auto_advance,
@@ -582,16 +843,20 @@ pages.get('/admin/settings', async (c) => {
       COALESCE(allow_appeals, 1) as allow_appeals,
       COALESCE(show_rating, 1) as show_rating
     FROM tournaments WHERE id = 1
-  `).first();
+  `
+    )
+    .first();
 
-  return c.html(<SettingsPage settings={settings as any || {}} />);
+  return c.html(<SettingsPage settings={(settings as any) || {}} />);
 });
 
 // Print scoresheet
 pages.get('/print/scoresheet', async (c) => {
   const db = c.env.DB;
   const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
     FROM matches m
@@ -600,15 +865,19 @@ pages.get('/print/scoresheet', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status = 'scheduled'
     ORDER BY m.time, m.table_no LIMIT 50
-  `).all();
-  return c.html(<PrintScoresheet matches={matches as any} title={tournament?.title as string || ''} />);
+  `
+    )
+    .all();
+  return c.html(<PrintScoresheet matches={matches as any} title={(tournament?.title as string) || ''} />);
 });
 
 // Print results
 pages.get('/print/results', async (c) => {
   const db = c.env.DB;
   const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       m.score1, m.score2, m.games
@@ -618,15 +887,19 @@ pages.get('/print/results', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status = 'finished'
     ORDER BY m.id DESC LIMIT 100
-  `).all();
-  return c.html(<PrintResults matches={matches as any} title={tournament?.title as string || ''} />);
+  `
+    )
+    .all();
+  return c.html(<PrintResults matches={matches as any} title={(tournament?.title as string) || ''} />);
 });
 
 // Print schedule
 pages.get('/print/schedule', async (c) => {
   const db = c.env.DB;
   const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       m.score1, m.score2
@@ -635,8 +908,10 @@ pages.get('/print/schedule', async (c) => {
     LEFT JOIN players p1 ON m.player1_id = p1.id
     LEFT JOIN players p2 ON m.player2_id = p2.id
     ORDER BY m.time, m.table_no
-  `).all();
-  return c.html(<PrintSchedule matches={matches as any} title={tournament?.title as string || ''} />);
+  `
+    )
+    .all();
+  return c.html(<PrintSchedule matches={matches as any} title={(tournament?.title as string) || ''} />);
 });
 
 // Player detail
@@ -644,20 +919,32 @@ pages.get('/player/:id', async (c) => {
   const db = c.env.DB;
   const playerId = c.req.param('id');
 
-  const player = await db.prepare(`
+  const player = await db
+    .prepare(
+      `
     SELECT p.id, p.name, COALESCE(t.name,'') as team, COALESCE(p.rating,0) as rating
     FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?
-  `).bind(playerId).first();
+  `
+    )
+    .bind(playerId)
+    .first();
   if (!player) return c.text('Not found', 404);
 
-  const stats = await db.prepare(`
+  const stats = await db
+    .prepare(
+      `
     SELECT COUNT(*) as played,
       SUM(CASE WHEN (m.player1_id = ? AND m.winner_side = 1) OR (m.player2_id = ? AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
       SUM(CASE WHEN (m.player1_id = ? AND m.winner_side = 2) OR (m.player2_id = ? AND m.winner_side = 1) THEN 1 ELSE 0 END) as losses
     FROM matches m WHERE (m.player1_id = ? OR m.player2_id = ?) AND m.status = 'finished'
-  `).bind(playerId, playerId, playerId, playerId, playerId, playerId).first();
+  `
+    )
+    .bind(playerId, playerId, playerId, playerId, playerId, playerId)
+    .first();
 
-  const { results: recentMatches } = await db.prepare(`
+  const { results: recentMatches } = await db
+    .prepare(
+      `
     SELECT m.time as date, m.score1, m.score2, m.winner_side,
       CASE WHEN m.player1_id = ? THEN p2.name ELSE p1.name END as opponent
     FROM matches m
@@ -665,16 +952,21 @@ pages.get('/player/:id', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE (m.player1_id = ? OR m.player2_id = ?) AND m.status = 'finished'
     ORDER BY m.id DESC LIMIT 10
-  `).bind(playerId, playerId, playerId).all();
+  `
+    )
+    .bind(playerId, playerId, playerId)
+    .all();
 
   const recent = recentMatches.map((m: any) => ({
     date: m.date,
     opponent: m.opponent,
     score: `${m.score1}:${m.score2}`,
-    won: (m.winner_side === 1 && m.player1_id == playerId) || (m.winner_side === 2 && m.player2_id == playerId)
+    won: (m.winner_side === 1 && m.player1_id == playerId) || (m.winner_side === 2 && m.player2_id == playerId),
   }));
 
-  return c.html(<PlayerDetailPage player={player as any} stats={stats as any} headToHead={[]} recentMatches={recent} />);
+  return c.html(
+    <PlayerDetailPage player={player as any} stats={stats as any} headToHead={[]} recentMatches={recent} />
+  );
 });
 
 // Elimination bracket
@@ -685,7 +977,9 @@ pages.get('/bracket/:eventKey', async (c) => {
   const event = await db.prepare('SELECT id, title FROM events WHERE key = ?').bind(eventKey).first();
   if (!event) return c.text('Not found', 404);
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.round, m.bracket_pos as pos,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       m.score1, m.score2, m.winner_side as winner
@@ -694,7 +988,10 @@ pages.get('/bracket/:eventKey', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.event_id = ? AND m.round > 0
     ORDER BY m.round, m.bracket_pos
-  `).bind(event.id).all();
+  `
+    )
+    .bind(event.id)
+    .all();
 
   const maxRound = Math.max(...matches.map((m: any) => m.round || 0), 1);
   return c.html(<EliminationBracket title={event.title as string} matches={matches as any} rounds={maxRound} />);
@@ -708,11 +1005,16 @@ pages.get('/standings/:eventKey', async (c) => {
   const event = await db.prepare('SELECT id, title FROM events WHERE key = ?').bind(eventKey).first();
   if (!event) return c.text('Not found', 404);
 
-  const { results: groupRows } = await db.prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name').bind(event.id).all();
+  const { results: groupRows } = await db
+    .prepare('SELECT id, name FROM group_tables WHERE event_id = ? ORDER BY name')
+    .bind(event.id)
+    .all();
 
   const groups = [];
   for (const g of groupRows) {
-    const { results: entries } = await db.prepare(`
+    const { results: entries } = await db
+      .prepare(
+        `
       SELECT p.name, ge.position as pos,
         COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as played,
         SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
@@ -724,11 +1026,14 @@ pages.get('/standings/:eventKey', async (c) => {
       LEFT JOIN matches m ON (m.player1_id = p.id OR m.player2_id = p.id) AND m.event_id = ? AND m.status = 'finished'
       WHERE ge.group_id = ?
       GROUP BY p.id
-    `).bind(event.id, g.id).all();
+    `
+      )
+      .bind(event.id, g.id)
+      .all();
 
     groups.push({
       name: g.name as string,
-      entries: entries.map((e: any) => ({ ...e, points: (e.wins || 0) * 2 }))
+      entries: entries.map((e: any) => ({ ...e, points: (e.wins || 0) * 2 })),
     });
   }
 
@@ -741,7 +1046,7 @@ pages.get('/qr', async (c) => {
   const tournament = await db.prepare('SELECT title FROM tournaments WHERE id = 1').first();
   const url = new URL(c.req.url);
   const baseUrl = `${url.protocol}//${url.host}`;
-  return c.html(<QRCodePage url={baseUrl} title={tournament?.title as string || 'PaddlePal'} />);
+  return c.html(<QRCodePage url={baseUrl} title={(tournament?.title as string) || 'PaddlePal'} />);
 });
 
 // Timeline page
@@ -749,7 +1054,9 @@ pages.get('/timeline', async (c) => {
   const db = c.env.DB;
   const date = new Date().toISOString().slice(0, 10);
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, m.status, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       CASE WHEN m.status = 'finished' THEN m.score1 || ':' || m.score2 ELSE '' END as score
@@ -758,7 +1065,9 @@ pages.get('/timeline', async (c) => {
     LEFT JOIN players p1 ON m.player1_id = p1.id
     LEFT JOIN players p2 ON m.player2_id = p2.id
     ORDER BY m.time, m.table_no
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<TimelinePage matches={matches as any} date={date} />);
 });
@@ -768,26 +1077,56 @@ pages.get('/match/:id', async (c) => {
   const db = c.env.DB;
   const matchId = c.req.param('id');
 
-  const match = await db.prepare(`
+  const match = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, m.status, COALESCE(m.confirmed,0) as confirmed,
       e.title as event, m.player1_id, m.player2_id
     FROM matches m LEFT JOIN events e ON m.event_id = e.id WHERE m.id = ?
-  `).bind(matchId).first();
+  `
+    )
+    .bind(matchId)
+    .first();
   if (!match) return c.text('Not found', 404);
 
-  const p1 = await db.prepare('SELECT p.name, COALESCE(t.name,"") as team FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?').bind(match.player1_id).first();
-  const p2 = await db.prepare('SELECT p.name, COALESCE(t.name,"") as team FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?').bind(match.player2_id).first();
+  const p1 = await db
+    .prepare(
+      'SELECT p.name, COALESCE(t.name,"") as team FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?'
+    )
+    .bind(match.player1_id)
+    .first();
+  const p2 = await db
+    .prepare(
+      'SELECT p.name, COALESCE(t.name,"") as team FROM players p LEFT JOIN teams t ON p.team_id = t.id WHERE p.id = ?'
+    )
+    .bind(match.player2_id)
+    .first();
 
-  const { results: scores } = await db.prepare('SELECT game_no as game, score_left as s1, score_right as s2 FROM scores WHERE match_id = ? ORDER BY game_no').bind(matchId).all();
+  const { results: scores } = await db
+    .prepare(
+      'SELECT game_no as game, score_left as s1, score_right as s2 FROM scores WHERE match_id = ? ORDER BY game_no'
+    )
+    .bind(matchId)
+    .all();
 
-  return c.html(<MatchDetailPage match={match as any} p1={p1 as any || {}} p2={p2 as any || {}} games={scores as any} history={[]} />);
+  return c.html(
+    <MatchDetailPage
+      match={match as any}
+      p1={(p1 as any) || {}}
+      p2={(p2 as any) || {}}
+      games={scores as any}
+      history={[]}
+    />
+  );
 });
 
 // Team ranking
 pages.get('/team-ranking', async (c) => {
   const db = c.env.DB;
 
-  const { results: teams } = await db.prepare(`
+  const { results: teams } = await db
+    .prepare(
+      `
     SELECT t.id, t.name, COUNT(DISTINCT p.id) as players,
       SUM(CASE WHEN (m.player1_id = p.id AND m.winner_side = 1) OR (m.player2_id = p.id AND m.winner_side = 2) THEN 1 ELSE 0 END) as wins,
       COUNT(CASE WHEN m.player1_id = p.id OR m.player2_id = p.id THEN 1 END) as played
@@ -797,7 +1136,9 @@ pages.get('/team-ranking', async (c) => {
     WHERE t.tournament_id = 1
     GROUP BY t.id
     ORDER BY wins DESC
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<TeamRankingPage teams={teams as any} />);
 });
@@ -809,7 +1150,9 @@ pages.get('/help', (c) => c.html(<HelpPage />));
 pages.get('/dashboard', async (c) => {
   const db = c.env.DB;
 
-  const stats = await db.prepare(`
+  const stats = await db
+    .prepare(
+      `
     SELECT
       (SELECT COUNT(*) FROM players WHERE tournament_id = 1) as players,
       (SELECT COUNT(*) FROM teams WHERE tournament_id = 1) as teams,
@@ -817,16 +1160,22 @@ pages.get('/dashboard', async (c) => {
       (SELECT COUNT(*) FROM matches WHERE status = 'finished') as finished,
       (SELECT COUNT(*) FROM matches WHERE status = 'playing') as playing,
       (SELECT COUNT(*) FROM matches WHERE status = 'scheduled') as scheduled
-  `).first();
+  `
+    )
+    .first();
 
-  const { results: recentResults } = await db.prepare(`
+  const { results: recentResults } = await db
+    .prepare(
+      `
     SELECT m.id, COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2, m.score1, m.score2
     FROM matches m
     LEFT JOIN players p1 ON m.player1_id = p1.id
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status = 'finished'
     ORDER BY m.id DESC LIMIT 5
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<DashboardPage stats={stats as any} recentResults={recentResults as any} />);
 });
@@ -835,13 +1184,17 @@ pages.get('/dashboard', async (c) => {
 pages.get('/events', async (c) => {
   const db = c.env.DB;
 
-  const { results: events } = await db.prepare(`
+  const { results: events } = await db
+    .prepare(
+      `
     SELECT e.id, e.key, e.title, e.event_type as type, COALESCE(e.stage,'loop') as stage,
       (SELECT COUNT(*) FROM group_entries ge JOIN group_tables g ON ge.group_id = g.id WHERE g.event_id = e.id) as playerCount,
       (SELECT COUNT(*) FROM matches WHERE event_id = e.id) as matchCount,
       (SELECT COUNT(*) FROM matches WHERE event_id = e.id AND status = 'finished') as finished
     FROM events e WHERE e.tournament_id = 1
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<EventListPage events={events as any} />);
 });
@@ -849,10 +1202,14 @@ pages.get('/events', async (c) => {
 // Table status
 pages.get('/tables', async (c) => {
   const db = c.env.DB;
-  const tournament = await db.prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1').first();
+  const tournament = await db
+    .prepare('SELECT COALESCE(tables_count, 6) as tables FROM tournaments WHERE id = 1')
+    .first();
   const tableCount = (tournament?.tables as number) || 6;
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.table_no, m.status, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2,
       COALESCE(m.score1,0) as score1, COALESCE(m.score2,0) as score2
@@ -861,7 +1218,9 @@ pages.get('/tables', async (c) => {
     LEFT JOIN players p1 ON m.player1_id = p1.id
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status IN ('playing', 'scheduled')
-  `).all();
+  `
+    )
+    .all();
 
   const tables = Array.from({ length: tableCount }, (_, i) => {
     const no = i + 1;
@@ -871,7 +1230,9 @@ pages.get('/tables', async (c) => {
     return {
       no,
       status: playing ? 'playing' : ready ? 'ready' : 'idle',
-      match: current ? { p1: current.p1, p2: current.p2, score1: current.score1, score2: current.score2, event: current.event } : undefined
+      match: current
+        ? { p1: current.p1, p2: current.p2, score1: current.score1, score2: current.score2, event: current.event }
+        : undefined,
     };
   });
 
@@ -881,22 +1242,30 @@ pages.get('/tables', async (c) => {
 // About page
 pages.get('/about', async (c) => {
   const db = c.env.DB;
-  const t = await db.prepare('SELECT title, venue, start_date, end_date, organizer, contact FROM tournaments WHERE id = 1').first();
+  const t = await db
+    .prepare('SELECT title, venue, start_date, end_date, organizer, contact FROM tournaments WHERE id = 1')
+    .first();
 
-  return c.html(<AboutPage tournament={{
-    title: (t?.title as string) || 'PaddlePal',
-    venue: (t?.venue as string) || '',
-    dates: t?.start_date ? `${t.start_date} ~ ${t.end_date || ''}` : '',
-    organizer: (t?.organizer as string) || '',
-    contact: (t?.contact as string) || ''
-  }} />);
+  return c.html(
+    <AboutPage
+      tournament={{
+        title: (t?.title as string) || 'PaddlePal',
+        venue: (t?.venue as string) || '',
+        dates: t?.start_date ? `${t.start_date} ~ ${t.end_date || ''}` : '',
+        organizer: (t?.organizer as string) || '',
+        contact: (t?.contact as string) || '',
+      }}
+    />
+  );
 });
 
 // Batch score entry
 pages.get('/admin/batch-score', async (c) => {
   const db = c.env.DB;
 
-  const { results: matches } = await db.prepare(`
+  const { results: matches } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, m.score1, m.score2,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
     FROM matches m
@@ -904,7 +1273,9 @@ pages.get('/admin/batch-score', async (c) => {
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.status IN ('scheduled', 'playing')
     ORDER BY m.time, m.table_no LIMIT 50
-  `).all();
+  `
+    )
+    .all();
 
   return c.html(<BatchScorePage matches={matches as any} />);
 });
@@ -920,21 +1291,36 @@ pages.get('/admin/import-players', async (c) => {
 pages.get('/admin/draw/:eventId', async (c) => {
   const db = c.env.DB;
   const eventId = c.req.param('eventId');
-  const ev = await db.prepare("SELECT id, title, COALESCE(stage,'loop') as stage FROM events WHERE id=?").bind(eventId).first();
+  const ev = await db
+    .prepare("SELECT id, title, COALESCE(stage,'loop') as stage FROM events WHERE id=?")
+    .bind(eventId)
+    .first();
   if (!ev) return c.text('Not found', 404);
 
-  const { results: gRows } = await db.prepare('SELECT id, group_name as name FROM group_tables WHERE event_id=? ORDER BY group_index').bind(eventId).all();
+  const { results: gRows } = await db
+    .prepare('SELECT id, group_name as name FROM group_tables WHERE event_id=? ORDER BY group_index')
+    .bind(eventId)
+    .all();
   const assignedIds: number[] = [];
   const groups = [];
   for (const g of gRows) {
-    const { results: pRows } = await db.prepare(`SELECT ge.player_id as id, ge.position, p.name
-      FROM group_entries ge JOIN players p ON ge.player_id=p.id WHERE ge.group_id=? ORDER BY ge.position`).bind(g.id).all();
-    pRows.forEach(p => assignedIds.push(p.id as number));
+    const { results: pRows } = await db
+      .prepare(
+        `SELECT ge.player_id as id, ge.position, p.name
+      FROM group_entries ge JOIN players p ON ge.player_id=p.id WHERE ge.group_id=? ORDER BY ge.position`
+      )
+      .bind(g.id)
+      .all();
+    pRows.forEach((p) => assignedIds.push(p.id as number));
     groups.push({ id: g.id, name: g.name, players: pRows });
   }
-  const { results: allPlayers } = await db.prepare(`SELECT p.id, p.name, COALESCE(t.short_name,'') as team
-    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.name`).all();
-  const unassigned = allPlayers.filter(p => !assignedIds.includes(p.id as number));
+  const { results: allPlayers } = await db
+    .prepare(
+      `SELECT p.id, p.name, COALESCE(t.short_name,'') as team
+    FROM players p LEFT JOIN teams t ON p.team_id=t.id WHERE p.tournament_id=1 ORDER BY p.name`
+    )
+    .all();
+  const unassigned = allPlayers.filter((p) => !assignedIds.includes(p.id as number));
 
   return c.html(<DrawPage event={ev as any} groups={groups as any} unassigned={unassigned as any} />);
 });
@@ -943,14 +1329,18 @@ pages.get('/admin/draw/:eventId', async (c) => {
 pages.get('/search', async (c) => {
   const q = (c.req.query('q') || '').trim();
   if (!q) return c.html(<SearchPage q="" matches={[]} />);
-  const { results } = await c.env.DB.prepare(`
+  const { results } = await c.env.DB.prepare(
+    `
     SELECT m.match_order as pid, m.time, m.table_no, m.status, m.result,
       COALESCE(p1.name,'') as player1, COALESCE(p2.name,'') as player2, e.title as event
     FROM matches m JOIN events e ON m.event_id=e.id
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     WHERE p1.name LIKE ?1 OR p2.name LIKE ?1
     ORDER BY m.time, m.match_order
-  `).bind(`%${q}%`).all();
+  `
+  )
+    .bind(`%${q}%`)
+    .all();
   return c.html(<SearchPage q={q} matches={results as any} />);
 });
 
@@ -960,16 +1350,21 @@ pages.get('/bracket/:eventId', async (c) => {
   const eventId = c.req.param('eventId');
   const ev = await db.prepare('SELECT title FROM events WHERE id=?').bind(eventId).first();
   if (!ev) return c.text('Not found', 404);
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT m.id, COALESCE(m.round,1) as round, m.match_order as position, m.status, m.result, COALESCE(m.winner_side,0) as winner,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
     FROM matches m
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     WHERE m.event_id=? ORDER BY m.round, m.match_order
-  `).bind(eventId).all();
+  `
+    )
+    .bind(eventId)
+    .all();
   const maxRound = results.reduce((mx, r) => Math.max(mx, r.round as number), 1);
   const rounds: any[][] = [];
-  for (let r = 1; r <= maxRound; r++) rounds.push(results.filter(m => m.round === r));
+  for (let r = 1; r <= maxRound; r++) rounds.push(results.filter((m) => m.round === r));
   return c.html(<BracketPage title={ev.title as string} rounds={rounds} maxRound={maxRound} />);
 });
 
@@ -980,22 +1375,32 @@ pages.get('/team/:eventId', async (c) => {
   const ev = await db.prepare('SELECT title FROM events WHERE id=?').bind(eventId).first();
   if (!ev) return c.text('Not found', 404);
   // Team matches: matches with team1_id set
-  const { results: tms } = await db.prepare(`
+  const { results: tms } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order, m.time, m.table_no, m.status, m.result,
       COALESCE(t1.name,'') as team1, COALESCE(t2.name,'') as team2, e.title as event
     FROM matches m JOIN events e ON m.event_id=e.id
     LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
     WHERE m.event_id=? AND m.team1_id IS NOT NULL ORDER BY m.match_order
-  `).bind(eventId).all();
+  `
+    )
+    .bind(eventId)
+    .all();
   // For each team match, find rubber matches (individual matches in same group/round)
   const matches = [];
   for (const tm of tms) {
-    const { results: rubbers } = await db.prepare(`
+    const { results: rubbers } = await db
+      .prepare(
+        `
       SELECT m.match_order as pid, COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2, m.result, m.status
       FROM matches m
       LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
       WHERE m.event_id=? AND m.group_id=? AND m.team1_id IS NULL ORDER BY m.match_order
-    `).bind(eventId, tm.id).all();
+    `
+      )
+      .bind(eventId, tm.id)
+      .all();
     matches.push({ ...tm, rubbers: rubbers.length > 0 ? rubbers : [] });
   }
   return c.html(<TeamMatchPage event={ev.title as string} matches={matches as any} />);
@@ -1004,22 +1409,30 @@ pages.get('/team/:eventId', async (c) => {
 // Big Screen: Live scores (dual panel)
 pages.get('/screen/live', async (c) => {
   const db = c.env.DB;
-  const { results: playing } = await db.prepare(`
+  const { results: playing } = await db
+    .prepare(
+      `
     SELECT m.table_no as tb, e.key as gp, COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr,
       COALESCE(t1.short_name,'') as tnl, COALESCE(t2.short_name,'') as tnr, m.result as score
     FROM matches m JOIN events e ON m.event_id=e.id
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
     WHERE m.status='playing' ORDER BY m.table_no
-  `).all();
-  const { results: checkin } = await db.prepare(`
+  `
+    )
+    .all();
+  const { results: checkin } = await db
+    .prepare(
+      `
     SELECT m.table_no as tb, e.key as gp, COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr,
       COALESCE(t1.short_name,'') as tnl, COALESCE(t2.short_name,'') as tnr
     FROM matches m JOIN events e ON m.event_id=e.id
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
     WHERE m.status='checkin' ORDER BY m.table_no
-  `).all();
+  `
+    )
+    .all();
   return c.html(<BigScreenLive matches={playing as any} checkin={checkin as any} />);
 });
 
@@ -1027,31 +1440,41 @@ pages.get('/screen/live', async (c) => {
 pages.get('/screen/results/:eventKey?', async (c) => {
   const db = c.env.DB;
   const eventKey = c.req.param('eventKey');
-  let results, title = '最新成绩';
+  let results,
+    title = '最新成绩';
   if (eventKey) {
     const ev = await db.prepare('SELECT id, title FROM events WHERE key=?').bind(eventKey).first();
     if (ev) {
       title = ev.title as string;
-      const { results: r } = await db.prepare(`
+      const { results: r } = await db
+        .prepare(
+          `
         SELECT m.round, m.match_order as 'order', m.table_no as tb, m.result, m.winner_side as winner,
           COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
         FROM matches m
         LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
         LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
         WHERE m.event_id=? AND m.status='finished' ORDER BY m.id DESC LIMIT 20
-      `).bind(ev.id).all();
+      `
+        )
+        .bind(ev.id)
+        .all();
       results = r;
     }
   }
   if (!results) {
-    const { results: r } = await db.prepare(`
+    const { results: r } = await db
+      .prepare(
+        `
       SELECT m.round, m.match_order as 'order', m.table_no as tb, m.result, m.winner_side as winner,
         COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
       FROM matches m
       LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
       LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
       WHERE m.status='finished' ORDER BY m.id DESC LIMIT 20
-    `).all();
+    `
+      )
+      .all();
     results = r;
   }
   return c.html(<BigScreenResults event={title} results={results as any} />);
@@ -1061,76 +1484,98 @@ pages.get('/screen/results/:eventKey?', async (c) => {
 pages.get('/screen/schedule/:eventKey?', async (c) => {
   const db = c.env.DB;
   const eventKey = c.req.param('eventKey');
-  let matches, title = '比赛秩序';
+  let matches,
+    title = '比赛秩序';
   if (eventKey) {
     const ev = await db.prepare('SELECT id, title FROM events WHERE key=?').bind(eventKey).first();
     if (ev) {
       title = ev.title as string;
-      const { results } = await db.prepare(`
+      const { results } = await db
+        .prepare(
+          `
         SELECT m.time, m.table_no as tb, e.key as event, m.status,
           COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
         FROM matches m JOIN events e ON m.event_id=e.id
         LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
         LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
         WHERE m.event_id=? ORDER BY m.time, m.table_no LIMIT 30
-      `).bind(ev.id).all();
+      `
+        )
+        .bind(ev.id)
+        .all();
       matches = results;
     }
   }
   if (!matches) {
-    const { results } = await db.prepare(`
+    const { results } = await db
+      .prepare(
+        `
       SELECT m.time, m.table_no as tb, e.key as event, m.status,
         COALESCE(p1.name, t1.short_name, '') as p1, COALESCE(p2.name, t2.short_name, '') as p2
       FROM matches m JOIN events e ON m.event_id=e.id
       LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
       LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
       WHERE m.status IN ('scheduled','playing','checkin') ORDER BY m.time, m.table_no LIMIT 30
-    `).all();
+    `
+      )
+      .all();
     matches = results;
   }
   return c.html(<BigScreenSchedule title={title} matches={matches as any} />);
 });
 
-
 // Ranking page
 pages.get('/ranking', async (c) => {
   const db = c.env.DB;
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT p.id, p.name, p.rating, t.short_name as team
     FROM players p LEFT JOIN teams t ON p.team_id = t.id
     WHERE p.tournament_id = 1 AND p.rating > 0
     ORDER BY p.rating DESC LIMIT 100
-  `).all();
+  `
+    )
+    .all();
   return c.html(<RankingPage players={results as any} />);
 });
 
 // Notices page
 pages.get('/notices', async (c) => {
   const db = c.env.DB;
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT title, content, created_at FROM notices
     WHERE tournament_id = 1 ORDER BY id DESC
-  `).all();
+  `
+    )
+    .all();
   return c.html(<NoticesPage notices={results as any} />);
 });
 
 // Progress page
 pages.get('/progress', async (c) => {
   const db = c.env.DB;
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT e.key, e.title,
       (SELECT COUNT(*) FROM matches WHERE event_id = e.id) as total,
       (SELECT COUNT(*) FROM matches WHERE event_id = e.id AND status = 'finished') as finished
     FROM events e WHERE e.tournament_id = 1 ORDER BY e.id
-  `).all();
+  `
+    )
+    .all();
   return c.html(<ProgressPage events={results as any} />);
 });
-
 
 // Big Screen: Live with flags
 pages.get('/screen/flags', async (c) => {
   const db = c.env.DB;
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT m.table_no as tb, e.key as event, m.result as score,
       COALESCE(p1.name, t1.short_name, '') as p1,
       COALESCE(p2.name, t2.short_name, '') as p2,
@@ -1140,24 +1585,36 @@ pages.get('/screen/flags', async (c) => {
     LEFT JOIN teams t1 ON COALESCE(m.team1_id, p1.team_id) = t1.id
     LEFT JOIN teams t2 ON COALESCE(m.team2_id, p2.team_id) = t2.id
     WHERE m.status = 'playing' ORDER BY m.table_no
-  `).all();
+  `
+    )
+    .all();
   return c.html(<BigScreenFlags matches={results as any} />);
 });
 
 // Flag upload management page
 pages.get('/admin/flags', async (c) => {
   const db = c.env.DB;
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT id, name, flag FROM teams WHERE tournament_id = 1 ORDER BY name
-  `).all();
+  `
+    )
+    .all();
   return c.html(<FlagUploadPage teams={results as any} />);
 });
 
 // Export center page
 pages.get('/admin/export', async (c) => {
   const db = c.env.DB;
-  const { results: events } = await db.prepare('SELECT key, title FROM events WHERE tournament_id = 1 ORDER BY id').all();
-  const tournament = await db.prepare("SELECT COALESCE(info,'') as name, COALESCE(venue,'') as venue, COALESCE(start_date,'') as date FROM tournaments WHERE id = 1").first();
+  const { results: events } = await db
+    .prepare('SELECT key, title FROM events WHERE tournament_id = 1 ORDER BY id')
+    .all();
+  const tournament = await db
+    .prepare(
+      "SELECT COALESCE(info,'') as name, COALESCE(venue,'') as venue, COALESCE(start_date,'') as date FROM tournaments WHERE id = 1"
+    )
+    .first();
   return c.html(<ExportPage events={events as any} tournament={tournament as any} />);
 });
 
@@ -1165,36 +1622,59 @@ pages.get('/admin/export', async (c) => {
 pages.get('/screen/draw/:eventKey', async (c) => {
   const db = c.env.DB;
   const eventKey = c.req.param('eventKey');
-  const event = await db.prepare('SELECT id, key, title FROM events WHERE key = ? AND tournament_id = 1').bind(eventKey).first();
+  const event = await db
+    .prepare('SELECT id, key, title FROM events WHERE key = ? AND tournament_id = 1')
+    .bind(eventKey)
+    .first();
   if (!event) return c.text('Event not found', 404);
 
-  const { results: entries } = await db.prepare(`
+  const { results: entries } = await db
+    .prepare(
+      `
     SELECT d.position, d.seed, p.name as player, COALESCE(t.short_name,'') as team, p.rating, d.draw_time
     FROM draws d
     JOIN players p ON d.player_id = p.id
     LEFT JOIN teams t ON p.team_id = t.id
     WHERE d.event_id = ?
     ORDER BY d.position
-  `).bind(event.id).all();
+  `
+    )
+    .bind(event.id)
+    .all();
 
-  const total = await db.prepare(`
+  const total = await db
+    .prepare(
+      `
     SELECT COUNT(*) as cnt FROM group_entries WHERE group_id IN (SELECT id FROM group_tables WHERE event_id = ?)
-  `).bind(event.id).first();
+  `
+    )
+    .bind(event.id)
+    .first();
   const totalPlayers = (total?.cnt as number) || 16;
   const status = entries.length === 0 ? 'pending' : entries.length >= totalPlayers ? 'completed' : 'drawing';
 
   const tournament = await db.prepare("SELECT COALESCE(info,'') as name FROM tournaments WHERE id = 1").first();
 
-  return c.html(<DrawBoardPage 
-    event={{ key: eventKey, title: event.title as string, entries: entries as any, status: status as any, totalPlayers }}
-    tournament={tournament?.name as string || ''}
-  />);
+  return c.html(
+    <DrawBoardPage
+      event={{
+        key: eventKey,
+        title: event.title as string,
+        entries: entries as any,
+        status: status as any,
+        totalPlayers,
+      }}
+      tournament={(tournament?.name as string) || ''}
+    />
+  );
 });
 
 // Live API for polling
 pages.get('/api/live', async (c) => {
   const db = c.env.DB;
-  const { results: playingRows } = await db.prepare(`
+  const { results: playingRows } = await db
+    .prepare(
+      `
     SELECT m.id, m.match_order as pid, m.table_no as tb, m.time as tm, e.key as gp, e.event_type as ev,
       COALESCE(p1.name,'') as nl, COALESCE(p2.name,'') as nr,
       COALESCE(t1.short_name,'') as tnl, COALESCE(t2.short_name,'') as tnr, m.result
@@ -1202,13 +1682,18 @@ pages.get('/api/live', async (c) => {
     LEFT JOIN players p1 ON m.player1_id=p1.id LEFT JOIN players p2 ON m.player2_id=p2.id
     LEFT JOIN teams t1 ON m.team1_id=t1.id LEFT JOIN teams t2 ON m.team2_id=t2.id
     WHERE m.status='playing' ORDER BY m.table_no
-  `).all();
-  
+  `
+    )
+    .all();
+
   const playing = [];
   for (const r of playingRows) {
-    const { results: sRows } = await db.prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no').bind(r.id).all();
+    const { results: sRows } = await db
+      .prepare('SELECT score_left as l, score_right as r FROM scores WHERE match_id=? ORDER BY game_no')
+      .bind(r.id)
+      .all();
     playing.push({ ...r, score: sRows });
   }
-  
+
   return c.json({ playing });
 });

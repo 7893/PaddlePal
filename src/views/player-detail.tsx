@@ -2,7 +2,9 @@ import type { FC } from 'hono/jsx';
 import { Layout, Nav, Card, PageWrapper, Footer } from '../components/layout';
 
 type HeadToHead = {
-  opponent: string; wins: number; losses: number;
+  opponent: string;
+  wins: number;
+  losses: number;
   matches: { date: string; score: string; won: boolean }[];
 };
 
@@ -12,7 +14,7 @@ export const PlayerDetailPage: FC<{
   headToHead: HeadToHead[];
   recentMatches: { date: string; opponent: string; score: string; won: boolean }[];
 }> = ({ player, stats, headToHead, recentMatches }) => {
-  const winRate = stats.played > 0 ? Math.round(stats.wins / stats.played * 100) : 0;
+  const winRate = stats.played > 0 ? Math.round((stats.wins / stats.played) * 100) : 0;
 
   return (
     <Layout title={`${player.name} - 选手详情`}>
@@ -49,13 +51,15 @@ export const PlayerDetailPage: FC<{
           {recentMatches.length > 0 && (
             <Card title="最近比赛" class="mb-6">
               <div class="space-y-2">
-                {recentMatches.slice(0, 10).map(m => (
+                {recentMatches.slice(0, 10).map((m) => (
                   <div class="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
                     <div>
                       <span class="text-slate-400 text-sm">{m.date}</span>
                       <span class="ml-3 font-medium text-slate-700">vs {m.opponent}</span>
                     </div>
-                    <div class={`px-3 py-1 rounded-lg text-sm font-medium ${m.won ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                    <div
+                      class={`px-3 py-1 rounded-lg text-sm font-medium ${m.won ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
+                    >
                       {m.won ? '胜' : '负'} {m.score}
                     </div>
                   </div>
@@ -68,11 +72,13 @@ export const PlayerDetailPage: FC<{
           {headToHead.length > 0 && (
             <Card title="对战记录">
               <div class="space-y-2">
-                {headToHead.slice(0, 10).map(h => (
+                {headToHead.slice(0, 10).map((h) => (
                   <div class="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
                     <span class="font-semibold text-slate-800">{h.opponent}</span>
                     <div class="flex items-center gap-2">
-                      <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium">{h.wins}胜</span>
+                      <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium">
+                        {h.wins}胜
+                      </span>
                       <span class="px-2 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium">{h.losses}负</span>
                     </div>
                   </div>

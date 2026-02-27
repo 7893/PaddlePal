@@ -2,8 +2,13 @@ import type { FC } from 'hono/jsx';
 import { Layout, Nav, Card, Badge, PageWrapper, Footer } from '../components/layout';
 
 type EventItem = {
-  id: number; key: string; title: string; type: string;
-  format: string; player_count: number; match_count: number;
+  id: number;
+  key: string;
+  title: string;
+  type: string;
+  format: string;
+  player_count: number;
+  match_count: number;
 };
 
 export const DrawListPage: FC<{ events: EventItem[] }> = ({ events }) => (
@@ -44,9 +49,24 @@ export const DrawListPage: FC<{ events: EventItem[] }> = ({ events }) => (
                         )}
                       </td>
                       <td class="py-4 text-right space-x-2">
-                        <a href={`/admin/draw/roundrobin/${e.key}`} class="px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">分组</a>
-                        <a href={`/admin/schedule/${e.key}`} class="px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">编排</a>
-                        <a href={`/admin/draw/${e.id}`} class="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">淘汰</a>
+                        <a
+                          href={`/admin/draw/roundrobin/${e.key}`}
+                          class="px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        >
+                          分组
+                        </a>
+                        <a
+                          href={`/admin/schedule/${e.key}`}
+                          class="px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        >
+                          编排
+                        </a>
+                        <a
+                          href={`/admin/draw/${e.id}`}
+                          class="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          淘汰
+                        </a>
                       </td>
                     </tr>
                   ))}

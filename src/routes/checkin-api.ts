@@ -26,7 +26,10 @@ app.post('/api/checkin/:matchId/cancel', async (c) => {
   const db = c.env.DB;
   const matchId = c.req.param('matchId');
 
-  await db.prepare("UPDATE matches SET checkin1 = 0, checkin2 = 0, status = 'scheduled' WHERE id = ?").bind(matchId).run();
+  await db
+    .prepare("UPDATE matches SET checkin1 = 0, checkin2 = 0, status = 'scheduled' WHERE id = ?")
+    .bind(matchId)
+    .run();
   return c.json({ success: true });
 });
 
@@ -35,14 +38,19 @@ app.get('/api/checkin/:matchId', async (c) => {
   const db = c.env.DB;
   const matchId = c.req.param('matchId');
 
-  const match = await db.prepare(`
+  const match = await db
+    .prepare(
+      `
     SELECT m.checkin1, m.checkin2, m.status,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
     FROM matches m
     LEFT JOIN players p1 ON m.player1_id = p1.id
     LEFT JOIN players p2 ON m.player2_id = p2.id
     WHERE m.id = ?
-  `).bind(matchId).first();
+  `
+    )
+    .bind(matchId)
+    .first();
 
   return c.json(match || { error: 'Not found' });
 });
@@ -51,7 +59,9 @@ app.get('/api/checkin/:matchId', async (c) => {
 app.get('/api/checkin/pending', async (c) => {
   const db = c.env.DB;
 
-  const { results } = await db.prepare(`
+  const { results } = await db
+    .prepare(
+      `
     SELECT m.id, m.time, m.table_no, m.checkin1, m.checkin2, e.title as event,
       COALESCE(p1.name,'') as p1, COALESCE(p2.name,'') as p2
     FROM matches m
@@ -61,7 +71,9 @@ app.get('/api/checkin/pending', async (c) => {
     WHERE m.status = 'scheduled'
     ORDER BY m.time, m.table_no
     LIMIT 20
-  `).all();
+  `
+    )
+    .all();
 
   return c.json({ matches: results });
 });
