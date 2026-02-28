@@ -1,5 +1,5 @@
 import type { FC } from 'hono/jsx';
-import { Layout, Nav, Card, PageWrapper, Footer } from '../components/layout';
+import { Layout, Nav, Card, PageWrapper, Footer, Select, Button, FormGroup } from '../components/layout';
 import { StatCard, StatBox } from '../components/match';
 
 type Group = {
@@ -29,32 +29,24 @@ export const DrawManagePage: FC<{ eventKey: string; eventTitle: string; groups: 
 
         <Card title="抽签设置" class="mb-6">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-            <div>
-              <label class="block text-sm text-slate-600 mb-2 font-medium">小组数</label>
-              <select
-                id="groupCount"
-                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500"
-              >
+            <FormGroup label="小组数">
+              <Select id="groupCount" class="w-full">
                 {[2, 3, 4, 5, 6, 8].map((n) => (
                   <option value={n} selected={n === 4}>
                     {n}组
                   </option>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm text-slate-600 mb-2 font-medium">种子数</label>
-              <select
-                id="seedCount"
-                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500"
-              >
+              </Select>
+            </FormGroup>
+            <FormGroup label="种子数">
+              <Select id="seedCount" class="w-full">
                 {[0, 2, 4, 8].map((n) => (
                   <option value={n} selected={n === 4}>
                     {n === 0 ? '无种子' : `${n}个种子`}
                   </option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </FormGroup>
             <div class="flex items-end">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
@@ -67,18 +59,12 @@ export const DrawManagePage: FC<{ eventKey: string; eventTitle: string; groups: 
               </label>
             </div>
             <div class="flex items-end gap-3">
-              <button
-                onclick="executeDraw()"
-                class="flex-1 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium shadow-lg shadow-emerald-500/25"
-              >
+              <Button onclick="executeDraw()" class="flex-1">
                 执行抽签
-              </button>
-              <button
-                onclick="resetDraw()"
-                class="px-4 py-2.5 border border-red-200 text-red-600 rounded-xl hover:bg-red-50"
-              >
+              </Button>
+              <Button onclick="resetDraw()" color="danger" class="px-4">
                 重置
-              </button>
+              </Button>
             </div>
           </div>
         </Card>
@@ -127,7 +113,7 @@ export const DrawManagePage: FC<{ eventKey: string; eventTitle: string; groups: 
       <Footer />
       <script
         dangerouslySetInnerHTML={{
-          __html: `var eventKey='${eventKey}';function api(u,b){return fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json())}function executeDraw(){var g=parseInt(document.getElementById('groupCount').value),s=parseInt(document.getElementById('seedCount').value),t=document.getElementById('separateTeams').checked;if(!confirm('确定执行抽签？'))return;api('/api/draw/roundrobin/'+eventKey+'/execute',{groupCount:g,seedCount:s,separateTeams:t}).then(r=>{if(r.success){alert('抽签完成！');location.reload()}else alert('错误: '+r.error)})}function resetDraw(){if(!confirm('确定重置？'))return;api('/api/draw/roundrobin/'+eventKey+'/reset',{}).then(r=>{if(r.success)location.reload()})}`,
+          __html: `var ek='${eventKey}';function api(u,b){return fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json())}function executeDraw(){var g=+document.getElementById('groupCount').value,s=+document.getElementById('seedCount').value,t=document.getElementById('separateTeams').checked;if(!confirm('确定执行抽签？'))return;api('/api/draw/roundrobin/'+ek+'/execute',{groupCount:g,seedCount:s,separateTeams:t}).then(r=>{if(r.success){alert('抽签完成！');location.reload()}else alert('错误: '+r.error)})}function resetDraw(){if(!confirm('确定重置？'))return;api('/api/draw/roundrobin/'+ek+'/reset',{}).then(r=>{if(r.success)location.reload()})}`,
         }}
       />
     </Layout>
