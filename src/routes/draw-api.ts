@@ -82,9 +82,11 @@ app.post('/api/draw/roundrobin/:eventKey/execute', async (c) => {
 
   // 创建小组
   const groupNames = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  for (let i = 0; i < groupCount; i++) {
-    await db.prepare('INSERT INTO group_tables (event_id, name) VALUES (?, ?)').bind(event.id, groupNames[i]).run();
-  }
+  await db.batch(
+    Array.from({ length: groupCount }, (_, i) =>
+      db.prepare('INSERT INTO group_tables (event_id, name) VALUES (?, ?)').bind(event.id, groupNames[i])
+    )
+  );
 
   // 获取新创建的小组
   const { results: groups } = await db
@@ -109,13 +111,12 @@ app.post('/api/draw/roundrobin/:eventKey/execute', async (c) => {
   const nonSeeds = players.slice(seeds.length);
 
   // 种子选手分配到各组1号位
-  for (let i = 0; i < seeds.length; i++) {
-    const groupId = groups[i].id;
-    await db
+  const seedStmts = seeds.map((s, i) =>
+    db
       .prepare('INSERT INTO group_entries (group_id, player_id, position, seed) VALUES (?, ?, 1, 1)')
-      .bind(groupId, seeds[i].id)
-      .run();
-  }
+      .bind(groups[i].id, s.id)
+  );
+  if (seedStmts.length > 0) await db.batch(seedStmts);
 
   // 非种子选手随机分配，同队分开
   let shuffled = [...nonSeeds].sort(() => Math.random() - 0.5);
@@ -143,17 +144,17 @@ app.post('/api/draw/roundrobin/:eventKey/execute', async (c) => {
   const groupPositions: number[] = new Array(groupCount).fill(seeds.length > 0 ? 2 : 1);
   let direction = 1;
   let groupIdx = 0;
+  const nonSeedStmts = [];
 
   for (const player of shuffled) {
     const groupId = groups[groupIdx].id;
     const position = groupPositions[groupIdx];
-    await db
-      .prepare('INSERT INTO group_entries (group_id, player_id, position, seed) VALUES (?, ?, ?, 0)')
-      .bind(groupId, player.id, position)
-      .run();
+    nonSeedStmts.push(
+      db
+        .prepare('INSERT INTO group_entries (group_id, player_id, position, seed) VALUES (?, ?, ?, 0)')
+        .bind(groupId, player.id, position)
+    );
     groupPositions[groupIdx]++;
-
-    // 蛇形移动
     groupIdx += direction;
     if (groupIdx >= groupCount) {
       groupIdx = groupCount - 1;
@@ -163,6 +164,7 @@ app.post('/api/draw/roundrobin/:eventKey/execute', async (c) => {
       direction = 1;
     }
   }
+  if (nonSeedStmts.length > 0) await db.batch(nonSeedStmts);
 
   return c.json({ success: true, groupCount, totalPlayers: players.length });
 });
@@ -301,18 +303,16 @@ app.post('/api/draw/:eventKey/start', async (c) => {
   const positions = seedPositions[drawSize] || seedPositions[16];
 
   // Place seeded players
-  for (let i = 0; i < seeded.length && i < 8; i++) {
-    const s = seeded[i];
-    await db
-      .prepare(
-        `
-      INSERT INTO draws (event_id, player_id, seed, position, draw_time)
-      VALUES (?, ?, ?, ?, datetime('now'))
-    `
-      )
-      .bind(event.id, s.player_id, i + 1, positions[i])
-      .run();
-  }
+  const seedBatch = seeded
+    .slice(0, 8)
+    .map((s, i) =>
+      db
+        .prepare(
+          `INSERT INTO draws (event_id, player_id, seed, position, draw_time) VALUES (?, ?, ?, ?, datetime('now'))`
+        )
+        .bind(event.id, s.player_id, i + 1, positions[i])
+    );
+  if (seedBatch.length > 0) await db.batch(seedBatch);
 
   return c.json({ success: true, seededCount: Math.min(seeded.length, 8) });
 });

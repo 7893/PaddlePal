@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { hasPermission } from './auth';
+import { hashPassword } from '../utils/hash';
 
 type Bindings = { DB: D1Database };
 const app = new Hono<{ Bindings: Bindings }>();
@@ -38,7 +39,7 @@ app.post('/api/users', async (c) => {
 
   try {
     await c.env.DB.prepare('INSERT INTO users (username, password_hash, role, name) VALUES (?, ?, ?, ?)')
-      .bind(username, password, role || 'recorder', name || username)
+      .bind(username, await hashPassword(password), role || 'recorder', name || username)
       .run();
     return c.json({ success: true });
   } catch {
@@ -65,7 +66,7 @@ app.put('/api/users/:id', async (c) => {
 
   if (password) {
     updates.push('password_hash = ?');
-    params.push(password);
+    params.push(await hashPassword(password));
   }
   if (role) {
     updates.push('role = ?');

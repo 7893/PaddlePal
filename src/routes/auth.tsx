@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { LoginPage } from '../views/login';
+import { verifyPassword, hashPassword } from '../utils/hash';
 
 type Bindings = {
   DB: D1Database;
@@ -50,7 +51,14 @@ auth.post('/login', async (c) => {
 
   let validUser: { id: number; username: string; role: string; name: string } | null = null;
 
-  if (user && user.password_hash === password) {
+  if (user && (await verifyPassword(password, user.password_hash as string))) {
+    // Migrate plaintext to hashed on first login
+    if (!(user.password_hash as string).includes(':')) {
+      await db
+        .prepare('UPDATE users SET password_hash=? WHERE id=?')
+        .bind(await hashPassword(password), user.id)
+        .run();
+    }
     validUser = {
       id: user.id as number,
       username: user.username as string,

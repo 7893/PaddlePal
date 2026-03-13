@@ -20,14 +20,14 @@ adminApi.post('/api/admin/match/save', async (c) => {
   await db.prepare('DELETE FROM scores WHERE match_id=?').bind(match_id).run();
   let w1 = 0,
     w2 = 0;
-  for (const s of scores) {
-    await db
-      .prepare('INSERT INTO scores (match_id, game_no, score_left, score_right) VALUES (?,?,?,?)')
-      .bind(match_id, s.game, s.left, s.right)
-      .run();
+  const scoreBatch = scores.map((s) => {
     if (s.left > s.right) w1++;
     else if (s.right > s.left) w2++;
-  }
+    return db
+      .prepare('INSERT INTO scores (match_id, game_no, score_left, score_right) VALUES (?,?,?,?)')
+      .bind(match_id, s.game, s.left, s.right);
+  });
+  if (scoreBatch.length > 0) await db.batch(scoreBatch);
   const result = `${w1}:${w2}`;
   const winner = w1 > w2 ? 1 : w2 > w1 ? 2 : 0;
   await db
@@ -66,13 +66,14 @@ adminApi.post('/api/admin/match/walkover', async (c) => {
   } else return c.json({ success: false, error: 'invalid side' });
   await db.prepare('DELETE FROM scores WHERE match_id=?').bind(match_id).run();
   if (walkover_side !== 3) {
-    for (let i = 1; i <= wn; i++) {
-      const [sl, sr] = walkover_side === 1 ? [65535, 11] : [11, 65535];
-      await db
-        .prepare('INSERT INTO scores (match_id, game_no, score_left, score_right) VALUES (?,?,?,?)')
-        .bind(match_id, i, sl, sr)
-        .run();
-    }
+    const [sl, sr] = walkover_side === 1 ? [65535, 11] : [11, 65535];
+    await db.batch(
+      Array.from({ length: wn }, (_, i) =>
+        db
+          .prepare('INSERT INTO scores (match_id, game_no, score_left, score_right) VALUES (?,?,?,?)')
+          .bind(match_id, i + 1, sl, sr)
+      )
+    );
   }
   await db
     .prepare("UPDATE matches SET result=?, status='finished', winner_side=? WHERE id=?")
@@ -172,7 +173,7 @@ adminApi.post('/api/admin/players/import', async (c) => {
     teamMap.set(t.name as string, t.id as number);
     teamMap.set(t.short_name as string, t.id as number);
   }
-  let count = 0;
+  const stmts = [];
   for (const line of data.split('\n')) {
     const parts = line.split(',').map((s) => s.trim());
     const name = parts[0];
@@ -180,13 +181,12 @@ adminApi.post('/api/admin/players/import', async (c) => {
     const gender =
       (parts[1] || 'M').toUpperCase().startsWith('女') || (parts[1] || '').toUpperCase() === 'W' ? 'W' : 'M';
     const tid = teamMap.get(parts[2] || '') || 0;
-    await db
-      .prepare('INSERT INTO players (tournament_id, name, gender, team_id) VALUES (1,?,?,?)')
-      .bind(name, gender, tid)
-      .run();
-    count++;
+    stmts.push(
+      db.prepare('INSERT INTO players (tournament_id, name, gender, team_id) VALUES (1,?,?,?)').bind(name, gender, tid)
+    );
   }
-  return c.json({ success: true, count });
+  if (stmts.length > 0) await db.batch(stmts);
+  return c.json({ success: true, count: stmts.length });
 });
 
 // /api/admin/teams
@@ -273,11 +273,13 @@ adminApi.post('/api/admin/events', async (c) => {
       .bind(key, type, title, stage, groups, best_of)
       .run();
     if (stage === 'loop') {
-      for (let i = 1; i <= groups; i++)
-        await db
-          .prepare('INSERT INTO group_tables (event_id, group_name, group_index) VALUES (?,?,?)')
-          .bind(r.meta.last_row_id, `${i} 组`, i)
-          .run();
+      await db.batch(
+        Array.from({ length: groups }, (_, i) =>
+          db
+            .prepare('INSERT INTO group_tables (event_id, group_name, group_index) VALUES (?,?,?)')
+            .bind(r.meta.last_row_id, `${i + 1} 组`, i + 1)
+        )
+      );
     }
   } else {
     await db
@@ -350,17 +352,17 @@ adminApi.post('/api/admin/draw/auto', async (c) => {
     .bind(event_id)
     .all();
   const { results: ps } = await db.prepare('SELECT id FROM players WHERE tournament_id=1 ORDER BY RANDOM()').all();
-  for (let i = 0; i < ps.length; i++) {
-    const gid = gs[i % gs.length].id;
-    const mp = await db
-      .prepare('SELECT COALESCE(MAX(position),0)+1 as p FROM group_entries WHERE group_id=?')
-      .bind(gid)
-      .first();
-    await db
+
+  // Pre-compute positions per group
+  const posCounts = new Array(gs.length).fill(0);
+  const stmts = ps.map((p, i) => {
+    const gi = i % gs.length;
+    posCounts[gi]++;
+    return db
       .prepare('INSERT INTO group_entries (group_id, player_id, position) VALUES (?,?,?)')
-      .bind(gid, ps[i].id, mp!.p)
-      .run();
-  }
+      .bind(gs[gi].id, p.id, posCounts[gi]);
+  });
+  if (stmts.length > 0) await db.batch(stmts);
   return c.json({ success: true });
 });
 
@@ -369,29 +371,28 @@ adminApi.post('/api/admin/draw/matches', async (c) => {
   const db = c.env.DB;
   await db.prepare('DELETE FROM matches WHERE event_id=?').bind(event_id).run();
   const stg = await db.prepare("SELECT COALESCE(stage,'loop') as s FROM events WHERE id=?").bind(event_id).first();
-  let matchOrder = 90001,
-    count = 0;
+  const stmts = [];
+  let matchOrder = 90001;
+
   if (stg?.s === 'knockout') {
     const { results: ps } = await db
       .prepare(
-        `SELECT ge.player_id FROM group_entries ge
-      JOIN group_tables gt ON ge.group_id=gt.id WHERE gt.event_id=? ORDER BY ge.position`
+        `SELECT ge.player_id FROM group_entries ge JOIN group_tables gt ON ge.group_id=gt.id WHERE gt.event_id=? ORDER BY ge.position`
       )
       .bind(event_id)
       .all();
-    const n = ps.length;
-    for (let i = 0; i < Math.floor(n / 2); i++) {
-      await db
-        .prepare(
-          "INSERT INTO matches (event_id, round, match_order, player1_id, player2_id, status, table_no, time) VALUES (?,1,?,?,?,'scheduled',?,'')"
-        )
-        .bind(event_id, matchOrder, ps[i * 2]?.player_id || 0, ps[i * 2 + 1]?.player_id || 0, (count % 8) + 1)
-        .run();
-      matchOrder++;
-      count++;
+    for (let i = 0; i < Math.floor(ps.length / 2); i++) {
+      stmts.push(
+        db
+          .prepare(
+            "INSERT INTO matches (event_id, round, match_order, player1_id, player2_id, status, table_no, time) VALUES (?,1,?,?,?,'scheduled',?,'')"
+          )
+          .bind(event_id, matchOrder++, ps[i * 2]?.player_id || 0, ps[i * 2 + 1]?.player_id || 0, (i % 8) + 1)
+      );
     }
   } else {
     const { results: gs } = await db.prepare('SELECT id FROM group_tables WHERE event_id=?').bind(event_id).all();
+    let count = 0;
     for (const g of gs) {
       const { results: ps } = await db
         .prepare('SELECT player_id FROM group_entries WHERE group_id=? ORDER BY position')
@@ -399,19 +400,19 @@ adminApi.post('/api/admin/draw/matches', async (c) => {
         .all();
       for (let i = 0; i < ps.length; i++) {
         for (let j = i + 1; j < ps.length; j++) {
-          await db
-            .prepare(
-              "INSERT INTO matches (event_id, group_id, match_order, player1_id, player2_id, player3_id, player4_id, status, table_no, time) VALUES (?,?,?,?,?,?,?,'scheduled',?,'')"
-            )
-            .bind(event_id, g.id, matchOrder, ps[i].player_id, null, ps[j].player_id, null, (count % 8) + 1)
-            .run();
-          matchOrder++;
-          count++;
+          stmts.push(
+            db
+              .prepare(
+                "INSERT INTO matches (event_id, group_id, match_order, player1_id, player2_id, player3_id, player4_id, status, table_no, time) VALUES (?,?,?,?,?,?,?,'scheduled',?,'')"
+              )
+              .bind(event_id, g.id, matchOrder++, ps[i].player_id, null, ps[j].player_id, null, (count++ % 8) + 1)
+          );
         }
       }
     }
   }
-  return c.json({ success: true, count });
+  if (stmts.length > 0) await db.batch(stmts);
+  return c.json({ success: true, count: stmts.length });
 });
 
 // /api/admin/notice
