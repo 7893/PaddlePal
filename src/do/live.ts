@@ -1,28 +1,22 @@
-export class LiveDO {
-  private clients = new Set<WebSocket>();
+import { DurableObject } from 'cloudflare:workers';
 
+export class LiveDO extends DurableObject {
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
 
-    // WebSocket upgrade
-    if (url.pathname === '/ws') {
-      const upgrade = req.headers.get('Upgrade');
-      if (upgrade !== 'websocket') return new Response('Expected websocket', { status: 426 });
-      const { 0: client, 1: server } = new WebSocketPair();
-      server.accept();
-      this.clients.add(server);
-      server.addEventListener('close', () => this.clients.delete(server));
-      return new Response(null, { status: 101, webSocket: client });
+    if (url.pathname === '/ws/live') {
+      const pair = new WebSocketPair();
+      this.ctx.acceptWebSocket(pair[1]);
+      return new Response(null, { status: 101, webSocket: pair[0] });
     }
 
-    // Broadcast endpoint (called internally by Workers)
     if (url.pathname === '/broadcast' && req.method === 'POST') {
       const data = await req.text();
-      for (const ws of this.clients) {
+      for (const ws of this.ctx.getWebSockets()) {
         try {
           ws.send(data);
         } catch {
-          this.clients.delete(ws);
+          /* ignore closed */
         }
       }
       return new Response('ok');
@@ -30,4 +24,7 @@ export class LiveDO {
 
     return new Response('Not found', { status: 404 });
   }
+
+  webSocketMessage() {}
+  webSocketClose() {}
 }

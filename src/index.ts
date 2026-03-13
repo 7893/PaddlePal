@@ -104,11 +104,14 @@ app.notFound((c) => {
   return c.json({ success: false, error: 'Not found' }, 404);
 });
 
-// WebSocket endpoint for live updates
-app.get('/ws/live', (c) => {
-  const id = c.env.PADDLEPAL_DO.idFromName('global');
-  const stub = c.env.PADDLEPAL_DO.get(id);
-  return stub.fetch(new Request('https://do/ws', { headers: c.req.raw.headers }));
-});
-
-export default app;
+export default {
+  fetch(req: Request, env: Env, ctx: ExecutionContext) {
+    // Bypass Hono for WebSocket upgrade requests
+    const url = new URL(req.url);
+    if (url.pathname === '/ws/live' && req.headers.get('Upgrade') === 'websocket') {
+      const id = env.PADDLEPAL_DO.idFromName('global');
+      return env.PADDLEPAL_DO.get(id).fetch(req);
+    }
+    return app.fetch(req, env, ctx);
+  },
+} satisfies ExportedHandler<Env>;
