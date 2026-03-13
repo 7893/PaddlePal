@@ -1,7 +1,21 @@
 import { Hono } from 'hono';
 
-type Bindings = { DB: D1Database };
+type Bindings = { DB: D1Database; LIVE: DurableObjectNamespace };
 export const adminApi = new Hono<{ Bindings: Bindings }>();
+
+async function broadcast(env: Bindings, event: string, data: unknown) {
+  try {
+    const id = env.LIVE.idFromName('global');
+    await env.LIVE.get(id).fetch(
+      new Request('https://do/broadcast', {
+        method: 'POST',
+        body: JSON.stringify({ event, data }),
+      })
+    );
+  } catch {
+    /* non-critical */
+  }
+}
 
 // POST /api/admin/match/save
 adminApi.post('/api/admin/match/save', async (c) => {
@@ -34,6 +48,7 @@ adminApi.post('/api/admin/match/save', async (c) => {
     .prepare('UPDATE matches SET result=?, status=?, winner_side=? WHERE id=?')
     .bind(result, 'finished', winner, match_id)
     .run();
+  await broadcast(c.env, 'score', { match_id, result });
   return c.json({ success: true, result });
 });
 
@@ -41,6 +56,7 @@ adminApi.post('/api/admin/match/save', async (c) => {
 adminApi.post('/api/admin/match/status', async (c) => {
   const { match_id, status } = await c.req.json<{ match_id: number; status: string }>();
   await c.env.DB.prepare('UPDATE matches SET status=? WHERE id=?').bind(status, match_id).run();
+  await broadcast(c.env, 'status', { match_id, status });
   return c.json({ success: true });
 });
 

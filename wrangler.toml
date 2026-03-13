@@ -15,6 +15,14 @@ binding = "FILES"
 binding = "SESSIONS"
 id = "736076b3f04e4cd89cbcb86e541c855e"
 
+[[durable_objects.bindings]]
+name = "LIVE"
+class_name = "LiveDO"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["LiveDO"]
+
 [vars]
 ADMIN_USER = "admin"
 ADMIN_PASS = "paddlepal2026"

@@ -22,6 +22,8 @@ import { batchApi } from './routes/batch-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
+export { LiveDO } from './do/live';
+
 const app = new Hono<{ Bindings: Env }>();
 
 // Global middleware
@@ -100,6 +102,13 @@ app.route('/', batchApi);
 // 404 handler
 app.notFound((c) => {
   return c.json({ success: false, error: 'Not found' }, 404);
+});
+
+// WebSocket endpoint for live updates
+app.get('/ws/live', (c) => {
+  const id = c.env.LIVE.idFromName('global');
+  const stub = c.env.LIVE.get(id);
+  return stub.fetch(new Request('https://do/ws', { headers: c.req.raw.headers }));
 });
 
 export default app;

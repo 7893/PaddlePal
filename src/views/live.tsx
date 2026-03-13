@@ -177,9 +177,27 @@ function updatePlayingGrid(matches) {
   }).join('');
 }
 function forceRefresh() { fetchLive(); showStatus('已刷新', 'success'); }
-setInterval(fetchLive, 5000);
+
+// WebSocket for real-time updates, fallback to polling
+function connectWS() {
+  var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  var ws = new WebSocket(proto + '//' + location.host + '/ws/live');
+  ws.onopen = function() {
+    document.getElementById('liveIndicator').className = 'w-3 h-3 bg-red-500 rounded-full animate-pulse';
+  };
+  ws.onmessage = function() { fetchLive(); updateTime(); };
+  ws.onclose = function() {
+    document.getElementById('liveIndicator').className = 'w-3 h-3 bg-slate-300 rounded-full';
+    setTimeout(connectWS, 3000); // reconnect
+  };
+  ws.onerror = function() { ws.close(); };
+}
+
 fetchLive();
-window.addEventListener('online', function() { showStatus('已恢复连接', 'success'); fetchLive(); });
+connectWS();
+// Fallback polling (30s) in case WS misses an event
+setInterval(fetchLive, 30000);
+window.addEventListener('online', function() { showStatus('已恢复连接', 'success'); fetchLive(); connectWS(); });
 window.addEventListener('offline', function() { showStatus('网络已断开', 'error'); });
 `,
       }}
