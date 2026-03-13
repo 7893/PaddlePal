@@ -4,16 +4,16 @@ compatibility_date = "2026-02-17"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "paddlepal-db"
-database_id = "7c3145ac-c540-4492-8b2e-766c5805a44a"
+database_name = "paddlepal-d1"
+database_id = "e495c6a1-a0a5-45c8-ac0b-1ab6ba7cf6b3"
 
 [[r2_buckets]]
-bucket_name = "paddlepal-files"
+bucket_name = "paddlepal-r2"
 binding = "FILES"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "276b292c24ed4cccbbf12a1bc3d9a2f5"
+id = "736076b3f04e4cd89cbcb86e541c855e"
 
 [vars]
 ADMIN_USER = "admin"
