@@ -106,8 +106,8 @@ app.notFound((c) => {
 
 // WebSocket endpoint for live updates
 app.get('/ws/live', (c) => {
-  const id = c.env.LIVE.idFromName('global');
-  const stub = c.env.LIVE.get(id);
+  const id = c.env.PADDLEPAL_DO.idFromName('global');
+  const stub = c.env.PADDLEPAL_DO.get(id);
   return stub.fetch(new Request('https://do/ws', { headers: c.req.raw.headers }));
 });
 

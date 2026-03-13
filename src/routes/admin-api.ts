@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 
-type Bindings = { DB: D1Database; LIVE: DurableObjectNamespace };
+type Bindings = { DB: D1Database; PADDLEPAL_DO: DurableObjectNamespace };
 export const adminApi = new Hono<{ Bindings: Bindings }>();
 
 async function broadcast(env: Bindings, event: string, data: unknown) {
   try {
-    const id = env.LIVE.idFromName('global');
-    await env.LIVE.get(id).fetch(
+    const id = env.PADDLEPAL_DO.idFromName('global');
+    await env.PADDLEPAL_DO.get(id).fetch(
       new Request('https://do/broadcast', {
         method: 'POST',
         body: JSON.stringify({ event, data }),

@@ -16,7 +16,7 @@ binding = "SESSIONS"
 id = "736076b3f04e4cd89cbcb86e541c855e"
 
 [[durable_objects.bindings]]
-name = "LIVE"
+name = "PADDLEPAL_DO"
 class_name = "LiveDO"
 
 [[migrations]]
