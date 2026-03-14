@@ -21,7 +21,7 @@ class_name = "LiveDO"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["LiveDO"]
+new_sqlite_classes = ["LiveDO"]
 
 [vars]
 ADMIN_USER = "admin"
