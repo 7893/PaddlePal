@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 
-export class LiveDO extends DurableObject {
+export class DO extends DurableObject {
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
 

@@ -17,11 +17,15 @@ id = "736076b3f04e4cd89cbcb86e541c855e"
 
 [[durable_objects.bindings]]
 name = "PADDLEPAL_DO"
-class_name = "LiveDO"
+class_name = "DO"
 
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["LiveDO"]
+new_sqlite_classes = ["DO"]
+
+[[migrations]]
+tag = "v2"
+renamed_classes = [{from = "LiveDO", to = "DO"}]
 
 [vars]
 ADMIN_USER = "admin"

@@ -22,7 +22,7 @@ import { batchApi } from './routes/batch-api';
 import { pages } from './routes/pages';
 import { auth, requireAuth } from './routes/auth';
 
-export { LiveDO } from './do/live';
+export { DO } from './do/live';
 
 const app = new Hono<{ Bindings: Env }>();
 
