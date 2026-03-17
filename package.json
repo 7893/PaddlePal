@@ -5,7 +5,7 @@
   "description": "PaddlePal (拍档) - Table Tennis Tournament Management System",
   "engines": {
     "node": ">=24.0.0",
-    "npm": ">=11.0.0"
+    "pnpm": ">=10.0.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
