@@ -27,24 +27,24 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
+    "@cloudflare/workers-types": "^4.20260317.1",
     "@eslint/js": "^10.0.1",
     "@types/papaparse": "^5.5.2",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
-    "@vitest/coverage-v8": "^4.0.18",
-    "eslint": "^10.0.0",
+    "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.56.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
     "vitest": "^4.0.18",
-    "wrangler": "^4.65.0"
+    "wrangler": "^4.74.0"
   },
   "dependencies": {
-    "hono": "^4.12.4",
+    "hono": "^4.12.8",
     "papaparse": "^5.5.3"
   }
 }
