@@ -55,7 +55,7 @@
     }
   },
   "dependencies": {
-    "hono": "^4.12.8",
+    "hono": "^4.12.12",
     "papaparse": "^5.5.3"
   }
 }
