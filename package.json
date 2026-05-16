@@ -2,10 +2,10 @@
   "name": "paddlepal",
   "version": "1.0.0",
   "private": true,
-  "description": "PaddlePal (拍档) - Table Tennis Tournament Management System",
+  "description": "PaddlePal (\u62cd\u6863) - Table Tennis Tournament Management System",
   "engines": {
     "node": ">=24.0.0",
-    "pnpm": ">=10.0.0"
+    "pnpm": ">=11.0.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -58,5 +58,6 @@
   "dependencies": {
     "hono": "^4.12.16",
     "papaparse": "^5.5.3"
-  }
+  },
+  "packageManager": "pnpm@11.1.2"
 }
