@@ -61,7 +61,7 @@
     ]
   },
   "dependencies": {
-    "hono": "^4.12.16",
+    "hono": "^4.12.21",
     "papaparse": "^5.5.3"
   },
   "packageManager": "pnpm@11.1.2"
