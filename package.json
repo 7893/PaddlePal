@@ -4,8 +4,8 @@
   "private": true,
   "description": "PaddlePal (拍档) - Table Tennis Tournament Management System",
   "engines": {
-    "node": ">=22.0.0",
-    "pnpm": ">=11.0.0"
+    "node": ">=24.18.1",
+    "pnpm": ">=11.19.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -64,5 +64,5 @@
     "hono": "^4.12.32",
     "papaparse": "^5.5.4"
   },
-  "packageManager": "pnpm@11.1.2"
+  "packageManager": "pnpm@11.19.0"
 }
