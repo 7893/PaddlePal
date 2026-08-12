@@ -95,8 +95,14 @@ export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number
           .player { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; }
           .player:first-of-type { border-bottom: 1px solid rgba(255,255,255,0.1); }
           .player-name { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.01em; }
-          .player-score { font-size: 4rem; font-weight: 800; line-height: 1; }
+          .player-score { font-size: 5rem; font-weight: 800; line-height: 1; font-family: 'Inter', 'Roboto Mono', monospace; font-variant-numeric: tabular-nums; transition: color 0.3s ease; }
           .player.winning .player-score { color: #fbbf24; }
+          .player.match-point .player-score { color: #fca5a5; animation: matchPointPulse 1.5s infinite; text-shadow: 0 0 20px rgba(220,38,38,0.8); }
+          
+          @keyframes matchPointPulse {
+            0%, 100% { opacity: 1; color: #fca5a5; text-shadow: 0 0 20px rgba(220,38,38,0.8); transform: scale(1); }
+            50% { opacity: 0.85; color: #fff; text-shadow: 0 0 10px rgba(220,38,38,0.4); transform: scale(1.05); }
+          }
           
           .idle-content { text-align: center; padding: 50px 20px; }
           .idle-icon { font-size: 3rem; opacity: 0.3; margin-bottom: 15px; }
@@ -148,11 +154,11 @@ export const BigScreenPage: FC<{ title: string; matches: Match[]; tables: number
                 {m ? (
                   <>
                     <div class="event">{m.event}</div>
-                    <div class={`player ${p1Winning ? 'winning' : ''}`}>
+                    <div class={`player ${p1Winning ? 'winning' : ''} ${m.score1 >= 10 ? 'match-point' : ''}`}>
                       <span class="player-name">{m.p1}</span>
                       <span class="player-score">{m.score1}</span>
                     </div>
-                    <div class={`player ${p2Winning ? 'winning' : ''}`}>
+                    <div class={`player ${p2Winning ? 'winning' : ''} ${m.score2 >= 10 ? 'match-point' : ''}`}>
                       <span class="player-name">{m.p2}</span>
                       <span class="player-score">{m.score2}</span>
                     </div>

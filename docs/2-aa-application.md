@@ -171,3 +171,12 @@ PaddlePal 采用基于 CSS Variables 的语义化 Design Tokens 管理全局核�
 1. **去边框化与满版色块**：记分主视图（`src/views/score.tsx`）舍弃了所有的圆角边框和冗余 padding，两方选手加分按钮占据屏幕绝对主体面积。
 2. **全局悬浮撤销 (Floating Undo)**：按错分是高频场景。`撤销上一分` 按钮从复杂的控制区剥离，作为绝对定位元素悬浮在屏幕底部中央，裁判使用单手大拇指即可无痛触达。
 3. **触觉反馈 (Haptic)**：调用 `navigator.vibrate`，每次加分、撤销、或者输入校验错误时均提供不同的震动模式反馈。
+
+---
+
+## 九、 现场大屏投影视觉契约 (Scoreboard Projection UX)
+
+大屏端由于观看距离远（可能超过 30 米），具备与裁判端截然不同的界面渲染规则：
+1. **防止数字跳位 (Monospace / Tabular Nums)**：大屏必须采用等宽数字渲染 `font-variant-numeric: tabular-nums; font-family: monospace`。避免比分从 1 变 0 时，整个比分行发生由于宽度缩减导致的水平跳动闪烁。
+2. **局点/赛点呼吸灯 (Match Point Micro-Interactions)**：当比赛一方比分达到 10 分（乒乓球 11 分制），UI 层面上该方分数自动激活 `match-point` 样式，伴随 1.5s/次的红色阴影微缩放呼吸灯效果，向全场受众传达极强的情感张力。
+3. **沉浸式暗色底 (Immersive Dark Theme)**：背景使用深色渐变并增加暗纹，文字对比度极高，消除一切对观看球赛产生干扰的多余边框与按钮。
