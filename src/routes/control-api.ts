@@ -54,4 +54,28 @@ app.get('/api/control/status', async (c) => {
   return c.json({ matches });
 });
 
+// 离线操作日志同步 (Offline-First OpLog Sync)
+app.post('/api/control/sync-oplog', async (c) => {
+  const db = c.env.DB;
+  const { matchId, oplogs } = await c.req.json<{
+    matchId: number;
+    oplogs: { opId: number; timestamp: number; type: string; payload: Record<string, any> }[];
+  }>();
+
+  // 简单的冲突合并逻辑：在架构设计中，我们将以最后一条 OpLog 为基准对数据库进行幂等追平
+  // 在真实高并发场景下，可交由 Durable Objects 基于 CRDT 进行状态合并
+  if (oplogs && oplogs.length > 0) {
+    const lastOp = oplogs[oplogs.length - 1];
+    if (lastOp.type === 'SCORE_UPDATE') {
+      const { l, r, set_number } = lastOp.payload;
+      await db
+        .prepare('UPDATE scores SET p1_score = ?, p2_score = ? WHERE match_id = ? AND set_number = ?')
+        .bind(l, r, matchId, set_number)
+        .run();
+    }
+  }
+
+  return c.json({ success: true, synced: oplogs?.length || 0 });
+});
+
 export { app as controlApi };

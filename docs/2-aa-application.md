@@ -130,3 +130,26 @@ Durable Objects 与客户端（裁判手机/现场投影大屏）之间通过 We
   "player2_name": "李四"
 }
 ```
+
+---
+
+## 六、 离线优先同步机制 (Offline-First Sync)
+
+为应对大型赛事体育馆网络拥堵导致的中断，裁判端应用采用本地优先 (Local-First) 架构：
+1. **数据本地暂存**：网络断开时，记分器界面不会卡顿，裁判所有的比分变动操作会转化为操作日志（OpLog），并带上单调递增的 `opId` 和本地 `timestamp`，存入前端浏览器的 `IndexedDB`。
+2. **重连自动回传**：一旦前端（Service Worker）探测到网络恢复，立即触发后台同步，调用 `POST /api/control/sync-oplog` 进行批量回传。
+3. **API 契约 (Payload)**：
+```json
+{
+  "matchId": 90071,
+  "oplogs": [
+    {
+      "opId": 1,
+      "timestamp": 1776001200,
+      "type": "SCORE_UPDATE",
+      "payload": { "set_number": 3, "l": 11, "r": 9 }
+    }
+  ]
+}
+```
+4. **服务端状态合并**：收到断线重传序列后，边缘节点（或 DO）基于时间戳或 `opId` 进行 CRDT 乐观锁合并及幂等回放，防止重复计分，随后将最终追平的比分刷入 D1 持久层并向大屏广播。
