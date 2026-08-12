@@ -54,6 +54,7 @@ Based on [ITTF Handbook for Match Officials](https://www.ittf.com):
 | 确认/锁定成绩 | ✓ | ○ | ✗ | ✗ | ✗ | ✗ |
 | 录入分配的场次比分 | ✓ | ○ | ✓ | ✗ | ✓ | ✗ |
 | 查看比赛进度/统计 | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
+| 查看实时比分/成绩 | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
 | 查看实时比分/成绩 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 *Legend: ✓ Permitted &nbsp;&nbsp; ✗ Denied &nbsp;&nbsp; ○ Inherited from Referee when on duty*
@@ -89,6 +90,34 @@ Based on [ITTF Handbook for Match Officials](https://www.ittf.com):
 1. 裁判员录入比分完成 ➔ 状态置为 `finished`。
 2. 裁判长复核确认 ➔ 状态置为 `confirmed`（锁定状态）。
 3. 锁定后仅裁判长有权解锁进行修正。
+
+---
+
+### 1.6 循环赛积分与同分计算规则 (Tie-Breaking Rules)
+
+依据国际乒联（ITTF）竞赛规则及 SSZS 业务逻辑：
+
+1. **基本积分分配**：
+   - 胜 1 场得 2 分；
+   - 负 1 场（正常完成）得 1 分；
+   - 弃权/未完成比赛得 0 分。
+2. **同分排名判定顺序 (Tie-Breaking Priority)**：
+   - **两名选手积分相同**：以两名选手相互之间比赛的胜负关系判定，胜者名次在前。
+   - **三名及以上选手积分相同**：
+     1. 计算同分选手**相互之间比赛**的积分；
+     2. 若仍相同，计算同分选手相互之间比赛的**胜负局比率 (Sets Ratio)**：`总胜局数 / 总负局数`；
+     3. 若局率仍相同，计算同分选手相互之间比赛的**胜负分比率 (Points Ratio)**：`总得分数 / 总失分数`；
+     4. 若分率仍相同，由裁判长抽签或计算全组所有比赛的局率/分率判定。
+
+---
+
+### 1.7 异常赛事处理流程 (Exceptions & Appeals)
+
+1. **退赛 (Retirement)**：比赛中因伤病等原因不能继续比赛者，已完成的局分有效，未完成的局分及后续场次记为对手胜。
+2. **弃权 (Default)**：无故未到场或拒绝比赛者，该场次积 0 分，比分按 0:11（单打每局）记入。
+3. **现场申诉与解锁修正 (Appeal & Correction)**：
+   - 对判罚或比分存在争议时，裁判长可临时将该场次状态从 `confirmed` 置回 `in_progress`。
+   - 修正完成后由裁判长重新确认并再次锁定。
 
 ---
 
@@ -167,27 +196,139 @@ src/
 
 ---
 
+### 2.3 WebSocket 实时消息协议格式 (WebSocket Payloads)
+
+Durable Objects 与客户端（裁判手机/现场投影大屏）之间通过 WebSocket 进行实时双向通讯：
+
+#### 1. 比分实时更新事件 (`SCORE_UPDATE`)
+```json
+{
+  "event": "SCORE_UPDATE",
+  "match_id": 90071,
+  "table_no": 1,
+  "status": "in_progress",
+  "current_set": 3,
+  "scores": [[11, 9], [11, 8], [9, 11]],
+  "p1_games": 2,
+  "p2_games": 1,
+  "timestamp": 1776001200
+}
+```
+
+#### 2. 球台分配/状态变更事件 (`TABLE_STATUS_CHANGE`)
+```json
+{
+  "event": "TABLE_STATUS_CHANGE",
+  "table_no": 3,
+  "match_id": 90072,
+  "status": "calling",
+  "player1_name": "张三",
+  "player2_name": "李四"
+}
+```
+
+---
+
 ## 第三章：数据架构 (Data Architecture, DA)
 
-### 3.1 Cloudflare D1 数据库设计 (D1 SQLite Schema)
+### 3.1 Cloudflare D1 全表字段级数据字典 (Data Dictionary)
 
-系统核心存储采用 **Cloudflare D1 (SQLite)**，表结构详见 `sql/schema.sql`，共包含 13 张核心业务表：
+系统存储采用 **Cloudflare D1 (SQLite)**，表结构由 `sql/schema.sql` 定义，包含 13 张表的完整字段定义：
 
-| 表名 (Table) | 描述 (Description) | 关键字段 (Key Columns) |
-| :--- | :--- | :--- |
-| `tournaments` | 赛事表 | `id`, `name`, `venue`, `start_date`, `end_date`, `tables_count` |
-| `events` | 比赛项目表 | `id`, `tournament_id`, `title`, `event_type`, `best_of`, `stage` |
-| `teams` | 队伍表 | `id`, `tournament_id`, `name`, `flag_url` |
-| `players` | 选手表 | `id`, `tournament_id`, `team_id`, `name`, `gender`, `rating` |
-| `matches` | 比赛场次表 | `id`, `event_id`, `stage`, `round`, `table_no`, `status`, `winner_id` |
-| `scores` | 详细局分记录表 | `id`, `match_id`, `set_number`, `p1_score`, `p2_score` |
-| `group_tables` | 循环赛分组表 | `id`, `event_id`, `group_name` |
-| `group_entries` | 分组成绩积分表 | `id`, `group_id`, `player_id`, `played`, `wins`, `losses`, `pts` |
-| `brackets` | 淘汰赛树状图表 | `id`, `event_id`, `round`, `position`, `player1_id`, `player2_id` |
-| `draws` | 抽签历史记录表 | `id`, `event_id`, `draw_type`, `created_at` |
-| `notices` | 赛事公告通知表 | `id`, `tournament_id`, `title`, `content`, `published_at` |
-| `referees` | 裁判人员信息表 | `id`, `username`, `password_hash`, `name`, `role` |
-| `ratings` | 积分变动历史表 | `id`, `player_id`, `match_id`, `old_rating`, `new_rating` |
+#### 1. `tournaments` (赛事表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 赛事 ID
+- `name` (TEXT NOT NULL) - 赛事名称
+- `venue` (TEXT NOT NULL) - 比赛地点
+- `start_date` (TEXT NOT NULL) - 开始日期
+- `end_date` (TEXT NOT NULL) - 结束日期
+- `tables_count` (INTEGER DEFAULT 6) - 球台数量
+
+#### 2. `events` (比赛项目表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 项目 ID
+- `tournament_id` (INTEGER FOREIGN KEY -> tournaments.id) - 所属赛事
+- `title` (TEXT NOT NULL) - 项目标题（如“男子单打”）
+- `event_type` (TEXT CHECK(event_type IN ('singles', 'doubles', 'team'))) - 项目类型
+- `best_of` (INTEGER DEFAULT 5) - 赛制局数（3局2胜 / 5局3胜 / 7局4胜）
+- `stage` (TEXT DEFAULT 'group') - 当前阶段 (`group` / `knockout`)
+
+#### 3. `teams` (队伍表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 队伍 ID
+- `tournament_id` (INTEGER FOREIGN KEY -> tournaments.id) - 所属赛事
+- `name` (TEXT NOT NULL) - 队伍/单位名称
+- `flag_url` (TEXT) - 队旗 R2 图片 URL
+
+#### 4. `players` (选手表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 选手 ID
+- `tournament_id` (INTEGER FOREIGN KEY -> tournaments.id) - 所属赛事
+- `team_id` (INTEGER FOREIGN KEY -> teams.id) - 所属队伍
+- `name` (TEXT NOT NULL) - 选手姓名
+- `gender` (TEXT CHECK(gender IN ('M', 'F'))) - 性别
+- `rating` (INTEGER DEFAULT 1200) - 初始积分
+
+#### 5. `matches` (比赛场次表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 场次 ID
+- `event_id` (INTEGER FOREIGN KEY -> events.id) - 所属项目
+- `stage` (TEXT NOT NULL) - 比赛阶段 (`group` / `knockout`)
+- `round` (INTEGER NOT NULL) - 轮次
+- `table_no` (INTEGER) - 分配球台号
+- `status` (TEXT CHECK(status IN ('pending', 'calling', 'in_progress', 'finished', 'confirmed'))) - 场次状态
+- `winner_id` (INTEGER FOREIGN KEY -> players.id) - 获胜选手 ID
+
+#### 6. `scores` (详细局分记录表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 记录 ID
+- `match_id` (INTEGER FOREIGN KEY -> matches.id) - 所属场次
+- `set_number` (INTEGER NOT NULL) - 局次 (1-7)
+- `p1_score` (INTEGER NOT NULL) - 选手1得分
+- `p2_score` (INTEGER NOT NULL) - 选手2得分
+
+#### 7. `group_tables` (循环赛分组表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 分组 ID
+- `event_id` (INTEGER FOREIGN KEY -> events.id) - 所属项目
+- `group_name` (TEXT NOT NULL) - 组名 (如 "A", "B")
+
+#### 8. `group_entries` (分组成绩积分表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 记录 ID
+- `group_id` (INTEGER FOREIGN KEY -> group_tables.id) - 所属分组
+- `player_id` (INTEGER FOREIGN KEY -> players.id) - 所属选手
+- `played` (INTEGER DEFAULT 0) - 已赛场次
+- `wins` (INTEGER DEFAULT 0) - 胜场数
+- `losses` (INTEGER DEFAULT 0) - 负场数
+- `pts` (INTEGER DEFAULT 0) - 总积分
+
+#### 9. `brackets` (淘汰赛对阵图表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 节点 ID
+- `event_id` (INTEGER FOREIGN KEY -> events.id) - 所属项目
+- `round` (INTEGER NOT NULL) - 轮次
+- `position` (INTEGER NOT NULL) - 位置编号
+- `player1_id` (INTEGER FOREIGN KEY -> players.id) - 上方选手
+- `player2_id` (INTEGER FOREIGN KEY -> players.id) - 下方选手
+
+#### 10. `draws` (抽签历史记录表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 抽签 ID
+- `event_id` (INTEGER FOREIGN KEY -> events.id) - 所属项目
+- `draw_type` (TEXT NOT NULL) - 抽签类型 (`random` / `seeded`)
+- `created_at` (DATETIME DEFAULT CURRENT_TIMESTAMP) - 抽签时间
+
+#### 11. `notices` (赛事公告通知表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 公告 ID
+- `tournament_id` (INTEGER FOREIGN KEY -> tournaments.id) - 所属赛事
+- `title` (TEXT NOT NULL) - 公告标题
+- `content` (TEXT NOT NULL) - 公告内容
+- `published_at` (DATETIME DEFAULT CURRENT_TIMESTAMP) - 发布时间
+
+#### 12. `referees` (裁判人员信息表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 账号 ID
+- `username` (TEXT UNIQUE NOT NULL) - 登录用户名
+- `password_hash` (TEXT NOT NULL) - 密码哈希
+- `name` (TEXT NOT NULL) - 真实姓名
+- `role` (TEXT CHECK(role IN ('referee', 'deputy_referee', 'scheduler', 'recorder', 'umpire'))) - 赋予角色
+
+#### 13. `ratings` (积分变动历史表)
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT) - 变动 ID
+- `player_id` (INTEGER FOREIGN KEY -> players.id) - 所属选手
+- `match_id` (INTEGER FOREIGN KEY -> matches.id) - 关联场次
+- `old_rating` (INTEGER NOT NULL) - 变前积分
+- `new_rating` (INTEGER NOT NULL) - 变后积分
 
 ---
 
@@ -260,6 +401,15 @@ bindings = [{ name = "DO", class_name = "DO" }]
 
 ---
 
+### 4.3 边缘计算性能与 SLA 限制指标 (Performance & SLA)
+
+- **接口响应延迟 (Edge Latency)**：P95 目标响应时间 < 50ms（利用 Cloudflare 全球边缘节点覆盖）。
+- **实时广播延迟 (WebSocket SLA)**：比分录入到大屏渲染延迟 < 100ms。
+- **Worker 执行限制**：单次 HTTP 请求 CPU 时间限制为 50ms（默认标准，可启用 Fluid Compute 动态调整）。
+- **D1 读写优化**：在高频大屏查询路由（`/api/live`）中对 `matches` 表增加 `(status, table_no)` 复合索引，消除全表扫描。
+
+---
+
 ## 第五章：安全架构 (Security Architecture, SA)
 
 ### 5.1 身份认证与 Session 防护
@@ -276,3 +426,7 @@ bindings = [{ name = "DO", class_name = "DO" }]
 ### 5.3 生产环境安全与 WAF
 - 防爆刷与速率限制：结合 Cloudflare WAF / Rate Limiting 规则防止恶意 API 攻击。
 - TypeScript 全量类型安全：代码库禁止 `any` 与隐式转换，防止注入与漏洞。
+
+### 5.4 现场比分录入幂等性防护 (Idempotency)
+- 体育馆网络可能存在抖动重试，裁判手机提交比分请求时附带客户端生成的自增序号或事务 Key。
+- 服务端校验防止同一局比分因弱网重试而被重复加分。
