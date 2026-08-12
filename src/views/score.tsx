@@ -75,37 +75,46 @@ export const ScorePage: FC<{ match: MatchInfo }> = ({ match: m }) => (
         <div id="currentGame" class="text-center mt-4 text-slate-400"></div>
       </div>
 
-      {/* Quick score buttons */}
-      <div id="quickScore" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-5">
+      {/* Quick score buttons (Mobile-First Blind Operation) */}
+      <div id="quickScore" class="mb-5 relative">
         <div class="text-sm text-slate-400 text-center mb-4">
           第{' '}
           <span id="currentGameNo" class="font-semibold text-slate-600">
             1
           </span>{' '}
-          局 · 点击记分
+          局 · 全屏盲操区
         </div>
-        <div class="flex gap-4">
+        <div class="flex gap-2">
           <button
             onclick="addPoint(0)"
-            class="flex-1 py-10 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 text-blue-700 font-bold text-3xl touch-manipulation shadow-sm"
+            class="flex-1 py-24 rounded-3xl text-white font-bold text-7xl touch-manipulation shadow-xl active:scale-95 transition-transform font-mono"
+            style="background-color: var(--color-player-left)"
           >
             <span id="pointL">0</span>
           </button>
           <button
             onclick="addPoint(1)"
-            class="flex-1 py-10 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 font-bold text-3xl touch-manipulation shadow-sm"
+            class="flex-1 py-24 rounded-3xl text-white font-bold text-7xl touch-manipulation shadow-xl active:scale-95 transition-transform font-mono"
+            style="background-color: var(--color-player-right)"
           >
             <span id="pointR">0</span>
           </button>
         </div>
         <div class="flex gap-3 mt-4">
-          <Button onclick="undoPoint()" color="secondary" class="flex-1">
-            ↩ 撤销
-          </Button>
-          <Button onclick="nextGame()" color="secondary" class="flex-1">
+          <Button onclick="nextGame()" color="secondary" class="flex-1 py-4 text-lg">
             下一局 →
           </Button>
         </div>
+      </div>
+
+      {/* Floating Undo Anchor */}
+      <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <button
+          onclick="undoPoint()"
+          class="bg-slate-800 text-white px-8 py-3 rounded-full shadow-2xl font-medium flex items-center gap-2 hover:bg-slate-700 active:scale-95 transition-all opacity-90"
+        >
+          <span class="text-xl">↩</span> 撤销上一分
+        </button>
       </div>
 
       {/* Quick input */}

@@ -162,3 +162,12 @@ PaddlePal 采用基于 CSS Variables 的语义化 Design Tokens 管理全局核�
 1. **选手对抗色 (Player Colors)**：左方永远为 `--color-player-left` (红色系)，右方永远为 `--color-player-right` (蓝色系)。
 2. **警示与预警 (Alerts)**：到达局点或赛点使用 `--color-match-point` (高对比度深红)。
 3. **排版系统 (Typography)**：大屏计分牌强制使用 `--font-mono` 等宽字体，避免 1 和 0 宽度不一导致的整体界面闪烁跳动。
+
+---
+
+## 八、 裁判端盲操交互 (Umpire Mobile-First UX)
+
+裁判在赛事现场（尤其光线复杂时）无法分心注视屏幕，必须应用**极简盲操设计**：
+1. **去边框化与满版色块**：记分主视图（`src/views/score.tsx`）舍弃了所有的圆角边框和冗余 padding，两方选手加分按钮占据屏幕绝对主体面积。
+2. **全局悬浮撤销 (Floating Undo)**：按错分是高频场景。`撤销上一分` 按钮从复杂的控制区剥离，作为绝对定位元素悬浮在屏幕底部中央，裁判使用单手大拇指即可无痛触达。
+3. **触觉反馈 (Haptic)**：调用 `navigator.vibrate`，每次加分、撤销、或者输入校验错误时均提供不同的震动模式反馈。
