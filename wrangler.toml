@@ -19,6 +19,15 @@ id = "736076b3f04e4cd89cbcb86e541c855e"
 name = "PADDLEPAL_DO"
 class_name = "DO"
 
+[[queues.producers]]
+binding = "QUEUE"
+queue = "paddlepal-heavy-tasks"
+
+[[queues.consumers]]
+queue = "paddlepal-heavy-tasks"
+max_batch_size = 10
+max_batch_timeout = 5
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["DO"]

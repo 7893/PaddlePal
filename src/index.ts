@@ -114,4 +114,12 @@ export default {
     }
     return app.fetch(req, env, ctx);
   },
+  async queue(batch: MessageBatch<any>) {
+    for (const msg of batch.messages) {
+      // Implementation for heavy compute like complex ratings/draws goes here
+      if (msg.body) {
+        // process
+      }
+    }
+  },
 } satisfies ExportedHandler<Env>;

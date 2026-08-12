@@ -95,6 +95,7 @@ export interface Env {
   FILES: R2Bucket;
   SESSIONS: KVNamespace;
   PADDLEPAL_DO: DurableObjectNamespace;
+  QUEUE: Queue;
   ADMIN_USER: string;
   ADMIN_PASS: string;
 }

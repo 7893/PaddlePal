@@ -39,6 +39,15 @@ bucket_name = "paddlepal-files"
 
 [durable_objects]
 bindings = [{ name = "DO", class_name = "DO" }]
+
+[[queues.producers]]
+binding = "QUEUE"
+queue = "paddlepal-heavy-tasks"
+
+[[queues.consumers]]
+queue = "paddlepal-heavy-tasks"
+max_batch_size = 10
+max_batch_timeout = 5
 ```
 
 ---
@@ -47,7 +56,7 @@ bindings = [{ name = "DO", class_name = "DO" }]
 
 1. **接口响应延迟 (Edge Latency)**：P95 目标响应时间 < 50ms（利用 Cloudflare 全球边缘节点覆盖）。
 2. **实时广播延迟 (WebSocket SLA)**：比分录入到大屏渲染延迟 < 100ms。
-3. **Worker 执行限制**：单次 HTTP 请求 CPU 时间限制为 50ms（默认标准，可启用 Fluid Compute 动态调整）。
+3. **Worker 执行限制与队列解耦**：单次 HTTP 请求 CPU 时间限制为 50ms。对于大规模复杂赛制（如百人级多重循环赛积分重算与排名生成），将重型计算任务从 HTTP 线程剥离，通过 **Cloudflare Queues** 进行后台异步计算，突破 50ms 算力红线。
 4. **D1 读写限制优化**：在高频大屏查询路由（`/api/live`）中增加复合索引，保证即使在 100 个球台并发时仍不超限。
 
 ---
@@ -69,6 +78,17 @@ flowchart LR
     Push[Git Push / PR] --> Setup[Node 24 + pnpm 11]
     Setup --> TypeCheck[npx tsc --noEmit]
     TypeCheck --> Lint[npx eslint src]
-    Lint --> Test[npx vitest run]
+    Lint --> Test[npm run test:coverage]
     Test --> Deploy[wrangler deploy Cloudflare Workers]
 ```
+
+---
+
+## 六、 测试策略与工程保障 (Testing Strategy & Coverage)
+
+项目采用 `Vitest` 构建高覆盖率的工程测试基座：
+1. **核心算法测试 (Unit Tests)**：业务核心逻辑（如 `scoring.ts`、`validate.ts`、`utils.ts`）剥离了所有外部依赖，进行纯粹的单元测试，确保比分计算、赛制流转与异常处理逻辑（代码覆盖率 > 90%）绝对准确。
+2. **API 路由集成测试 (Integration Tests)**：针对 `src/routes/` 目录下的全量接口（如 `public-api.ts`、`util-api.ts`），采用以下架构进行高速集成测试：
+   - **原生 Hono 调用**：利用 Hono 自带的 `.request()` 方法，在内存中模拟发起 HTTP 请求，无需占用实际网络端口，执行速度极快。
+   - **底层 D1 数据库 Mock (打桩)**：通过 `vitest` 的 `vi.fn()` 拦截并模拟底层 Cloudflare D1 数据库 ( `env.DB.prepare` ) 的 SQL 返回值，使测试用例完全脱离对真实数据库的依赖，保证测试的纯粹性与稳定性（不会产生脏数据）。
+3. **覆盖率度量与门禁**：通过 `npm run test:coverage` 输出全局代码行级、分支级覆盖率报告，配合 GitHub Actions 形成闭环质量防护网。

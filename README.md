@@ -1,6 +1,12 @@
 # 🏓 拍档 PaddlePal
 
-轻量级乒乓球赛事管理系统，基于 Cloudflare Workers 构建。
+[![Deploy to Cloudflare Workers](https://img.shields.io/badge/Deploy-Cloudflare%20Workers-F38020?style=for-the-badge&logo=cloudflare)](https://paddlepal.53.workers.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Hono](https://img.shields.io/badge/Hono-4.12.34-E36002?style=for-the-badge)](https://hono.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24.18.1-339933?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-%3E%3D11.19.0-F69220?style=for-the-badge&logo=pnpm)](https://pnpm.io/)
+
+轻量级乒乓球赛事管理系统，基于 Cloudflare Workers 构建，提供极速响应和实时比分同步体验。
 
 **在线体验**: https://paddlepal.53.workers.dev
 
@@ -15,6 +21,41 @@
 - 📓 [**5. 安全架构 (Security Architecture, SA)**](docs/5-sa-security.md) — Session 认证、RBAC 越权防护、WAF/DDoS 防护、比分录入幂等性与审计日志
 - 🛠️ [**运维部署与灾备恢复手册 (Operations Manual)**](docs/ops.md) — 本地开发、环境部署、数据库初始化与比赛现场 Checkpoint 恢复
 - 📝 [**项目演进与架构决策日志 (Work Notes & ADR)**](docs/notes.md) — 演进历史、重构记录与架构决策日志
+
+---
+
+## 🏗 架构与数据流 (Architecture & Data Flow)
+
+```mermaid
+graph TD
+    %% Client Roles
+    Public[👤 公众用户/观众]
+    Umpire[👮‍♂️ 裁判员/工作人员]
+    
+    %% Edge Network
+    subgraph Cloudflare Edge [🌩️ Cloudflare Edge Network]
+        Worker[⚙️ Workers (Hono Router + JSX UI)]
+        
+        %% State & Storage
+        DO[(⚡ Durable Objects\n实时 WebSocket)]
+        KV[(🔑 KV\nSession & Auth)]
+        D1[(💾 D1 SQLite\n核心业务数据)]
+        R2[(🖼️ R2\n静态资产 & 图片)]
+    end
+    
+    %% Connections
+    Public -. 实时订阅大屏比分 (WSS) .-> DO
+    Public -- 浏览签表/成绩 (HTTPS GET) --> Worker
+    Umpire -- 录入现场比分 (HTTPS POST) --> Worker
+    
+    Worker -- 触发比分更新广播 --> DO
+    Worker -- JWT鉴权/限流/Session --> KV
+    Worker -- 强一致性事务读取/持久化 --> D1
+    Worker -- 读写头像/队旗文件 --> R2
+    
+    classDef cf fill:#f48120,stroke:#fff,stroke-width:2px,color:#fff;
+    class Worker,DO,KV,D1,R2 cf;
+```
 
 ---
 
