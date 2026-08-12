@@ -24,11 +24,18 @@ export const Layout: FC<{ title: string; children: Child }> = ({ title, children
       <style
         dangerouslySetInnerHTML={{
           __html: `
+        :root {
+          --color-player-left: #ef4444;
+          --color-player-right: #3b82f6;
+          --color-match-point: #dc2626;
+          --font-mono: 'Inter', 'Roboto Mono', monospace;
+        }
         body { font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         .card-hover { transition: all .2s ease; }
         .card-hover:hover { transform: translateY(-2px); box-shadow: 0 20px 40px -12px rgba(0,0,0,.1); }
+        .font-mono { font-family: var(--font-mono); }
       `,
         }}
       />

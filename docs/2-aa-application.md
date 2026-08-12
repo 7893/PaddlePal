@@ -153,3 +153,12 @@ Durable Objects 与客户端（裁判手机/现场投影大屏）之间通过 We
 }
 ```
 4. **服务端状态合并**：收到断线重传序列后，边缘节点（或 DO）基于时间戳或 `opId` 进行 CRDT 乐观锁合并及幂等回放，防止重复计分，随后将最终追平的比分刷入 D1 持久层并向大屏广播。
+
+---
+
+## 七、 全局设计规范 (Design Tokens)
+
+PaddlePal 采用基于 CSS Variables 的语义化 Design Tokens 管理全局核心资产，避免硬编码色值：
+1. **选手对抗色 (Player Colors)**：左方永远为 `--color-player-left` (红色系)，右方永远为 `--color-player-right` (蓝色系)。
+2. **警示与预警 (Alerts)**：到达局点或赛点使用 `--color-match-point` (高对比度深红)。
+3. **排版系统 (Typography)**：大屏计分牌强制使用 `--font-mono` 等宽字体，避免 1 和 0 宽度不一导致的整体界面闪烁跳动。
