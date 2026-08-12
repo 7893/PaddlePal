@@ -50,23 +50,18 @@
 ```
 src/
 ├── index.ts          # 应用入口
-├── middleware.ts     # 认证中间件
+├── middleware.ts     # 认证与 RBAC 中间件
 ├── scoring.ts        # 比分计算
 ├── types.ts          # 类型定义
 ├── utils.ts          # 工具函数
 ├── validate.ts       # 数据验证
 ├── components/       # UI 组件
-│   ├── layout.tsx    # 布局组件
-│   └── match.tsx     # 比赛组件
-├── routes/           # API 路由
-│   ├── pages.tsx     # 页面路由
-│   ├── admin-api.ts  # 管理 API
-│   ├── draw-api.ts   # 抽签 API
-│   └── ...
+├── routes/           # RESTful API & 页面路由
 └── views/            # 页面视图
-    ├── home.tsx
-    ├── live.tsx
-    └── ...
+docs/
+├── architecture.md   # 5A 综合架构设计蓝图 (BA/AA/DA/TA/SA)
+├── ops.md            # 运维部署与灾备恢复手册
+└── notes.md          # 演进日志与架构决策 (ADR)
 sql/
 ├── schema.sql        # 数据库结构
 └── seed.sql          # 测试数据
