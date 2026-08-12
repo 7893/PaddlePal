@@ -2,11 +2,22 @@
   "name": "paddlepal",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "PaddlePal (拍档) - Table Tennis Tournament Management System",
   "engines": {
     "node": ">=24.18.1",
     "pnpm": ">=11.19.0"
   },
+  "overrides": {
+    "picomatch": ">=4.0.4",
+    "brace-expansion": ">=5.0.5",
+    "yaml": ">=2.8.3"
+  },
+  "onlyBuiltDependencies": [
+    "esbuild",
+    "sharp",
+    "workerd"
+  ],
   "lint-staged": {
     "*.{ts,tsx}": [
       "prettier --write",
@@ -47,18 +58,6 @@
     "vite": "^8.1.5",
     "vitest": "^4.1.10",
     "wrangler": "^4.115.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "picomatch": ">=4.0.4",
-      "brace-expansion": ">=5.0.5",
-      "yaml": ">=2.8.3"
-    },
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp",
-      "workerd"
-    ]
   },
   "dependencies": {
     "hono": "^4.12.32",
