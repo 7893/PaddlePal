@@ -6,12 +6,24 @@ describe('Public API Routes', () => {
     prepare: vi.fn(),
   };
 
+  const mockKv = {
+    get: vi.fn(),
+    put: vi.fn(),
+  };
+
   const env = {
     DB: mockDb as any,
+    SESSIONS: mockKv as any,
+  };
+
+  const ctx = {
+    waitUntil: vi.fn(),
+    passThroughOnException: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockKv.get.mockResolvedValue(null);
   });
 
   it('GET /rawinfo should return tournament info', async () => {
@@ -42,7 +54,7 @@ describe('Public API Routes', () => {
       return { first: async () => null, all: async () => ({ results: [] }) };
     });
 
-    const res = await publicApi.request('/rawinfo', {}, env);
+    const res = await publicApi.request('/rawinfo', {}, env, ctx as any);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.info).toBe('Test Tourney');
@@ -64,7 +76,7 @@ describe('Public API Routes', () => {
       return { all: async () => ({ results: [] }) };
     });
 
-    const res = await publicApi.request('/notice', {}, env);
+    const res = await publicApi.request('/notice', {}, env, ctx as any);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.notices).toHaveLength(1);
@@ -83,7 +95,7 @@ describe('Public API Routes', () => {
       return { all: async () => ({ results: [] }) };
     });
 
-    const res = await publicApi.request('/toplay', {}, env);
+    const res = await publicApi.request('/toplay', {}, env, ctx as any);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.array).toHaveLength(1);

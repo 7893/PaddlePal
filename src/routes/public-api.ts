@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 
-type Bindings = { DB: D1Database };
+type Bindings = { DB: D1Database; SESSIONS: KVNamespace };
 export const publicApi = new Hono<{ Bindings: Bindings }>();
 
 async function getScores(db: D1Database, matchId: number) {
@@ -13,6 +13,12 @@ async function getScores(db: D1Database, matchId: number) {
 
 // GET /rawinfo
 publicApi.get('/rawinfo', async (c) => {
+  const CACHE_KEY = 'cache:rawinfo';
+  const cached = await c.env.SESSIONS.get(CACHE_KEY);
+  if (cached) {
+    return c.json(JSON.parse(cached));
+  }
+
   const db = c.env.DB;
   const t = await db
     .prepare(
@@ -56,14 +62,19 @@ publicApi.get('/rawinfo', async (c) => {
       progress: plays > 0 ? `${Math.floor((finish * 100) / plays)}%` : '0%',
     };
   });
-  return c.json({
+
+  const responseData = {
     info: t?.info ?? '',
     addr: t?.addr ?? '',
     tables: t?.tables ?? 8,
     date: t?.date ?? '',
     days: t?.days ?? 1,
     match,
-  });
+  };
+
+  c.executionCtx.waitUntil(c.env.SESSIONS.put(CACHE_KEY, JSON.stringify(responseData), { expirationTtl: 5 }));
+
+  return c.json(responseData);
 });
 
 // GET /playing
@@ -93,6 +104,12 @@ publicApi.get('/playing', async (c) => {
 
 // GET /toplay
 publicApi.get('/toplay', async (c) => {
+  const CACHE_KEY = 'cache:toplay';
+  const cached = await c.env.SESSIONS.get(CACHE_KEY);
+  if (cached) {
+    return c.json(JSON.parse(cached));
+  }
+
   const { results } = await c.env.DB.prepare(
     `
     SELECT m.id, m.table_no as tb, m.time as tm, e.key as gp, e.event_type as ev,
@@ -105,7 +122,11 @@ publicApi.get('/toplay', async (c) => {
     WHERE m.status='scheduled' ORDER BY m.time, m.table_no LIMIT 20
   `
   ).all();
-  return c.json({ array: results });
+
+  const responseData = { array: results };
+  c.executionCtx.waitUntil(c.env.SESSIONS.put(CACHE_KEY, JSON.stringify(responseData), { expirationTtl: 5 }));
+
+  return c.json(responseData);
 });
 
 // GET /notice

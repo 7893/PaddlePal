@@ -122,10 +122,14 @@
 
 ---
 
-## 四、 Cloudflare KV 会话与缓存设计 (KV Store)
+## 四、 Cloudflare KV 会话与高频缓存设计 (KV Store)
 
 - **绑定标识**：`env.SESSIONS`
-- **会话 Session 缓存格式**：
+- **设计定位 (Warm State)**：作为高并发请求的读缓存层，挡在 D1 数据库之前，防止大屏高频轮询击穿数据库。
+- **缓存策略**：
+  - 高频接口（如 `/rawinfo`, `/toplay`）优先读取 KV 缓存。
+  - 缓存未命中时查询 D1，并通过 `c.executionCtx.waitUntil()` 异步回写 KV，TTL 过期时间设置为 5 秒（实现毫秒级响应并严格限制 D1 QPS 最大为 0.2）。
+- **会话 Session 数据格式**：
   - Key: `session:{session_id}`
   - Value (JSON): `{ "userId": 1, "username": "admin", "role": "referee", "expiresAt": 1776000000 }`
   - TTL 过期时间：默认 24 小时自动清理。
@@ -146,6 +150,10 @@
 
 - **绑定标识**：`env.DO`
 - **类名**：`DO`
+- **设计定位 (Hot State)**：作为极速内存层与锁控制器，独占管理单场比赛的实时比分与现场裁判操作。
 - **内存数据模型**：
-  - `activeMatches`: `Map<tableNo, MatchState>` (当前球台锁与分数值)。
-  - `connectedClients`: `Set<WebSocket>` (保持连接的大屏与裁判客户端列表)。
+  - 比赛期间的比分累加仅在 DO 内存中计算，并实时通过 WebSocket 广播给现场大屏（0 DB IO，毫秒延迟）。
+  - 当单局/全场比赛结束时，再由 DO 发起 D1 的批量事务落盘（持久化为 Cold State）。
+  - 内部维持的状态包含：
+    - `activeMatches`: `Map<tableNo, MatchState>` (当前球台锁与分数值)。
+    - `connectedClients`: `Set<WebSocket>` (保持连接的大屏与裁判客户端列表)。
